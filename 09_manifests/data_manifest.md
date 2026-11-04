@@ -106,6 +106,85 @@ MASCAM較正済み画像(Descent + MP_1b〜MP_3b、VIC形式+PDS4ラベル)。
 
 ※JAXAのはやぶさ2探査機本体の公式3Dモデルは2026-11時点で公開されていないため、公開資料から構築した非公式簡易モデルとして収録。
 
+## 追加データ一覧に基づく追加収集(2026-11-04 第2弾)
+
+`09_manifests/追加データ一覧.xlsx` の要件(P0/P1)に基づき追加収集したもの。GitHubの1ファイル100MB上限とリポジトリ容量を考慮し、対象を厳選した。
+取得元はいずれもJAXA DARTS(https://data.darts.isas.jaxa.jp/)、USGS Planetary Nomenclature、および論文。
+
+### ONC幾何情報 l2dbpc_latlon(02_onc_images/onc_bundle_v03c/geometry_l2dbpc_latlon/)
+
+撮影画像に緯度経度のバックプレーンを付与したデータ(近接運用分)。収録済みL2Cの日付に合わせ4日分を追加。
+
+| ファイル | 対象運用 | 枚数 |
+|---|---|---|
+| 20180626_l2dbpc_latlon_v03c.tgz (14MB) | 到着直後の全球観測 | 21 |
+| 20180911_l2dbpc_latlon_v03c.tgz (76MB) | TD1-R1(リハーサル1) | 14 |
+| 20181014_l2dbpc_latlon_v03c.tgz (34MB) | TD1-R1-A(リハーサル2) | 7 |
+| 20181024_l2dbpc_latlon_v03c.tgz (79MB) | TD1-R3(リハーサル3) | 14 |
+
+**未収録(100MB超)**: 20190221(TD1当日・282MB)、20190404(SCI運用・163MB)、20190307(120MB)、20190424(105MB)、20190710(157MB) ほか。
+→ 入手先: https://darts.isas.jaxa.jp/pub/hayabusa2/onc_bundle/data/v03c/geometry_l2dbpc_latlon/
+
+### ONC L2C画像の追加(02_onc_images/onc_bundle_v03c/data_calibrated_l2c/)
+
+ギャラリーの16観測日・年表の出来事の日のうち、100MB未満で収録可能な6日分を追加(既収録3日分と合わせ計9日分・153枚)。
+
+| ファイル | 対象運用 | 枚数 |
+|---|---|---|
+| 20180911_l2c_v03c.tgz (48MB) | TD1-R1(リハーサル1) | 14 |
+| 20181014_l2c_v03c.tgz (24MB) | TD1-R1-A(最高解像度観測) | 7 |
+| 20181024_l2c_v03c.tgz (47MB) | TD1-R3(リハーサル3) | 14 |
+| 20190307_l2c_v03c.tgz (72MB) | TD1後観測 | 21 |
+| 20190424_l2c_v03c.tgz (72MB) | 人工クレーター観測 | 21 |
+| 20190710_l2c_v03c.tgz (98MB) | TD2降下 | 28 |
+
+**未収録(100MB超)**: 20180801(高解像度立体視・609MB)、20180920/0921(MINERVA-II1・48MB/249MB)、20181002/1003(MASCOT分離・47MB/619MB)、20190515-0612(TD2リハーサル・97〜427MB)、20190711(TD2当日・373MB)、20191113(リュウグウ出発・196MB) ほか。
+
+### 重力係数 7.63h版(01_shape_models/gravity_coefficients_SFM_49k_7.63.txt)
+
+リュウグウの実際の自転周期(7.6326h)に対応するSfM 49k面形状モデルの重力係数(10MB)。既収録の3.40h版(ホームポジション用)に対応する。
+→ 入手先: https://data.darts.isas.jaxa.jp/pub/hayabusa2/paper/Watanabe_2019/
+→ 出典論文: Watanabe et al. 2019, Nature Astronomy 3, 351-359
+
+### MASCOT MARA/MAGデータ(05_mascot/)
+
+| ファイル | 内容 |
+|---|---|
+| mara_data_calibrated/ | MARA熱放射計の着陸後科学較正データ(.tab/.xml、約0.9MB)+目録 |
+| mag_data_sci_calibrated/ | MAG磁力計の較正データ(.tab/.xml、約0.2MB)+目録 |
+
+→ 入手先: https://data.darts.isas.jaxa.jp/pub/pds4/data/hyb2/hyb2_mascot_mara/ , https://data.darts.isas.jaxa.jp/pub/pds4/data/hyb2/hyb2_mascot_mag/
+
+### リュウグウ試料キュレーションデータ(04_science_data/ryugu_samples/<試料ID>/)
+
+顕微鏡画像を収録済みの8試料(A0002, A0004, C0002〜C0007)について、FTIR赤外分光・MicrOmega近赤外顕微分光データを追加(計約208MB)。
+
+- `<ID>/ftir/<測定日>/`: ROI画像(BMP)、スペクトル(CSV/JWS/PNG)、背景(BKG)・参照(Infragold)
+- `<ID>/MicrOmega/<測定日>/`: 2.50um画像・平均スペクトラム(CSV/PNG)
+- A0004・C0003 はMicrOmegaディレクトリなし(2026-11-04時点で未公開)
+- OS生成ファイル(Thumbs.db)は除外
+
+**未収録**: 顕微鏡画像のフルデータ(1試料あたり約0.7〜1.1GB)、FTIR/MicrOmegaが公開されている他試料(A0001, A0003, A0005-0012, C0001 など)
+→ 入手先: https://data.darts.isas.jaxa.jp/pub/curation/hayabusa2/
+
+### 地名・着陸地点・運用サマリー(06_timeline_text/)
+
+| ファイル | 内容 |
+|---|---|
+| ryugu_gazetteer.md | IAU承認のリュウグウ地名13件(座標・直径・由来) |
+| ryugu_surface_points.json | IAU地名+TD1/TD2着陸地点・SCI人工クレーターの座標(JSON、地図表示用) |
+| observation_summary.md | Eventlist.txtから生成した観測運用サマリー+収録分の日別枚数 |
+
+主要座標: TD1=4.30°N/206.47°E(タマテバコ)、TD2=10.130°N/300.595°E(ウチデノコヅチ)、SCIクレーター=7.9°N/313.3°E・直径14.5m(おむすびころりん)。
+出典: Nakamura et al. 2022, Proc. Jpn. Acad. Ser. B 98, 277-314 (doi:10.2183/pjab.98.015)、USGS Planetary Nomenclature。
+
+### 要件のうち追加しなかったもの(追加データ一覧の注意事項に従う)
+
+- 姿勢履歴CKカーネル(数GB) → GitHubに入れない(注意事項2)。必要区間のみ外部から取得して使う
+- 3M版DSK(約100MB)・3M版OBJ(163MB)・低緯度高解像度GeoTIFF(128MB) → 100MB上限超過(注意事項3)。Git LFSか外部ストレージで配信する
+- TIR/NIRS3処理済みデータ・LIDAR全期間データ → 容量大のため、サイトで使う期間に絞って別途追加する(注意事項1)
+- 運用ログ・プレス資料 → 転載可否の確認が必要(注意事項4)
+
 ## バージョン管理の注意
 
 - 使用したデータのバージョン(DSK v20200323等)・取得日(2026-11-03)・取得元URLをサイト側でも記録すること

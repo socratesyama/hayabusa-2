@@ -1,0 +1,815 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?xml-model href="https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1G00.sch" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<?xml-model href="https://pds.nasa.gov/pds4/geom/v1/PDS4_GEOM_1G00_1920.sch" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<?xml-model href="https://pds.nasa.gov/pds4/mission/msn/v1/PDS4_MSN_1B00_1100.sch" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_Observational xmlns="http://pds.nasa.gov/pds4/pds/v1"
+    xmlns:geom="http://pds.nasa.gov/pds4/geom/v1"
+    xmlns:msn="http://pds.nasa.gov/pds4/msn/v1" 
+    xmlns:pds="http://pds.nasa.gov/pds4/pds/v1" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+       http://pds.nasa.gov/pds4/pds/v1  https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1G00.xsd
+       http://pds.nasa.gov/pds4/msn/v1     https://pds.nasa.gov/pds4/mission/msn/v1/PDS4_MSN_1B00_1100.xsd
+       http://pds.nasa.gov/pds4/geom/v1     https://pds.nasa.gov/pds4/geom/v1/PDS4_GEOM_1G00_1920.xsd">
+
+  <Identification_Area>
+    <logical_identifier>urn:jaxa:darts:hyb2_mascot_mara:data_calibrated:mascot_mara_ryugu_science_calibrated</logical_identifier>
+    <version_id>1.0</version_id>
+    <title>Hayabusa2 MASCOT MARA calibrated science data</title>
+    <information_model_version>1.16.0.0</information_model_version>
+    <product_class>Product_Observational</product_class>
+
+    <Modification_History>
+      <Modification_Detail>
+        <modification_date>2019-09-18</modification_date>
+        <version_id>1.0</version_id>
+        <description>First Version</description>
+      </Modification_Detail>
+    </Modification_History>
+  </Identification_Area>
+
+  <Observation_Area>
+    <Time_Coordinates>
+      <start_date_time>2018-10-02T22:50:32.024Z</start_date_time>
+      <stop_date_time>2018-10-03T19:02:39.093Z</stop_date_time>
+    </Time_Coordinates>
+
+    <Primary_Result_Summary>
+      <purpose>Science</purpose>
+      <processing_level>Calibrated</processing_level>
+      <description>Calibrated data</description>
+      <Science_Facets>
+        <wavelength_range>Infrared</wavelength_range>
+        <domain>Surface</domain>
+        <discipline_name>Flux Measurements</discipline_name>
+        <facet1>Photometry</facet1>
+      </Science_Facets>
+    </Primary_Result_Summary>
+
+    <Investigation_Area>
+      <name>Hayabusa2</name>
+      <type>Mission</type>
+      <Internal_Reference>
+        <lid_reference>urn:jaxa:darts:context:investigation:mission.hyb2</lid_reference>
+        <reference_type>data_to_investigation</reference_type>
+      </Internal_Reference>
+    </Investigation_Area>
+
+    <Observing_System>
+      <description>MASCOT Radiometer</description>
+      <Observing_System_Component>
+        <name>MASCOT</name>
+        <type>Host</type>
+        <description>Instrument Host</description>
+        <Internal_Reference>
+          <lid_reference>urn:jaxa:darts:context:instrument_host:lander.mascot</lid_reference>
+          <reference_type>is_instrument_host</reference_type>
+        </Internal_Reference>
+      </Observing_System_Component>
+
+      <Observing_System_Component>
+        <name>MARA</name>
+        <type>Instrument</type>
+        <description>MASCOT Radiometer</description>
+        <Internal_Reference>
+          <lid_reference>urn:jaxa:darts:context:instrument:mascot.mara</lid_reference>
+          <reference_type>is_instrument</reference_type>
+        </Internal_Reference>
+      </Observing_System_Component>
+    </Observing_System>
+
+    <Target_Identification>
+      <name>(162173) Ryugu</name>
+      <alternate_designation>1999 JU3</alternate_designation>
+      <type>Asteroid</type>
+      <description>Cg Class Asteroid</description>
+      <Internal_Reference>
+		<lid_reference>urn:nasa:pds:context:target:asteroid.162173_ryugu</lid_reference>
+      	<reference_type>data_to_target</reference_type>
+      </Internal_Reference>
+    </Target_Identification>
+
+    <Discipline_Area>
+
+      <geom:Geometry>
+        <geom:SPICE_Kernel_Files>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>naif0012.tls</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>pck00010.tpc</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>de430.bsp</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>hyb2_20190221_v01.tpc</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>hyb2_ryugu_v01.tf</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>2162173_Ryugu.bsp</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>hyb2_v13.tf</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>hyb2_mascot_v01.tf</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>hyb2_mascot_mara_v01.ti</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>hyb2_mascot_instruments_v01.bsp</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+        </geom:SPICE_Kernel_Files>
+
+        <geom:Geometry_Lander>
+
+          <geom:Coordinate_Space_Definition>
+            <local_identifier>MP1a</local_identifier>
+            <geom:Coordinate_Space_Present>
+              <geom:Coordinate_Space_SPICE>
+                <geom:body_spice_name>HAYABUSA2_MASCOT</geom:body_spice_name>
+                <geom:frame_spice_name>HAYABUSA2_MASCOT</geom:frame_spice_name>
+              </geom:Coordinate_Space_SPICE>
+            </geom:Coordinate_Space_Present>
+
+            <geom:Vector_Origin_Offset>
+              <geom:x_position unit="km">0.303200</geom:x_position>
+              <geom:y_position unit="km">-0.280423</geom:y_position>
+              <geom:z_position unit="km">-0.169012</geom:z_position>
+            </geom:Vector_Origin_Offset>
+
+            <geom:Quaternion_Plus_Direction>
+              <geom:qcos>0.9164962925729875</geom:qcos>
+              <geom:qsin1>-0.002464556848961726</geom:qsin1>
+              <geom:qsin2>-0.0010757347209312173</geom:qsin2>
+              <geom:qsin3>-0.4000341416108353</geom:qsin3>
+              <geom:rotation_direction>Reference to Present</geom:rotation_direction>
+            </geom:Quaternion_Plus_Direction>
+
+            <geom:Coordinate_Space_Reference>
+              <geom:Coordinate_Space_SPICE>
+                <geom:body_spice_name>RYUGU</geom:body_spice_name>
+                <geom:frame_spice_name>RYUGU_FIXED</geom:frame_spice_name>
+              </geom:Coordinate_Space_SPICE>
+            </geom:Coordinate_Space_Reference>
+          </geom:Coordinate_Space_Definition>
+
+
+          <geom:Coordinate_Space_Definition>
+            <local_identifier>MP1b</local_identifier>
+            <geom:Coordinate_Space_Present>
+              <geom:Coordinate_Space_SPICE>
+                <geom:body_spice_name>HAYABUSA2_MASCOT</geom:body_spice_name>
+                <geom:frame_spice_name>HAYABUSA2_MASCOT</geom:frame_spice_name>
+              </geom:Coordinate_Space_SPICE>
+            </geom:Coordinate_Space_Present>
+
+            <geom:Vector_Origin_Offset>
+              <geom:x_position unit="km">0.303200</geom:x_position>
+              <geom:y_position unit="km">-0.280423</geom:y_position>
+              <geom:z_position unit="km">-0.169012</geom:z_position>
+            </geom:Vector_Origin_Offset>
+
+            <geom:Quaternion_Plus_Direction>
+              <geom:qcos>0.9164962925729875</geom:qcos>
+              <geom:qsin1>-0.002464556848961726</geom:qsin1>
+              <geom:qsin2>-0.0010757347209312173</geom:qsin2>
+              <geom:qsin3>-0.4000341416108353</geom:qsin3>
+              <geom:rotation_direction>Reference to Present</geom:rotation_direction>
+            </geom:Quaternion_Plus_Direction>
+
+            <geom:Coordinate_Space_Reference>
+              <geom:Coordinate_Space_SPICE>
+                <geom:body_spice_name>RYUGU</geom:body_spice_name>
+                <geom:frame_spice_name>RYUGU_FIXED</geom:frame_spice_name>
+              </geom:Coordinate_Space_SPICE>
+            </geom:Coordinate_Space_Reference>
+          </geom:Coordinate_Space_Definition>
+
+
+          <geom:Coordinate_Space_Definition>
+            <local_identifier>MP2a</local_identifier>
+            <geom:Coordinate_Space_Present>
+              <geom:Coordinate_Space_SPICE>
+                <geom:body_spice_name>HAYABUSA2_MASCOT</geom:body_spice_name>
+                <geom:frame_spice_name>HAYABUSA2_MASCOT</geom:frame_spice_name>
+              </geom:Coordinate_Space_SPICE>
+            </geom:Coordinate_Space_Present>
+
+            <geom:Vector_Origin_Offset>
+              <geom:x_position unit="km">0.302584</geom:x_position>
+              <geom:y_position unit="km">-0.280580</geom:y_position>
+              <geom:z_position unit="km">-0.169310</geom:z_position>
+            </geom:Vector_Origin_Offset>
+
+            <geom:Quaternion_Plus_Direction>
+              <geom:qcos>0.9164962925729875</geom:qcos>
+              <geom:qsin1>-0.002464556848961726</geom:qsin1>
+              <geom:qsin2>-0.0010757347209312173</geom:qsin2>
+              <geom:qsin3>-0.4000341416108353</geom:qsin3>
+              <geom:rotation_direction>Reference to Present</geom:rotation_direction>
+            </geom:Quaternion_Plus_Direction>
+
+            <geom:Coordinate_Space_Reference>
+              <geom:Coordinate_Space_SPICE>
+                <geom:body_spice_name>RYUGU</geom:body_spice_name>
+                <geom:frame_spice_name>RYUGU_FIXED</geom:frame_spice_name>
+              </geom:Coordinate_Space_SPICE>
+            </geom:Coordinate_Space_Reference>
+          </geom:Coordinate_Space_Definition>
+
+
+          <geom:Coordinate_Space_Definition>
+            <local_identifier>MP2b</local_identifier>
+            <geom:Coordinate_Space_Present>
+              <geom:Coordinate_Space_SPICE>
+                <geom:body_spice_name>HAYABUSA2_MASCOT</geom:body_spice_name>
+                <geom:frame_spice_name>HAYABUSA2_MASCOT</geom:frame_spice_name>
+              </geom:Coordinate_Space_SPICE>
+            </geom:Coordinate_Space_Present>
+
+            <geom:Vector_Origin_Offset>
+              <geom:x_position unit="km">0.302584</geom:x_position>
+              <geom:y_position unit="km">-0.280580</geom:y_position>
+              <geom:z_position unit="km">-0.169310</geom:z_position>
+            </geom:Vector_Origin_Offset>
+
+            <geom:Quaternion_Plus_Direction>
+              <geom:qcos>0.9164962925729875</geom:qcos>
+              <geom:qsin1>-0.002464556848961726</geom:qsin1>
+              <geom:qsin2>-0.0010757347209312173</geom:qsin2>
+              <geom:qsin3>-0.4000341416108353</geom:qsin3>
+              <geom:rotation_direction>Reference to Present</geom:rotation_direction>
+            </geom:Quaternion_Plus_Direction>
+
+            <geom:Coordinate_Space_Reference>
+              <geom:Coordinate_Space_SPICE>
+                <geom:body_spice_name>RYUGU</geom:body_spice_name>
+                <geom:frame_spice_name>RYUGU_FIXED</geom:frame_spice_name>
+              </geom:Coordinate_Space_SPICE>
+            </geom:Coordinate_Space_Reference>
+          </geom:Coordinate_Space_Definition>
+
+
+          <geom:Coordinate_Space_Definition>
+            <local_identifier>MP2c</local_identifier>
+            <geom:Coordinate_Space_Present>
+              <geom:Coordinate_Space_SPICE>
+                <geom:body_spice_name>HAYABUSA2_MASCOT</geom:body_spice_name>
+                <geom:frame_spice_name>HAYABUSA2_MASCOT</geom:frame_spice_name>
+              </geom:Coordinate_Space_SPICE>
+            </geom:Coordinate_Space_Present>
+
+            <geom:Vector_Origin_Offset>
+              <geom:x_position unit="km">0.302584</geom:x_position>
+              <geom:y_position unit="km">-0.280580</geom:y_position>
+              <geom:z_position unit="km">-0.169310</geom:z_position>
+            </geom:Vector_Origin_Offset>
+
+            <geom:Quaternion_Plus_Direction>
+              <geom:qcos>0.9164962925729875</geom:qcos>
+              <geom:qsin1>-0.002464556848961726</geom:qsin1>
+              <geom:qsin2>-0.0010757347209312173</geom:qsin2>
+              <geom:qsin3>-0.4000341416108353</geom:qsin3>
+              <geom:rotation_direction>Reference to Present</geom:rotation_direction>
+            </geom:Quaternion_Plus_Direction>
+
+            <geom:Coordinate_Space_Reference>
+              <geom:Coordinate_Space_SPICE>
+                <geom:body_spice_name>RYUGU</geom:body_spice_name>
+                <geom:frame_spice_name>RYUGU_FIXED</geom:frame_spice_name>
+              </geom:Coordinate_Space_SPICE>
+            </geom:Coordinate_Space_Reference>
+          </geom:Coordinate_Space_Definition>
+
+
+          <geom:Coordinate_Space_Definition>
+            <local_identifier>MP3a</local_identifier>
+            <geom:Coordinate_Space_Present>
+              <geom:Coordinate_Space_SPICE>
+                <geom:body_spice_name>HAYABUSA2_MASCOT</geom:body_spice_name>
+                <geom:frame_spice_name>HAYABUSA2_MASCOT</geom:frame_spice_name>
+              </geom:Coordinate_Space_SPICE>
+            </geom:Coordinate_Space_Present>
+
+            <geom:Vector_Origin_Offset>
+              <geom:x_position unit="km"> 0.302553</geom:x_position>
+              <geom:y_position unit="km">-0.280603</geom:y_position>
+              <geom:z_position unit="km">-0.169313</geom:z_position>
+            </geom:Vector_Origin_Offset>
+
+            <geom:Quaternion_Plus_Direction>
+              <geom:qcos>0.9164962925729875</geom:qcos>
+              <geom:qsin1>-0.002464556848961726</geom:qsin1>
+              <geom:qsin2>-0.0010757347209312173</geom:qsin2>
+              <geom:qsin3>-0.4000341416108353</geom:qsin3>
+              <geom:rotation_direction>Reference to Present</geom:rotation_direction>
+            </geom:Quaternion_Plus_Direction>
+
+            <geom:Coordinate_Space_Reference>
+              <geom:Coordinate_Space_SPICE>
+                <geom:body_spice_name>RYUGU</geom:body_spice_name>
+                <geom:frame_spice_name>RYUGU_FIXED</geom:frame_spice_name>
+              </geom:Coordinate_Space_SPICE>
+            </geom:Coordinate_Space_Reference>
+          </geom:Coordinate_Space_Definition>
+
+
+          <geom:Coordinate_Space_Definition>
+            <local_identifier>MP3b</local_identifier>
+            <geom:Coordinate_Space_Present>
+              <geom:Coordinate_Space_SPICE>
+                <geom:body_spice_name>HAYABUSA2_MASCOT</geom:body_spice_name>
+                <geom:frame_spice_name>HAYABUSA2_MASCOT</geom:frame_spice_name>
+              </geom:Coordinate_Space_SPICE>
+            </geom:Coordinate_Space_Present>
+
+            <geom:Vector_Origin_Offset>
+              <geom:x_position unit="km"> 0.302554</geom:x_position>
+              <geom:y_position unit="km">-0.280601</geom:y_position>
+              <geom:z_position unit="km">-0.169314</geom:z_position>
+            </geom:Vector_Origin_Offset>
+
+            <geom:Quaternion_Plus_Direction>
+              <geom:qcos>0.9164962925729875</geom:qcos>
+              <geom:qsin1>-0.002464556848961726</geom:qsin1>
+              <geom:qsin2>-0.0010757347209312173</geom:qsin2>
+              <geom:qsin3>-0.4000341416108353</geom:qsin3>
+              <geom:rotation_direction>Reference to Present</geom:rotation_direction>
+            </geom:Quaternion_Plus_Direction>
+
+            <geom:Coordinate_Space_Reference>
+              <geom:Coordinate_Space_SPICE>
+                <geom:body_spice_name>RYUGU</geom:body_spice_name>
+                <geom:frame_spice_name>RYUGU_FIXED</geom:frame_spice_name>
+              </geom:Coordinate_Space_SPICE>
+            </geom:Coordinate_Space_Reference>
+          </geom:Coordinate_Space_Definition>
+
+
+          <geom:Coordinate_Space_Definition>
+            <local_identifier>MP4</local_identifier>
+            <geom:Coordinate_Space_Present>
+              <geom:Coordinate_Space_SPICE>
+                <geom:body_spice_name>HAYABUSA2_MASCOT</geom:body_spice_name>
+                <geom:frame_spice_name>HAYABUSA2_MASCOT</geom:frame_spice_name>
+              </geom:Coordinate_Space_SPICE>
+            </geom:Coordinate_Space_Present>
+
+            <geom:Vector_Origin_Offset>
+              <geom:x_position unit="km"> 0.302602</geom:x_position>
+              <geom:y_position unit="km">-0.280625</geom:y_position>
+              <geom:z_position unit="km">-0.169209</geom:z_position>
+            </geom:Vector_Origin_Offset>
+
+            <geom:Quaternion_Plus_Direction>
+              <geom:qcos>0.9164962925729875</geom:qcos>
+              <geom:qsin1>-0.002464556848961726</geom:qsin1>
+              <geom:qsin2>-0.0010757347209312173</geom:qsin2>
+              <geom:qsin3>-0.4000341416108353</geom:qsin3>
+              <geom:rotation_direction>Reference to Present</geom:rotation_direction>
+            </geom:Quaternion_Plus_Direction>
+
+            <geom:Coordinate_Space_Reference>
+              <geom:Coordinate_Space_SPICE>
+                <geom:body_spice_name>RYUGU</geom:body_spice_name>
+                <geom:frame_spice_name>RYUGU_FIXED</geom:frame_spice_name>
+              </geom:Coordinate_Space_SPICE>
+            </geom:Coordinate_Space_Reference>
+          </geom:Coordinate_Space_Definition>
+
+
+          <geom:Motion_Counter>
+            <geom:name>Descent</geom:name>
+            <geom:Motion_Counter_Index>
+              <geom:index_sequence_number>0</geom:index_sequence_number>
+            </geom:Motion_Counter_Index>
+          </geom:Motion_Counter>
+
+          <geom:Motion_Counter>
+            <geom:name>Bouncing</geom:name>
+            <geom:Motion_Counter_Index>
+              <geom:index_sequence_number>1</geom:index_sequence_number>
+            </geom:Motion_Counter_Index>
+          </geom:Motion_Counter>
+
+          <geom:Motion_Counter>
+            <geom:name>MP1a</geom:name>
+            <geom:Motion_Counter_Index>
+              <geom:index_sequence_number>2</geom:index_sequence_number>
+            </geom:Motion_Counter_Index>
+          </geom:Motion_Counter>
+
+          <geom:Motion_Counter>
+            <geom:name>MP1b</geom:name>
+            <geom:Motion_Counter_Index>
+              <geom:index_sequence_number>3</geom:index_sequence_number>
+            </geom:Motion_Counter_Index>
+          </geom:Motion_Counter>
+
+          <geom:Motion_Counter>
+            <geom:name>MP2a</geom:name>
+            <geom:Motion_Counter_Index>
+              <geom:index_sequence_number>4</geom:index_sequence_number>
+            </geom:Motion_Counter_Index>
+          </geom:Motion_Counter>
+
+          <geom:Motion_Counter>
+            <geom:name>MP2b</geom:name>
+            <geom:Motion_Counter_Index>
+              <geom:index_sequence_number>5</geom:index_sequence_number>
+            </geom:Motion_Counter_Index>
+          </geom:Motion_Counter>
+
+          <geom:Motion_Counter>
+            <geom:name>MP2c</geom:name>
+            <geom:Motion_Counter_Index>
+              <geom:index_sequence_number>6</geom:index_sequence_number>
+            </geom:Motion_Counter_Index>
+          </geom:Motion_Counter>
+
+          <geom:Motion_Counter>
+            <geom:name>MP3a</geom:name>
+            <geom:Motion_Counter_Index>
+              <geom:index_sequence_number>7</geom:index_sequence_number>
+            </geom:Motion_Counter_Index>
+          </geom:Motion_Counter>
+
+          <geom:Motion_Counter>
+            <geom:name>MP3b</geom:name>
+            <geom:Motion_Counter_Index>
+              <geom:index_sequence_number>8</geom:index_sequence_number>
+            </geom:Motion_Counter_Index>
+          </geom:Motion_Counter>
+
+          <geom:Motion_Counter>
+            <geom:name>MP4</geom:name>
+            <geom:Motion_Counter_Index>
+              <geom:index_sequence_number>9</geom:index_sequence_number>
+            </geom:Motion_Counter_Index>
+          </geom:Motion_Counter>
+
+
+        </geom:Geometry_Lander>
+      </geom:Geometry>
+      
+
+      <msn:Mission_Information>
+        <msn:mission_phase_name>Surface</msn:mission_phase_name>
+        <msn:spacecraft_clock_start>1085870528</msn:spacecraft_clock_start>
+        <msn:spacecraft_clock_stop>1088198752</msn:spacecraft_clock_stop>
+        <msn:Surface_Mission>
+          <msn:start_sol_number>0</msn:start_sol_number>
+          <msn:stop_sol_number>2</msn:stop_sol_number>
+          <msn:start_local_mean_solar_time>03:02:20</msn:start_local_mean_solar_time>
+          <msn:stop_local_mean_solar_time>18:36:00</msn:stop_local_mean_solar_time>
+        </msn:Surface_Mission>
+      </msn:Mission_Information>
+
+    </Discipline_Area>
+  </Observation_Area>
+
+  <Reference_List>
+    <External_Reference>
+      <doi>10.1007/s11214-016-0272-1</doi>
+      <reference_text>M. Grott, et al.,
+       The MASCOT Radiometer MARA for the Hayabusa2 Mission,
+       Space Sci Rev, DOI 10.1007/s11214-016-0272-1</reference_text>
+    </External_Reference>
+    <External_Reference>
+      <doi>10.1051/0004-6361/201936757</doi>
+      <reference_text>F. Scholten, et al.,
+      The descent and bouncing path of the Hayabusa2 lander MASCOT at asteroid (162173) Ryugu,
+      Astronomy and Astrophysics 632, L3 (2019)</reference_text>
+    </External_Reference>
+    <External_Reference>
+      <doi>10.1051/0004-6361/201936760</doi>
+      <reference_text>F. Scholten, et al.,
+      The Hayabusa2 lander MASCOT on the surface of asteroid (162173) Ryugu -
+      Stereo-photogrammetric analysis of MASCam image data,
+      Astronomy and Astrophysics 632, L5 (2019)</reference_text>
+    </External_Reference>
+  </Reference_List>
+
+  <File_Area_Observational>
+    <File>
+      <file_name>mascot_mara_ryugu_science_calibrated.tab</file_name>
+      <creation_date_time>2019-12-17T16:00:00Z</creation_date_time>
+      <file_size unit="byte">920360</file_size>
+      <comment>Calibrated Science Data Table File</comment>
+    </File>
+
+    <Table_Character>
+      <name>MARA Science Calibrated</name>
+      <offset unit="byte">0</offset>
+      <records>3460</records>
+      <description>This table contains calibrated Radiometer data.</description>
+      <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
+      <Record_Character>
+        <fields>22</fields>
+        <groups>0</groups>
+        <record_length unit="byte">266</record_length>
+        <Field_Character>
+            <name>UTC</name>
+            <field_number>1</field_number>
+            <field_location unit="byte">1</field_location>
+            <data_type>ASCII_Date_Time_YMD_UTC</data_type>
+            <field_length unit="byte">24</field_length>
+            <field_format>%24s</field_format>
+            <description>UTC time string for the epoch when the measurement
+            occurred.</description>
+        </Field_Character>
+
+        <Field_Character>
+            <name>Local Time</name>
+            <field_number>2</field_number>
+            <field_location unit="byte">26</field_location>
+            <data_type>ASCII_Time</data_type>
+            <field_length unit="byte">8</field_length>
+            <field_format>%8s</field_format>
+            <description>Local time at Measurement Point 2b (MP2b) when the
+            measurement occurred.</description>
+        </Field_Character>
+
+        <Field_Character>
+            <name>Position of Mascot</name>
+            <field_number>3</field_number>
+            <field_location unit="byte">36</field_location>
+            <data_type>ASCII_String</data_type>
+            <field_length unit="byte">10</field_length>
+            <field_format>%-10s</field_format>
+            <description>The position of Mascot during the measurement.
+            This can be either one of the named positions (e.g. "MP2b") or
+            a melded position name (e.g. "MP2b->MP2c") for epoches where
+            Mascot was moving from one position to another.</description>
+        </Field_Character>
+
+
+        <Field_Character>
+            <name>Si-LP determined brightness temperature</name>
+            <field_number>4</field_number>
+            <field_location unit="byte">47</field_location>
+            <data_type>ASCII_Real</data_type>
+            <field_length unit="byte">12</field_length>
+            <field_format>%12.5f</field_format>
+            <unit>K</unit>
+            <description>Si-LP determined brightness temperature.</description>
+          <Special_Constants>
+            <invalid_constant>-999.00000</invalid_constant>
+          </Special_Constants>
+        </Field_Character>
+
+        <Field_Character>
+            <name>Si-LP positive uncertainty</name>
+            <field_number>5</field_number>
+            <field_location unit="byte">59</field_location>
+            <data_type>ASCII_Real</data_type>
+            <field_length unit="byte">12</field_length>
+            <field_format>%12.7f</field_format>
+            <unit>K</unit>
+            <description>1 sigma uncertainty (positive) of Si-LP brightness
+            temperature.</description>
+        </Field_Character>
+
+        <Field_Character>
+            <name>Si-LP negative uncertainty</name>
+            <field_number>6</field_number>
+            <field_location unit="byte">71</field_location>
+            <data_type>ASCII_Real</data_type>
+            <field_length unit="byte">12</field_length>
+            <field_format>%12.7f</field_format>
+            <unit>K</unit>
+            <description>1 sigma uncertainty (negative) of Si-LP brightness
+            temperature.</description>
+        </Field_Character>
+
+
+        <Field_Character>
+            <name>BP8-9.5 determined brightness temperature</name>
+            <field_number>7</field_number>
+            <field_location unit="byte">83</field_location>
+            <data_type>ASCII_Real</data_type>
+            <field_length unit="byte">12</field_length>
+            <field_format>%12.5f</field_format>
+            <unit>K</unit>
+            <description>BP8-9.5 determined brightness temperature.</description>
+          <Special_Constants>
+            <invalid_constant>-999.00000</invalid_constant>
+          </Special_Constants>
+        </Field_Character>
+
+        <Field_Character>
+            <name>BP8-9.5 positive uncertainty</name>
+            <field_number>8</field_number>
+            <field_location unit="byte">95</field_location>
+            <data_type>ASCII_Real</data_type>
+            <field_length unit="byte">12</field_length>
+            <field_format>%12.7f</field_format>
+            <unit>K</unit>
+            <description>1 sigma uncertainty (positive) of BP8-9.5 brightness
+            temperature.</description>
+        </Field_Character>
+
+        <Field_Character>
+            <name>BP8-9.5 negative uncertainty</name>
+            <field_number>9</field_number>
+            <field_location unit="byte">107</field_location>
+            <data_type>ASCII_Real</data_type>
+            <field_length unit="byte">12</field_length>
+            <field_format>%12.7f</field_format>
+            <unit>K</unit>
+            <description>1 sigma uncertainty (negative) of BP8-9.5 brightness
+            temperature.</description>
+        </Field_Character>
+
+
+        <Field_Character>
+            <name>BP9.5-11.5 determined brightness temperature</name>
+            <field_number>10</field_number>
+            <field_location unit="byte">119</field_location>
+            <data_type>ASCII_Real</data_type>
+            <field_length unit="byte">12</field_length>
+            <field_format>%12.5f</field_format>
+            <unit>K</unit>
+            <description>BP9.5-11.5 determined brightness temperature.</description>
+          <Special_Constants>
+            <invalid_constant>-999.00000</invalid_constant>
+          </Special_Constants>
+        </Field_Character>
+
+        <Field_Character>
+            <name>BP9.5-11.5 positive uncertainty</name>
+            <field_number>11</field_number>
+            <field_location unit="byte">131</field_location>
+            <data_type>ASCII_Real</data_type>
+            <field_length unit="byte">12</field_length>
+            <field_format>%12.7f</field_format>
+            <unit>K</unit>
+            <description>1 sigma uncertainty (positive) of BP9.5-11.5 brightness
+            temperature.</description>
+        </Field_Character>
+
+        <Field_Character>
+            <name>BP9.5-11.5 negative uncertainty</name>
+            <field_number>12</field_number>
+            <field_location unit="byte">143</field_location>
+            <data_type>ASCII_Real</data_type>
+            <field_length unit="byte">12</field_length>
+            <field_format>%12.7f</field_format>
+            <unit>K</unit>
+            <description>1 sigma uncertainty (negative) of BP9.5-11.5 brightness
+            temperature.</description>
+        </Field_Character>
+
+
+        <Field_Character>
+            <name>BP8-12 determined brightness temperature</name>
+            <field_number>13</field_number>
+            <field_location unit="byte">155</field_location>
+            <data_type>ASCII_Real</data_type>
+            <field_length unit="byte">12</field_length>
+            <field_format>%12.5f</field_format>
+            <unit>K</unit>
+            <description>BP8-12 determined brightness temperature.</description>
+          <Special_Constants>
+            <invalid_constant>-999.00000</invalid_constant>
+          </Special_Constants>
+        </Field_Character>
+
+        <Field_Character>
+            <name>BP8-12 positive uncertainty</name>
+            <field_number>14</field_number>
+            <field_location unit="byte">167</field_location>
+            <data_type>ASCII_Real</data_type>
+            <field_length unit="byte">12</field_length>
+            <field_format>%12.7f</field_format>
+            <unit>K</unit>
+            <description>1 sigma uncertainty (positive) of BP8-12 brightness
+            temperature.</description>
+        </Field_Character>
+
+        <Field_Character>
+            <name>BP8-12 negative uncertainty</name>
+            <field_number>15</field_number>
+            <field_location unit="byte">179</field_location>
+            <data_type>ASCII_Real</data_type>
+            <field_length unit="byte">12</field_length>
+            <field_format>%12.7f</field_format>
+            <unit>K</unit>
+            <description>1 sigma uncertainty (negative) of BP8-12 brightness
+            temperature.</description>
+        </Field_Character>
+
+
+        <Field_Character>
+            <name>BP13.5-15.5 determined brightness temperature</name>
+            <field_number>16</field_number>
+            <field_location unit="byte">191</field_location>
+            <data_type>ASCII_Real</data_type>
+            <field_length unit="byte">12</field_length>
+            <field_format>%12.5f</field_format>
+            <unit>K</unit>
+            <description>BP13.5-15.5 determined brightness temperature.</description>
+          <Special_Constants>
+            <invalid_constant>-999.00000</invalid_constant>
+          </Special_Constants>
+        </Field_Character>
+
+        <Field_Character>
+            <name>BP13.5-15.5 positive uncertainty</name>
+            <field_number>17</field_number>
+            <field_location unit="byte">203</field_location>
+            <data_type>ASCII_Real</data_type>
+            <field_length unit="byte">12</field_length>
+            <field_format>%12.7f</field_format>
+            <unit>K</unit>
+            <description>1 sigma uncertainty (positive) of BP13.5-15.5 brightness
+            temperature.</description>
+        </Field_Character>
+
+        <Field_Character>
+            <name>BP13.5-15.5 negative uncertainty</name>
+            <field_number>18</field_number>
+            <field_location unit="byte">215</field_location>
+            <data_type>ASCII_Real</data_type>
+            <field_length unit="byte">12</field_length>
+            <field_format>%12.7f</field_format>
+            <unit>K</unit>
+            <description>1 sigma uncertainty (negative) of BP13.5-15.5 brightness
+            temperature.</description>
+        </Field_Character>
+
+
+        <Field_Character>
+            <name>BP5.5-7 determined brightness temperature</name>
+            <field_number>19</field_number>
+            <field_location unit="byte">227</field_location>
+            <data_type>ASCII_Real</data_type>
+            <field_length unit="byte">12</field_length>
+            <field_format>%12.5f</field_format>
+            <unit>K</unit>
+            <description>BP5.5-7 determined brightness temperature.</description>
+          <Special_Constants>
+            <invalid_constant>-999.00000</invalid_constant>
+          </Special_Constants>
+        </Field_Character>
+
+        <Field_Character>
+            <name>BP5.5-7 positive uncertainty</name>
+            <field_number>20</field_number>
+            <field_location unit="byte">239</field_location>
+            <data_type>ASCII_Real</data_type>
+            <field_length unit="byte">12</field_length>
+            <field_format>%12.7f</field_format>
+            <unit>K</unit>
+            <description>1 sigma uncertainty (positive) of BP5.5-7 brightness
+            temperature.</description>
+        </Field_Character>
+
+        <Field_Character>
+            <name>BP5.5-7 negative uncertainty</name>
+            <field_number>21</field_number>
+            <field_location unit="byte">251</field_location>
+            <data_type>ASCII_Real</data_type>
+            <field_length unit="byte">12</field_length>
+            <field_format>%12.7f</field_format>
+            <unit>K</unit>
+            <description>1 sigma uncertainty (negative) of BP5.5-7 brightness
+            temperature.</description>
+        </Field_Character>
+
+
+        <Field_Character>
+            <name>Valid Flag</name>
+            <field_number>22</field_number>
+            <field_location unit="byte">263</field_location>
+            <data_type>ASCII_Integer</data_type>
+            <field_length unit="byte">2</field_length>
+            <field_format>%2d</field_format>
+            <description>Flag for data quality: 0 = invalid data,
+            1 = valid data</description>
+        </Field_Character>
+
+      </Record_Character>
+    </Table_Character>
+
+  </File_Area_Observational>
+
+</Product_Observational>

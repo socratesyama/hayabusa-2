@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1G00.sch" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<Product_Observational xmlns="http://pds.nasa.gov/pds4/pds/v1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1G00.xsd">
+  <Identification_Area>
+    <logical_identifier>urn:jaxa:darts:hyb2_mascot_mag:data:hyb2_msc_mag_20181003_015849_00263_fsc</logical_identifier>
+    <version_id>1.0</version_id>
+    <title>MasMag calibrated data</title>
+    <information_model_version>1.16.0.0</information_model_version>
+    <product_class>Product_Observational</product_class>
+    <Modification_History>
+      <Modification_Detail>
+        <modification_date>2020-06-30</modification_date>
+        <version_id>1.0</version_id>
+        <description>Initial version</description>
+      </Modification_Detail>
+    </Modification_History>
+  </Identification_Area>
+  <Observation_Area>
+    <Time_Coordinates>
+      <start_date_time>2018-10-03T01:58:49.808805Z</start_date_time>
+      <stop_date_time>2018-10-03T02:03:13.701211Z</stop_date_time>
+    </Time_Coordinates>
+    <Primary_Result_Summary>
+      <purpose>Science</purpose>
+      <processing_level>Calibrated</processing_level>
+      <Science_Facets>
+        <domain>Surface</domain>
+        <discipline_name>Fields</discipline_name>
+        <facet1>Magnetic</facet1>
+      </Science_Facets>
+    </Primary_Result_Summary>
+    <Investigation_Area>
+      <name>Hayabusa2</name>
+      <type>Mission</type>
+      <Internal_Reference>
+        <lid_reference>urn:jaxa:darts:context:investigation:mission.hyb2</lid_reference>
+        <reference_type>data_to_investigation</reference_type>
+      </Internal_Reference>
+    </Investigation_Area>
+    <Observing_System>
+      <Observing_System_Component>
+        <name>MASCOT</name>
+        <type>Host</type>
+        <description>
+          The MASCOT (Mobile Asteroid surface SCOuT) is compact landing package onboard the Hayabusa2 Spacecraft, that was developed by DLR (German Aerospace Center) and CNES (French National Center for Space Studies). MASCOT has a wide-angle camera (MASCAM) to capture images of the lander's surrounding, an infrared spectroscopic microscope (MicrOmega) to investigate the composition and characteristics of the minerals on the surface of Ryugu, a thermal radiometer (MARA) to measure the surface temperature, and a magnetometer (MasMag) to measure any magnetic field. MASCOT has a hopping mechanism using a motor to rotate a swing-arm within the lander. This hopping mechanism is designed for correcting attiude with respect to the surface, and changing location only once. MASCOT does not use solar cells but is equipped with a lithium primary battery built into the lander. The duration of the battery is about 16 hours, which corresponds to about two rotations of Ryugu.
+        </description>
+        <Internal_Reference>
+          <lid_reference>urn:jaxa:darts:context:instrument_host:lander.mascot</lid_reference>
+          <reference_type>is_instrument_host</reference_type>
+        </Internal_Reference>
+      </Observing_System_Component>
+      <Observing_System_Component>
+        <name>MASMAG</name>
+        <type>Instrument</type>
+        <description>MASCOT Fluxgate Magnetometer</description>
+        <Internal_Reference>
+          <lid_reference>urn:jaxa:darts:context:instrument:mascot.masmag</lid_reference>
+          <reference_type>is_instrument</reference_type>
+        </Internal_Reference>
+      </Observing_System_Component>
+    </Observing_System>
+    <Target_Identification>
+      <name>(162173) Ryugu</name>
+      <alternate_designation>1999 JU3</alternate_designation>
+      <type>Asteroid</type>
+      <description>Cg Class Asteroid</description>
+      <Internal_Reference>
+        <lid_reference>urn:nasa:pds:context:target:asteroid.162173_ryugu</lid_reference>
+        <reference_type>data_to_target</reference_type>
+      </Internal_Reference>
+    </Target_Identification>
+  </Observation_Area>
+  <File_Area_Observational>
+    <File>
+      <file_name>hyb2_msc_mag_20181003_015849_00263_fsc.tab</file_name>
+      <creation_date_time>2020-06-30T10:13:11.157</creation_date_time>
+      <records>2640</records>
+    </File>
+    <Table_Delimited>
+      <name>Magnetic field</name>
+      <offset unit="byte">0</offset>
+      <parsing_standard_id>PDS DSV 1</parsing_standard_id>
+      <description>This file contains vector magnetic field data acquired
+                         by the Fluxgate Magnetometer instrument on-board MASCOT.
+                         These are calibrated data in physical units (nT), 
+                         cleaned from offset (in-flight offset determination) and 
+                         spacecraft/lander disturbances. 
+      </description>
+      <records>2640</records>
+      <record_delimiter>Line-Feed</record_delimiter>
+      <field_delimiter>Horizontal Tab</field_delimiter>
+      <Record_Delimited>
+        <fields>7</fields>
+        <groups>0</groups>
+        <maximum_record_length unit="byte">91</maximum_record_length>
+        <Field_Delimited>
+          <name>MasMag onboard time</name>
+          <field_number>1</field_number>
+          <data_type>ASCII_String</data_type>
+          <maximum_field_length unit="byte">22</maximum_field_length>
+          <description>
+            This columns specifies the MASCOT on-board time
+                      in calendar format.
+          </description>
+        </Field_Delimited>
+        <Field_Delimited>
+          <name>UTC corrected time</name>
+          <field_number>2</field_number>
+          <data_type>ASCII_String</data_type>
+          <maximum_field_length unit="byte">27</maximum_field_length>
+          <description>
+            Coordinated universal time, computed from MOBT, using the time conversion
+                       information from Hayabusa2 and MASCOT timestamp pairs.
+          </description>
+        </Field_Delimited>
+        <Field_Delimited>
+          <name>Bx</name>
+          <field_number>3</field_number>
+          <data_type>ASCII_Real</data_type>
+          <maximum_field_length unit="byte">12</maximum_field_length>
+          <unit>nT</unit>
+          <description>
+            The X component of the magnetic field vector, 
+                     calibrated based on ground calibration parameters, i.e.,
+                     offset and misalignment correction 
+          </description>
+          <Special_Constants>
+            <missing_constant>9999999.999</missing_constant>
+          </Special_Constants>
+        </Field_Delimited>
+        <Field_Delimited>
+          <name>By</name>
+          <field_number>4</field_number>
+          <data_type>ASCII_Real</data_type>
+          <maximum_field_length unit="byte">12</maximum_field_length>
+          <unit>nT</unit>
+          <description>
+            The Y component of the magnetic field vector, 
+                       calibrated based on ground calibration parameters, i.e.,
+                       offset and misalignment correction  
+          </description>
+          <Special_Constants>
+            <missing_constant>9999999.999</missing_constant>
+          </Special_Constants>
+        </Field_Delimited>
+        <Field_Delimited>
+          <name>Bz</name>
+          <field_number>5</field_number>
+          <data_type>ASCII_Real</data_type>
+          <maximum_field_length unit="byte">10</maximum_field_length>
+          <unit>nT</unit>
+          <description>
+            The Z component of the magnetic field vector, 
+                       calibrated based on ground calibration parameters, i.e.,
+                       offset and misalignment correction 
+          </description>
+          <Special_Constants>
+            <missing_constant>9999999.999</missing_constant>
+          </Special_Constants>
+        </Field_Delimited>
+        <Field_Delimited>
+          <name>Status word</name>
+          <field_number>6</field_number>
+          <data_type>ASCII_Integer</data_type>
+          <maximum_field_length unit="byte">3</maximum_field_length>
+          <description>
+            The status word indicates, which of the MASCOT other
+                       instruments and units, usually causing magnetic interference 
+                       is on or off, or indicates measurement phase or MASCOT state.
+                       The status word is 1 Byte integer with following meaning:	
+                       bit   | 1                               | 0
+                       7(MSb)| Camera ON                       | Camera OFF
+                       6     | Mobility ON                     | Mobility OFF
+                       5     | micrOmega ON                    | micrOmega OFF
+                       4     | GNC ON                          | GNC OFF
+                       3     | MASCOT moving                   | MASCOT at rest
+                       2     | MACOT separated form HY2 MASCOT | inside HY2
+                       1     | Ryugu's day                     | Ryugu's night
+                       0(LSb)| Antena switch over (red - main) | Antena stable at one unit
+          </description>
+        </Field_Delimited>
+        <Field_Delimited>
+          <name>Quality flag</name>
+          <field_number>7</field_number>
+          <data_type>ASCII_Integer</data_type>
+          <maximum_field_length unit="byte">3</maximum_field_length>
+          <description>
+            The Quality flag indicates if the data are disturbed by 
+                       interferences that cannot be cleaned and are therefore 
+                       not usable (QF = 0). If the QF is set to 1, data are good
+                       enough for scientific analysis, even if some additional
+                       cleaning might be needed.
+          </description>
+        </Field_Delimited>
+      </Record_Delimited>
+    </Table_Delimited>
+  </File_Area_Observational>
+</Product_Observational>
