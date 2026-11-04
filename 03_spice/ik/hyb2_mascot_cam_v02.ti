@@ -1,0 +1,363 @@
+KPL/IK
+ 
+Hayabusa2 Mascot Camera Instrument Kernel
+=========================================
+
+Version and Date
+----------------------------------------------------------------------
+
+    Version 2.0 -- Thu Jan 24 2025 -- Shin-ya Murakami (JAXA)
+
+      Fixed typos and LED parameters keywords.
+      Added Naming Conventions section.
+      Updated the Optical Distortion section.
+
+    Version 1.0 -- Tue Apr 29 2019 -- Klaus-Dieter Matz (DLR)
+ 
+      Initial Release.
+
+ 
+Contact Information
+----------------------------------------------------------------------
+
+    If you have any questions regarding this file contact
+
+        Thomas Roatsch (DLR)
+        (+49) 30 67055 339
+
+References
+----------------------------------------------------------------------
+
+   1. ``Frames Required Reading''
+ 
+   2. Hayabusa2 Mascot Lander Frames Kernel, Latest Version
+ 
+   3. ``CAD drawings of the nominal position of MARA and Cam'',
+      Email from M. Grott, August 10, 2016
+
+   4. ``The Camera of the MASCOT Asteroid Lander on Board Hayabusa 2'',
+      Jaumann, R., Schmitz, N., Koncz, A. et al.
+      Space Sci Rev (2017) 208: 375. 
+
+   5. ``Mascot Cam Interface Control Document'',
+      MSC-CAM-1000-C01I_IssC_DRAFT_PFM_CAM_ICD.pdf
+
+
+Naming Conventions
+----------------------------------------------------------
+
+   All names referencing values in this IK file start with the
+   characters `INS' followed by the NAIF Hayabusa2 ID number (-37)
+   followed by a NAIF three digit ID code for one of the structures.
+   This is the full list of names and IDs for the structures described
+   by this IK file:
+
+      HAYABUSA2_MASCOT                        -37700
+ 
+      HAYABUSA2_MASCOT_CAM                    -37730
+      HAYABUSA2_MASCOT_CAM_NONE               -37731
+      HAYABUSA2_MASCOT_CAM_BLUE               -37732
+      HAYABUSA2_MASCOT_CAM_GREEN              -37733
+      HAYABUSA2_MASCOT_CAM_RED                -37734
+      HAYABUSA2_MASCOT_CAM_NIR                -37735
+
+   The remainder of the keyword name is an underscore character
+   followed by the unique name of the data item. For example, the MASCOT
+   Camera boresight direction in the HAYABUSA2_MASCOT_CAM frame is specified
+   by:
+
+      INS-37730_BORESIGHT
+
+   The upper bound on the length of the name of any data item is 32
+   characters.
+
+   If the same item is included in more than one file, or if the same
+   item appears more than once within a single file, the latest value
+   supersedes any earlier values.
+
+
+Overview
+------------------------------------------------------------------------------
+
+   Citation from [4]:
+
+    MasCam is a compact wide-angle Complementary Metal Oxide
+    Semiconductor (CMOS) camera, which has been designed to image 
+    a large part of the asteroid's surface in the field of view (FOV) of 
+    MASCOT. The lower front side of the camera, housing contains the 
+    optics, which has an optical axis that is slightly tilted towards the 
+    surface, such that the center of the camera's 54.8 degrees square FOV is
+    located at an angle of 22 degrees with respect to the surface plane.
+    This is to ensure that both the surface close to the lander and the
+    horizon are in the FOV, when the lander rests horizontally on the surface
+    after touch-down.
+
+    The optical layout of the camera is designed according to the Scheimpflug
+    principle (Scheimpflug angle: 7.935 degrees) with an aperture ratio of
+    f/16, so that the entire scene along the camera's depth of field, from
+    150 mm to the local horizon, is in focus. The camera utilizes a
+    1024 x 1024 pixel radiation-tolerant CMOS image sensor, which is sensitive
+    in the 400 - 1000 nm wavelength range, peaking at 600-700 nm.
+    Together with the 14.8 mm focal length, this yields a nominal ground
+    resolution of 150 micron/px at 150 mm distance.
+    An LED array, equipped with 4 x 36 LEDs of four different colors, centered
+    at 470 nm (Blue), 530 nm (Green), 640 nm (Red), and 805 nm (NIR)
+    illuminates the near field of the surface at night for color imaging. 
+
+   ([4] contains a wrong value for the Scheimpflug angle, it was corrected
+    in this citation.)
+
+   Although most camera parameters are independent from the LED illumination,
+   with the distortion as the main exception, five parameter sets, one for
+   each illumination condition (BLUE, GREEN, RED, NIR, NONE) are defined.
+
+
+Optical Parameters
+------------------------------------------------------------------------------
+
+   Parameters extracted from [3] and [4].
+
+      --------------------------------------------
+             parameter                     value  
+      --------------------------------------------
+      Focal Length, mm                    14.8
+      f/ratio                             f/16.0
+      IFOV, rad/pixel                     0.001014
+      Field of view, rad                  0.9512
+
+    \begindata
+
+    INS-37730_FOCAL_LENGTH          = ( 14.8 )
+    INS-37730_FOV_ANGULAR_SIZE      = ( 0.9512, 0.9512 )
+    INS-37730_IFOV                  = ( 0.001014 )
+    INS-37730_F/RATIO               = ( 16.0 )
+
+    INS-37731_FOCAL_LENGTH          = ( 14.8 )
+    INS-37731_FOV_ANGULAR_SIZE      = ( 0.9512, 0.9512 )
+    INS-37731_IFOV                  = ( 0.001014 )
+    INS-37731_F/RATIO               = ( 16.0 )
+
+    INS-37732_FOCAL_LENGTH          = ( 14.8 )
+    INS-37732_FOV_ANGULAR_SIZE      = ( 0.9512, 0.9512 )
+    INS-37732_IFOV                  = ( 0.001014 )
+    INS-37732_F/RATIO               = ( 16.0 )
+
+    INS-37733_FOCAL_LENGTH          = ( 14.8 )
+    INS-37733_FOV_ANGULAR_SIZE      = ( 0.9512, 0.9512 )
+    INS-37733_IFOV                  = ( 0.001014 )
+    INS-37733_F/RATIO               = ( 16.0 )
+
+    INS-37734_FOCAL_LENGTH          = ( 14.8 )
+    INS-37734_FOV_ANGULAR_SIZE      = ( 0.9512, 0.9512 )
+    INS-37734_IFOV                  = ( 0.001014 )
+    INS-37734_F/RATIO               = ( 16.0 )
+
+    INS-37735_FOCAL_LENGTH          = ( 14.8 )
+    INS-37735_FOV_ANGULAR_SIZE      = ( 0.9512, 0.9512 )
+    INS-37735_IFOV                  = ( 0.001014 )
+    INS-37735_F/RATIO               = ( 16.0 )
+
+    \begintext
+
+
+Sensor Parameters
+------------------------------------------------------------------------------
+
+   Parameters extracted from [3], [4] and [5].
+   Due to the "Scheimpflug principle" the center of the sensor (i.e. the
+   intersection of the optical axis) is distinctly different from the
+   geometrical center.
+   In a camera build by the "Scheimpflug principle" the optical axis is tilted
+   against the normal vector of the sensor, thus enabling surface features near
+   the camera and far away to be in focus.
+
+
+      -----------------------------------------------------
+             parameter                         value  
+      -----------------------------------------------------
+      Pixel Size, microns                        15.00
+      Detector Array Size, pixels              1024
+      Detector Array Center, samples            533.1
+                             lines              608.88
+      Scheimpflug angle (from [5]), degree        7.935          
+                                    radians       0.138492       
+
+
+    \begindata
+
+
+    INS-37730_PIXEL_SIZE            = ( 15, 15 )
+    INS-37730_PIXEL_SAMPLES         = 1024
+    INS-37730_PIXEL_LINES           = 1024
+    INS-37730_CCD_CENTER            = ( 533.1, 608.88 )
+
+    INS-37730_CCD_TILT              = 0.138492
+
+    INS-37731_PIXEL_SIZE            = ( 15, 15 )
+    INS-37731_PIXEL_SAMPLES         = 1024
+    INS-37731_PIXEL_LINES           = 1024
+    INS-37731_CCD_CENTER            = ( 533.1, 608.88 )
+
+    INS-37731_CCD_TILT              = 0.138492
+
+    INS-37732_PIXEL_SIZE            = ( 15, 15 )
+    INS-37732_PIXEL_SAMPLES         = 1024
+    INS-37732_PIXEL_LINES           = 1024
+    INS-37732_CCD_CENTER            = ( 533.1, 608.88 )
+
+    INS-37732_CCD_TILT              = 0.138492
+
+    INS-37733_PIXEL_SIZE            = ( 15, 15 )
+    INS-37733_PIXEL_SAMPLES         = 1024
+    INS-37733_PIXEL_LINES           = 1024
+    INS-37733_CCD_CENTER            = ( 533.1, 608.88 )
+
+    INS-37733_CCD_TILT              = 0.138492
+
+    INS-37734_PIXEL_SIZE            = ( 15, 15 )
+    INS-37734_PIXEL_SAMPLES         = 1024
+    INS-37734_PIXEL_LINES           = 1024
+    INS-37734_CCD_CENTER            = ( 533.1, 608.88 )
+
+    INS-37734_CCD_TILT              = 0.138492
+
+    INS-37735_PIXEL_SIZE            = ( 15, 15 )
+    INS-37735_PIXEL_SAMPLES         = 1024
+    INS-37735_PIXEL_LINES           = 1024
+    INS-37735_CCD_CENTER            = ( 533.1, 608.88 )
+
+    INS-37735_CCD_TILT              = 0.138492
+
+    \begintext
+
+
+LED Parameters
+------------------------------------------------------------------------------
+
+   Parameters extracted from [4]:
+
+    "An LED array, equipped with 4 x 36 LEDs of different colors (centered at
+     470 nm (blue), 530 nm (green), 640 nm (red), and 805 nm (NIR))."
+    See also Table 2, S. 19.
+
+
+   The following emission band center and band width data are taken
+   from [4]. FWHM is the Full Width at Half Maximum.
+
+      ------------------------------------
+      active LED  band center   FWHM range 
+      ------------------------------------
+         None        635        400 - 870
+         BLUE        465        455 - 477
+         GREEN       523        508 - 544
+         RED         633        623 - 640
+         NIR         812        792 - 827
+
+    \begindata
+
+         INS-37730_BANDCENTER         = ( 635 )
+         INS-37730_BANDWIDTH          = ( 470 )
+
+         INS-37731_BANDCENTER         = ( 635 )
+         INS-37731_BANDWIDTH          = ( 470 )
+
+         INS-37732_BANDCENTER         = ( 465 )
+         INS-37732_BANDWIDTH          = ( 20  )
+
+         INS-37733_BANDCENTER         = ( 523 )
+         INS-37733_BANDWIDTH          = ( 36 )
+ 
+         INS-37734_BANDCENTER         = ( 633 )
+         INS-37734_BANDWIDTH          = ( 17  )
+ 
+         INS-37735_BANDCENTER         = ( 812 )
+         INS-37735_BANDWIDTH          = ( 35  )
+
+      \begintext
+
+
+
+FOV Definitions
+------------------------------------------------------------------------------
+
+   Parameters extracted from [3] and [4].
+
+
+    \begindata
+
+    INS-37730_FOV_FRAME             = 'HAYABUSA2_MASCOT_CAM'
+    INS-37730_FOV_SHAPE             = 'RECTANGLE'
+    INS-37730_BORESIGHT             = ( 0.0, 0.0, 14.8 )
+
+    INS-37730_FOV_CLASS_SPEC        = 'ANGLES'
+    INS-37730_FOV_REF_VECTOR        = ( 0.0, 1.0, 0.0 )
+    INS-37730_FOV_REF_ANGLE         = ( 27.25 )
+    INS-37730_FOV_CROSS_ANGLE       = ( 27.25 )
+    INS-37730_FOV_ANGLE_UNITS       = ( 'DEGREES' )
+
+
+    INS-37731_FOV_FRAME             = 'HAYABUSA2_MASCOT_CAM'
+    INS-37731_FOV_SHAPE             = 'RECTANGLE'
+    INS-37731_BORESIGHT             = ( 0.0, 0.0, 14.8 )
+
+    INS-37731_FOV_CLASS_SPEC        = 'ANGLES'
+    INS-37731_FOV_REF_VECTOR        = ( 0.0, 1.0, 0.0 )
+    INS-37731_FOV_REF_ANGLE         = ( 27.25 )
+    INS-37731_FOV_CROSS_ANGLE       = ( 27.25 )
+    INS-37731_FOV_ANGLE_UNITS       = ( 'DEGREES' )
+
+
+    INS-37732_FOV_FRAME             = 'HAYABUSA2_MASCOT_CAM'
+    INS-37732_FOV_SHAPE             = 'RECTANGLE'
+    INS-37732_BORESIGHT             = ( 0.0, 0.0, 14.8 )
+
+    INS-37732_FOV_CLASS_SPEC        = 'ANGLES'
+    INS-37732_FOV_REF_VECTOR        = ( 0.0, 1.0, 0.0 )
+    INS-37732_FOV_REF_ANGLE         = ( 27.25 )
+    INS-37732_FOV_CROSS_ANGLE       = ( 27.25 )
+    INS-37732_FOV_ANGLE_UNITS       = ( 'DEGREES' )
+
+
+    INS-37733_FOV_FRAME             = 'HAYABUSA2_MASCOT_CAM'
+    INS-37733_FOV_SHAPE             = 'RECTANGLE'
+    INS-37733_BORESIGHT             = ( 0.0, 0.0, 14.8 )
+
+    INS-37733_FOV_CLASS_SPEC        = 'ANGLES'
+    INS-37733_FOV_REF_VECTOR        = ( 0.0, 1.0, 0.0 )
+    INS-37733_FOV_REF_ANGLE         = ( 27.25 )
+    INS-37733_FOV_CROSS_ANGLE       = ( 27.25 )
+    INS-37733_FOV_ANGLE_UNITS       = ( 'DEGREES' )
+
+
+    INS-37734_FOV_FRAME             = 'HAYABUSA2_MASCOT_CAM'
+    INS-37734_FOV_SHAPE             = 'RECTANGLE'
+    INS-37734_BORESIGHT             = ( 0.0, 0.0, 14.8 )
+
+    INS-37734_FOV_CLASS_SPEC        = 'ANGLES'
+    INS-37734_FOV_REF_VECTOR        = ( 0.0, 1.0, 0.0 )
+    INS-37734_FOV_REF_ANGLE         = ( 27.25 )
+    INS-37734_FOV_CROSS_ANGLE       = ( 27.25 )
+    INS-37734_FOV_ANGLE_UNITS       = ( 'DEGREES' )
+
+
+    INS-37735_FOV_FRAME             = 'HAYABUSA2_MASCOT_CAM'
+    INS-37735_FOV_SHAPE             = 'RECTANGLE'
+    INS-37735_BORESIGHT             = ( 0.0, 0.0, 14.8 )
+
+    INS-37735_FOV_CLASS_SPEC        = 'ANGLES'
+    INS-37735_FOV_REF_VECTOR        = ( 0.0, 1.0, 0.0 )
+    INS-37735_FOV_REF_ANGLE         = ( 27.25 )
+    INS-37735_FOV_CROSS_ANGLE       = ( 27.25 )
+    INS-37735_FOV_ANGLE_UNITS       = ( 'DEGREES' )
+
+    \begintext
+
+
+Optical Distortion
+------------------------------------------------------------------------------
+
+   Distortion of the lens is limited to less than 1%, and distortion
+   stability is within +- 0.1 % [4].
+
+
+End of IK file.

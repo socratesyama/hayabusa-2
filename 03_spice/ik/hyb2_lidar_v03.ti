@@ -1,0 +1,251 @@
+KPL/IK
+
+Hayabusa2 LIDAR Instrument kernel
+==============================================================================
+
+  This instrument kernel (I-kernel) file contains detector, optical, and
+  field-of-view parameters for the Hayabusa2 LIDAR (Light Detection And
+  Ranging) instrument.
+
+
+Version and Date
+------------------------------------------------------------------------------
+
+   Version 3.0  -- 11, Mar., 2025 -- Shin-ya Murakami (ISAS, JAXA, Japan)
+
+       -- Added FOV definitions for far-range telescope, short-range
+          telescope, and transmitter of the laser.
+
+   Version 2.0  -- 19, Feb., 2023 -- Shin-ya Murakami (ISAS, JAXA, Japan)
+
+       -- version of the file is set to 2.0.
+       -- Applied cosmetic changes.
+
+   Version 1.05 -- 10, Mar., 2020 -- Hirotomo Noda
+                                     and Koji Matsumoto (NAOJ, Japan)
+       -- revision: replaced one reference,
+                    added contact information,
+                    removed alignment description (moved to FK),
+                    removed unnecessary items,
+                    and rewrote instrument description.
+
+   Version 1.04 -- 5, Aug., 2019 -- Shin-ya Murakami (JAXA, Japan)
+       -- revision: applied cosmetic changes.
+
+   Version 1.03 -- 18, Nov., 2016 -- Yukio Yamamoto (JAXA, Japan)
+       -- revision: boresight direction is fixed to (0,0,1) and
+                    the frame kernel absorbs the experimental results.
+
+   Version 1.02 -- 21, Jan., 2016 -- Hirotomo Noda (NAOJ, Japan)
+       -- revision: boresight direction is determined from
+                    experimental results of laser link
+                    (Orbit info was included for boresight estimation)
+
+   Version 1.01 -- 12, Jan., 2016 -- Hirotomo Noda (NAOJ, Japan)
+
+   Version 1.0  --  8, Sep., 2015 -- Hirotomo Noda (NAOJ, Japan)
+
+
+Reference
+------------------------------------------------------------------------------
+
+   1. Kernel Pool Required Reading
+
+   2. GETFOV, getfoc_c, cspice_getfov headers
+
+   3. Hayabusa2 Frames Definition Kernel, latest version
+
+   4. Mizuno et al., 2017, Development of the Laser Altimeter (LIDAR) for
+      Hayabusa2, Space Sci. Rev., 208, 33-47, DOI 10.1007/s11214-015-0231-2
+
+   5. Spacecraft planning document (PMY-014052), JAXA document, December 2014
+
+
+Contact Information
+------------------------------------------------------------------------------
+
+  Hirotomo Noda, National Astronomical observatory of Japan (NAOJ),
+                 hirotomo.noda@nao.ac.jp
+  Koji Matsumoto, National Astronomical observatory of Japan (NAOJ),
+                 koji.matsumoto@nao.ac.jp
+
+
+Implementation Notes
+------------------------------------------------------------------------------
+
+   This file is used by the SPICE system as follows: programs that make
+   use of this kernel must ``load'' the kernel, normally during program
+   initialization. The SPICE routine FURNSH loads a kernel file into
+   the pool as shown below.
+
+      CALL FURNSH ( 'frame_kernel_name; )    -- FORTRAN
+      furnsh_c ( "frame_kernel_name" );      -- C
+      cspice_furnsh, frame_kernel_name       -- IDL
+      cspice_furnsh( 'frame_kernel_name' )   -- MATLAB
+
+   Once the file has been loaded, the SPICE routine GETFOV (getfov_c in
+   C, cspice_getfov in IDL and MATLAB) can be used to retrieve FOV
+   parameters for a given instrument or structure.
+
+   This file was created and may be updated with a text editor or word
+   processor.
+
+
+Naming Conventions
+------------------------------------------------------------------------------
+
+   All names referencing values in this IK file start with the
+   characters `INS' followed by the NAIF Hayabusa2 ID number (-37)
+   followed by a NAIF three digit ID code for one of the structures.
+   This is the full list of names and IDs for the structures described
+   by this IK file:
+
+      HAYABUSA2_LIDAR               -37400
+      HAYABUSA2_LIDAR_RX_FAR        -37410
+      HAYABUSA2_LIDAR_RX_NEAR       -37420
+      HAYABUSA2_LIDAR_TX            -37430
+
+   The remainder of the keyword name is an underscore character
+   followed by the unique name of the data item. For example, the
+   boresight direction of HAYABUSA2_LIDAR_RX_FAR is specified by:
+
+      INS-37410_BORESIGHT
+
+   The upper bound on the length of the name of any data item is 32
+   characters.
+
+   If the same item is included in more than one file, or if the same
+   item appears more than once within a single file, the latest value
+   supersedes any earlier values.
+
+
+Instrument Description
+------------------------------------------------------------------------------
+
+   The LIght Detection And Ranging (LIDAR) laser altimeter on Hayabusa2 is
+   an instrument for measuring distance between spacecraft and the surface of
+   the asteroid. Because the LIDAR is used as a navigation sensor for
+   rendezvous, approach, and touchdown procedures, it has a wide dynamic
+   range, from 25 km to 30 m. To achieve this wide dynamic range, the LIDAR
+   consists of two receiving telescopes; one is for long range (25 km to
+   300 m) and the other is for short range (shorter than 300 m). Details on
+   instrumentation is described in [4], and the block diagram is found in
+   Figure 3 of the paper.
+
+
+Mounting Alignment
+-------------------------------------------------------------------------------
+
+   Refer to the latest version of the Hayabusa2 Frames Definition Kernel (FK)
+   [3] for the instrument reference frame definitions and mounting
+   alignment information.
+
+
+Instrument FOV Definition(s)
+-------------------------------------------------------------------------------
+
+   Hayabusa2 LIDAR has two receiving telescopes to cover wide range of the
+   measurement distance (25 km to 30 m). Short-range telescope, whose
+   full-angle FOV size is 20.4 mrad [4], is used only when the distance toward
+   the asteroid surface is shorter than 300 meters.
+
+   Described below is the FOV definition of the long-range telescope.
+
+   The full-angle FOV size of the long-range receiving telescope is
+   1.5 mrad [4], therefore the corresponding half angle is 0.75 mrad.
+
+   The BORESIGHT direction below, that is defined in the HAYABUSA2_LIDAR frame,
+   is almost parallel to -Z axis of the BUS_PRIME coordinate.
+
+   Divergence angle of the transmitted laser is about 2.4 mrad [4].
+
+   These are summarized as the following table:
+
+      ID      SHAPE     FRAME                    SIZE (radian)  BSIGHT
+      ------  --------  -----------------------  -------------  ------
+      -37400  CIRCLE    HAYABUSA2_LIDAR          0.00075        +Z
+      -37410  CIRCLE    HAYABUSA2_LIDAR_RX_FAR   0.00075        +Z
+      -37420  CIRCLE    HAYABUSA2_LIDAR_RX_NEAR  0.01020        +Z
+      -37430  CIRCLE    HAYABUSA2_LIDAR_TX       0.00120        +Z
+
+   where the SIZE is half angle size in radians for the circular shape,
+   and the BSIGHT is boresight direction in frame described in the column
+   'FRAME'.
+
+   Note that the FOV definition for the ID -37400 is same as that for the
+   ID -37410, which is the definition for the far-range (long-range) receiving
+   telescope, and is kept for backward compatibility.
+
+   \begindata
+
+      INS-37400_FOV_FRAME            = 'HAYABUSA2_LIDAR'
+      INS-37400_FOV_SHAPE            = 'CIRCLE'
+      INS-37400_BORESIGHT            = ( 0.0,      0.0,      +1.0     )
+      INS-37400_FOV_CLASS_SPEC       = 'ANGLES'
+      INS-37400_FOV_REF_VECTOR       = ( 0.0,      1.0,       0.0     )
+      INS-37400_FOV_REF_ANGLE        = 0.00075
+      INS-37400_FOV_ANGLE_UNITS      = 'RADIANS'
+
+      INS-37410_FOV_FRAME            = 'HAYABUSA2_LIDAR_RX_FAR'
+      INS-37410_FOV_SHAPE            = 'CIRCLE'
+      INS-37410_BORESIGHT            = ( 0.0,      0.0,      +1.0     )
+      INS-37410_FOV_CLASS_SPEC       = 'ANGLES'
+      INS-37410_FOV_REF_VECTOR       = ( 0.0,      1.0,       0.0     )
+      INS-37410_FOV_REF_ANGLE        = 0.00075
+      INS-37410_FOV_ANGLE_UNITS      = 'RADIANS'
+
+      INS-37420_FOV_FRAME            = 'HAYABUSA2_LIDAR_RX_NEAR'
+      INS-37420_FOV_SHAPE            = 'CIRCLE'
+      INS-37420_BORESIGHT            = ( 0.0,      0.0,      +1.0     )
+      INS-37420_FOV_CLASS_SPEC       = 'ANGLES'
+      INS-37420_FOV_REF_VECTOR       = ( 0.0,      1.0,       0.0     )
+      INS-37420_FOV_REF_ANGLE        = 0.0102
+      INS-37420_FOV_ANGLE_UNITS      = 'RADIANS'
+
+      INS-37430_FOV_FRAME            = 'HAYABUSA2_LIDAR_TX'
+      INS-37430_FOV_SHAPE            = 'CIRCLE'
+      INS-37430_BORESIGHT            = ( 0.0,      0.0,      +1.0     )
+      INS-37430_FOV_CLASS_SPEC       = 'ANGLES'
+      INS-37430_FOV_REF_VECTOR       = ( 0.0,      1.0,       0.0     )
+      INS-37430_FOV_REF_ANGLE        = 0.0012
+      INS-37430_FOV_ANGLE_UNITS      = 'RADIANS'
+
+   \begintext
+
+
+LIDAR location with respect to spacecraft center of mass
+-------------------------------------------------------------------------------
+
+   Offset vector from the center of mass of the Hayabusa2 spacecraft
+   to LIDAR origin is estimated as follows:
+
+        (dX, dY, dZ) = (-0.74, -0.22, -0.70) [m]
+
+   These values are based on the following calculation.
+
+   We set the center of mass position of the spacecraft as a fixed value
+   measured on the ground before launch, where temporal changes during the
+   mission phase is ignored:
+
+      (0.0102, -0.0070, 0.7006) [m],
+
+   where Z value is measured from the bottom of the spacecraft structure
+   (-Z panel), and the position of (X, Y) = (0, 0) is the center of SCI.
+   These values are quoted from Table 6.6-9 in page 6-14 in [5].
+
+   The (X, Y) position of the LIDAR on the -Z panel is estimated from
+   the drawing of Figure 5.2-17 in page 5-21 in [5] as
+
+      (-0.730, -0.230) [m].
+
+   The origin of LIDAR range measurement is spacecraft structural panel
+   (-Z panel) on which LIDAR is mounted.
+
+
+   \begindata
+
+      INS-37400_LOC_FROM_COM         = ( -0.74, -0.22, -0.70 )
+
+   \begintext
+
+End of the IK file.

@@ -1,0 +1,218 @@
+KPL/IK
+ 
+Hayabusa2 Mascot Radiometer Instrument Kernel
+=============================================
+
+Version and Date
+----------------------------------------------------------------------
+
+    Version 2.0 -- Tue Jul 30 2024 -- Shin-ya Murakami (JAXA)
+
+      Added Naming Conventions section.
+
+    Version 1.0 -- Tue Apr 29 2019 -- Klaus-Dieter Matz (DLR)
+ 
+      Initial Release.
+
+ 
+Contact Information
+----------------------------------------------------------------------
+
+    If you have any questions regarding this file contact
+
+        Thomas Roatsch (DLR)
+        (+49) 30 67055 339
+
+References
+----------------------------------------------------------------------
+
+   1. ``Frames Required Reading''
+ 
+   2. Hayabusa2 Mascot Lander Frames Kernel, Latest Version
+ 
+   3. ``CAD drawings of the nominal position of MARA and Cam'',
+      Email from M. Grott, August 10, 2016
+
+   4. ``The MASCOT Radiometer MARA for the Hayabusa 2 Mission'',
+      Grott, M., Knollenberg, J., Borgs, B. et al.
+      Space Sci Rev (2017) 208: 413
+
+
+Naming Conventions
+----------------------------------------------------------
+
+   All names referencing values in this IK file start with the
+   characters `INS' followed by the NAIF Hayabusa2 ID number (-37)
+   followed by a NAIF three digit ID code for one of the structures.
+   This is the full list of names and IDs for the structures described
+   by this IK file:
+
+      HAYABUSA2_MASCOT                        -37700
+ 
+      HAYABUSA2_MASCOT_MARA                   -37740
+      HAYABUSA2_MASCOT_MARA_SILP              -37741
+      HAYABUSA2_MASCOT_MARA_LP8               -37742
+      HAYABUSA2_MASCOT_MARA_BP5               -37743
+      HAYABUSA2_MASCOT_MARA_BP8               -37744
+      HAYABUSA2_MASCOT_MARA_BP9               -37745
+      HAYABUSA2_MASCOT_MARA_BP13              -37746
+
+   The remainder of the keyword name is an underscore character
+   followed by the unique name of the data item. For example, the MASCOT
+   MARA SILP boresight direction in the HAYABUSA2_MASCOT_MARA frame is
+   specified by:
+
+      INS-37741_BORESIGHT
+
+   The upper bound on the length of the name of any data item is 32
+   characters.
+
+   If the same item is included in more than one file, or if the same
+   item appears more than once within a single file, the latest value
+   supersedes any earlier values.
+
+
+Overview
+------------------------------------------------------------------------------
+
+   From [4]:
+
+    The MASCOT radiometer MARA is a multi-spectral instrument which measures
+    net radiative flux in six wavelength bands. MARA uses thermopile sensors
+    as sensing elements, and the net flux between the instrument and the
+    surface in the circular 18 degrees field of view is determined by
+    evaluating the thermoelectric potential between the sensors' absorbing
+    surface and the thermopile's cold-junction.
+
+    MARA houses 4 bandpass channels in the spectral range of 5.5-7, 8-9.5,
+    9.5-11.5, and 13.5-15.5 micrometer, as well as one long-pass channel,
+    which is sensitive in the > 3 micrometer range. In addition, one channel
+    is similar to that used by the Hayabusa 2 orbiter thermal mapper, which
+    uses a wavelength range of 8-12 micrometer.
+
+
+Optical Parameters and FOV Definitions
+------------------------------------------------------------------------------
+
+   Parameters extracted from [3] and [4].
+
+   All MARA sensors have a circular field-of-view with a FWHM-Diameter of
+   18 degrees (0.314159 rad).
+
+
+    MARA_SILP
+
+    \begindata
+
+    INS-37741_FOV_FRAME            = 'HAYABUSA2_MASCOT_MARA'
+    INS-37741_FOV_SHAPE            = 'CIRCLE'
+    INS-37741_IFOV                 = 0.314159
+    INS-37741_BORESIGHT            = ( 0.0, 0.0,  1.0 )
+    INS-37741_FOV_CLASS_SPEC       = 'ANGLES'
+    INS-37741_FOV_REF_VECTOR       = ( 0.0, 1.0, 0.0 )
+    INS-37741_FOV_REF_ANGLE        = ( 9.0 )
+    INS-37741_FOV_ANGLE_UNITS      = ( 'DEGREES' )
+
+    INS-37741_FOV_CENTER_PIXEL      = ( 0, 0 )
+    INS-37741_PIXEL_SAMPLES         = ( 1 )
+    INS-37741_PIXEL_LINES           = ( 1 )
+
+    \begintext
+
+    MARA_LP8
+
+    \begindata
+
+    INS-37742_FOV_FRAME            = 'HAYABUSA2_MASCOT_MARA'
+    INS-37742_FOV_SHAPE            = 'CIRCLE'
+    INS-37742_IFOV                 = 0.314159
+    INS-37742_BORESIGHT            = ( 0.0, 0.0,  1.0 )
+    INS-37742_FOV_CLASS_SPEC       = 'ANGLES'
+    INS-37742_FOV_REF_VECTOR       = ( 0.0, 1.0, 0.0 )
+    INS-37742_FOV_REF_ANGLE        = ( 9.0 )
+    INS-37742_FOV_ANGLE_UNITS      = ( 'DEGREES' )
+
+    INS-37742_FOV_CENTER_PIXEL      = ( 0, 0 )
+    INS-37742_PIXEL_SAMPLES         = ( 1 )
+    INS-37742_PIXEL_LINES           = ( 1 )
+ 
+    \begintext
+
+    MARA_BP5
+
+    \begindata
+
+    INS-37743_FOV_FRAME            = 'HAYABUSA2_MASCOT_MARA'
+    INS-37743_FOV_SHAPE            = 'CIRCLE'
+    INS-37743_IFOV                 = 0.314159
+    INS-37743_BORESIGHT            = ( 0.0, 0.0,  1.0 )
+    INS-37743_FOV_CLASS_SPEC       = 'ANGLES'
+    INS-37743_FOV_REF_VECTOR       = ( 0.0, 1.0, 0.0 )
+    INS-37743_FOV_REF_ANGLE        = ( 9.0 )
+    INS-37743_FOV_ANGLE_UNITS      = ( 'DEGREES' )
+
+    INS-37743_FOV_CENTER_PIXEL      = ( 0, 0 )
+    INS-37743_PIXEL_SAMPLES         = ( 1 )
+    INS-37743_PIXEL_LINES           = ( 1 )
+ 
+    \begintext
+
+    MARA_BP8
+
+    \begindata
+
+    INS-37744_FOV_FRAME            = 'HAYABUSA2_MASCOT_MARA'
+    INS-37744_FOV_SHAPE            = 'CIRCLE'
+    INS-37744_IFOV                 = 0.314159
+    INS-37744_BORESIGHT            = ( 0.0, 0.0,  1.0 )
+    INS-37744_FOV_CLASS_SPEC       = 'ANGLES'
+    INS-37744_FOV_REF_VECTOR       = ( 0.0, 1.0, 0.0 )
+    INS-37744_FOV_REF_ANGLE        = ( 9.0 )
+    INS-37744_FOV_ANGLE_UNITS      = ( 'DEGREES' )
+
+    INS-37744_FOV_CENTER_PIXEL      = ( 0, 0 )
+    INS-37744_PIXEL_SAMPLES         = ( 1 )
+    INS-37744_PIXEL_LINES           = ( 1 )
+ 
+    \begintext
+
+    MARA_BP9
+
+    \begindata
+
+    INS-37745_FOV_FRAME            = 'HAYABUSA2_MASCOT_MARA'
+    INS-37745_FOV_SHAPE            = 'CIRCLE'
+    INS-37745_IFOV                 = 0.314159
+    INS-37745_BORESIGHT            = ( 0.0, 0.0,  1.0 )
+    INS-37745_FOV_CLASS_SPEC       = 'ANGLES'
+    INS-37745_FOV_REF_VECTOR       = ( 0.0, 1.0, 0.0 )
+    INS-37745_FOV_REF_ANGLE        = ( 9.0 )
+    INS-37745_FOV_ANGLE_UNITS      = ( 'DEGREES' )
+
+    INS-37745_FOV_CENTER_PIXEL      = ( 0, 0 )
+    INS-37745_PIXEL_SAMPLES         = ( 1 )
+    INS-37745_PIXEL_LINES           = ( 1 )
+ 
+    \begintext
+
+    MARA_BP13
+
+    \begindata
+
+    INS-37746_FOV_FRAME            = 'HAYABUSA2_MASCOT_MARA'
+    INS-37746_FOV_SHAPE            = 'CIRCLE'
+    INS-37746_IFOV                 = 0.314159
+    INS-37746_BORESIGHT            = ( 0.0, 0.0,  1.0 )
+    INS-37746_FOV_CLASS_SPEC       = 'ANGLES'
+    INS-37746_FOV_REF_VECTOR       = ( 0.0, 1.0, 0.0 )
+    INS-37746_FOV_REF_ANGLE        = ( 9.0 )
+    INS-37746_FOV_ANGLE_UNITS      = ( 'DEGREES' )
+
+    INS-37746_FOV_CENTER_PIXEL      = ( 0, 0 )
+    INS-37746_PIXEL_SAMPLES         = ( 1 )
+    INS-37746_PIXEL_LINES           = ( 1 )
+ 
+    \begintext
+
+
+End of IK file.

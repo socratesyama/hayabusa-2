@@ -1,0 +1,360 @@
+KPL/IK
+
+Hayabusa2 ONC Instrument kernel
+==============================================================================
+
+   This instrument kernel (I-kernel) file contains detector, optical, and
+   field-of-view parameters for the Hayabusa2 Optical Navigation Camera (ONC)
+   instrument.
+
+
+Version and Date
+------------------------------------------------------------------------------
+
+   Version 0.5     -- February 10, 2023 -- Shin-ya Murakami, ISAS, JAXA
+      - Applied cosmetic changes.
+      - Fixed typo.
+      - Updated contact information.
+
+   Version 0.4     -- February 10, 2019 -- ONC team
+      - FOCAL_LENGTH value of ONC-W2 in "Optical Parameters" section is
+        corrected.
+      - Reference in "Optical Distortion" section is corrected.
+      - Bibliographic information of [3-3] is updated.
+
+   Version 0.3     -- November 20, 2018 -- ONC team
+      - F value of ONC-T in "Optical Parameters" section is corrected.
+
+   Version 0.2     -- June 13, 2018 -- ONC team
+      - References and some optical parameters (e.g. FOV of ONC-T) are
+        updated to measured values shown in Suzuki et al.[2018][3-1] and
+        Tatsumi et al. [in preparation][3-3] and different from designed
+        values listed in Kameda et al.[2017][3-2]. Please do not use the
+        values in Kameda et al. [2017][3-2] if they are different from the
+        values listed here, because it produces errors (e.g., errors in the
+        positions in the case of FOV). Please refer to comments (1) in
+        "Optical Parameters" section", too. Furthermore, for fk files, please
+        use the version later than hyb2_v12.tf. Note that former version is
+        not consistent with [3-1] and [3-3].
+
+   Version 0.1     -- May 1, 2018 -- Hayabusa2 SPICE Team
+      - Renamed for the public release
+
+   Version 0.0     -- Jan 16, 2017 -- Hayabusa2 SPICE Team
+      - Renamed for the public release
+
+   Version beta-01 -- Dec 21, 2016 -- Manabu YAMADA, PERC/Chitech
+      - Fixed typo and values.
+
+   Version beta-00 -- Nov 18, 2014 -- Manabu YAMADA, PERC/Chitech
+      - Preliminary Version. Based on AKATSUKI/UVI I-Kernel Version 4.0
+
+
+References
+------------------------------------------------------------------------------
+
+   1. Kernel Pool Required Reading
+
+   2. GETFOV, getfoc_c, cspice_getfov headers
+
+   3. "ONC Payload Interface Document"
+       3-1: Suzuki et al., 2018, Initial inflight calibration for Hayabusa2
+            optical navigation camera (ONC) for science observations of
+            asteroid Ryugu,Icarus, 300, 341-359,
+            doi:10.1016/j.icarus.2017.09.011
+       3-2: Kameda et al., 2017, Preflight Calibration Test Results for
+            Optical Navigation Camera Telescope (ONC-T) Onboard the Hayabusa2
+            Spacecraft, Space Science Reviews, 208, 17-31,
+            doi:10.1007/s11214-015-0227-y
+       3-3: Tatsumi et al., 2019, Updated inflight calibration of Hayabusa2's
+            optical navigation camera (ONC) for scientific observations during
+            the cruise phase, Icarus, doi:10.1016/j.icarus.2019.01.015
+
+   4. Hayabusa2 FK file, latest version
+
+
+Contact Information
+------------------------------------------------------------------------------
+
+   Manabu YAMADA, PERC/Chitech, manabu@perc.it-chiba.ac.jp
+   Rie Honda, Ehime University, honda.rie.ha@ehime-u.ac.jp
+   Hidehiko Suzuki, Meiji University, suzuhide@meiji.ac.jp
+
+
+Implementation Notes
+------------------------------------------------------------------------------
+
+   This file is used by the SPICE system as follows: programs that make
+   use of this kernel must ``load'' the kernel, normally during program
+   initialization. The SPICE routine FURNSH loads a kernel file into
+   the pool as shown below.
+
+      CALL FURNSH ( 'frame_kernel_name; )    -- FORTRAN
+      furnsh_c ( "frame_kernel_name" );      -- C
+      cspice_furnsh, frame_kernel_name       -- IDL
+      cspice_furnsh( 'frame_kernel_name' )   -- MATLAB
+
+   Once the file has been loaded, the SPICE routine GETFOV (getfov_c in
+   C, cspice_getfov in IDL and MATLAB) can be used to retrieve FOV
+   parameters for a given instrument or structure.
+
+   This file was created and may be updated with a text editor or word
+   processor.
+
+
+Naming Conventions
+------------------------------------------------------------------------------
+
+   All names referencing values in this IK file start with the
+   characters `INS' followed by the NAIF Hayabusa2 ID number (-37)
+   followed by a NAIF three digit ID code for one of ONC camera head (ONC-T,
+   ONC-W1, ONC-W2):
+
+      HAYABUSA2_ONC-T       -37100
+      HAYABUSA2_ONC-W1      -37110
+      HAYABUSA2_ONC-W2      -37120
+
+   The remainder of the keyword name is an underscore character
+   followed by the unique name of the data item. For example, the
+   boresight direction of HAYABUSA2_ONC-T is specified by:
+
+      INS-37100_BORESIGHT
+
+   The upper bound on the length of the name of any data item is 32
+   characters.
+
+   If the same item is included in more than one file, or if the same
+   item appears more than once within a single file, the latest value
+   supersedes any earlier values.
+
+
+Instrument Description
+------------------------------------------------------------------------------
+
+   The optical navigation camera (ONC) system on board the Hayabusa2
+   consists of three individual framing CCD cameras, ONC-T for a telescopic
+   nadir view, ONC-W1 for a wide-angle nadir view, and ONC-W2 for a
+   wide- angle slant view will be used to observe the surface of Ryugu.
+   The cameras will be used to measure the global asteroid shape, local
+   morphologies, and visible spectroscopic properties [3-2].
+   For more detailed description, please refer [3-1], [3-2] and [3-3].
+
+
+Optical Parameters
+------------------------------------------------------------------------------
+
+   The following ONC optical parameters are included
+   in the data section below, taken from [3-2] and [3-3]:
+
+      -------------------------------------------------------
+             parameter        ONC-T       ONC-W1      ONC-W2
+      -------------------------------------------------------
+      Focal Length (1), mm    120.50      10.22       10.34
+      f/ratio                 f/9.05 (2)  f/9.6       f/9.6
+      IFOV, mrad (3)          0.1074      1.1882      1.1742
+      -------------------------------------------------------
+
+   (1) Precise FOV estimation by using distortion-corrected image requires
+       these "Focal lengths". The coefficients and procedures for the
+       distortion-correction are described in [3-1].
+
+   (2) The effect of FF lamps is considered (f/ratio without FF lamps is
+        f/8.0).
+
+   (3) IFOV is computed as the mean pixel resolution from the FOV and the
+       number of pixels in X and Y direction:
+
+       e. g.)
+          IFOV (ONC-W1) = FOV / number of pixels = 69.71 deg / 1024 pixel
+                        = 0.06808 deg / pixel = 1.1882 mrad / pixel
+          where the value of FOV is described in [3-1] and section of "FOV
+          Definitions".
+
+   Angular size values in the keywords are given in radians.
+
+   \begindata
+
+      INS-37100_FOCAL_LENGTH         = ( 120.50      )
+      INS-37100_F/RATIO              = (   9.05      )
+      INS-37100_IFOV                 = (   0.0001074 )
+
+      INS-37110_FOCAL_LENGTH         = (  10.22      )
+      INS-37110_F/RATIO              = (   9.6       )
+      INS-37110_IFOV                 = (   0.0011882 )
+
+      INS-37120_FOCAL_LENGTH         = (  10.34      )
+      INS-37120_F/RATIO              = (   9.6       )
+      INS-37120_IFOV                 = (   0.0011742 )
+
+  \begintext
+
+
+Detector CCD Parameters
+------------------------------------------------------------------------------
+
+   The ONC detector parameters are included in the data section below,
+   taken from [3-1] and [3-2]:
+
+      -------------------------------------------------------
+             parameter          ONC-T      ONC-W1      ONC-W2
+      -------------------------------------------------------
+      Pixel Size, microns
+          Cross-track [mm]      0.013      0.013       0.013
+          Along-track [mm]      0.013      0.013       0.013
+      Detector Array Size
+          Cross-track            1024       1024        1024
+          Along-track            1024       1024        1024
+      Detector Array Center
+          Cross-track           512.5      512.5       512.5
+          Along-track           512.5      512.5       512.5
+      -------------------------------------------------------
+
+   The values are given in mm for PIXEL_SIZE keywords and in counts
+   for PIXEL_SAMPLES, PIXEL_LINES, and CCD_CENTER keywords.
+
+   The values of PIXEL_SAMPLES and PIXEL_LINES are equal to the diameter of
+   each camera head, in counts.
+
+   \begindata
+
+      INS-37100_PIXEL_SIZE           = ( 0.013, 0.013 )
+      INS-37100_PIXEL_SAMPLES        = ( 1024 )
+      INS-37100_PIXEL_LINES          = ( 1024 )
+      INS-37100_CCD_CENTER           = ( 512.5, 512.5 )
+
+      INS-37110_PIXEL_SIZE           = ( 0.013, 0.013 )
+      INS-37110_PIXEL_SAMPLES        = ( 1024 )
+      INS-37110_PIXEL_LINES          = ( 1024 )
+      INS-37110_CCD_CENTER           = ( 512.5, 512.5 )
+
+      INS-37120_PIXEL_SIZE           = ( 0.013, 0.013 )
+      INS-37120_PIXEL_SAMPLES        = ( 1024 )
+      INS-37120_PIXEL_LINES          = ( 1024 )
+      INS-37120_CCD_CENTER           = ( 512.5, 512.5 )
+
+   \begintext
+
+
+Wavelength Ranges and Filter Parameters
+------------------------------------------------------------------------------
+
+   This section contains assignments specifying wavelength range and other
+   filter parameters of ONC optics and filters.
+
+      -------------------------------------------------------------------------
+        Camera   Band Center,   Bandwidth,       Quantum          Transmittance
+        Head     nanometers     nanometers (1)   Efficiency (2)   (2), (3)
+      -------------------------------------------------------------------------
+        ONC-T    545            482              0.968            0.254
+        ONC-W1   630            142              0.942            0.0605
+        ONC-W2   595            155              0.951            0.238
+      -------------------------------------------------------------------------
+
+      -------------------------------------------------------------------------
+        ONC-T        Band Center,   Bandwidth,       Band Name    Transmittance
+        Filter No.   nanometers     nanometers (1)                (4)
+      -------------------------------------------------------------------------
+        1            390.413         45              ul           0.676
+        2            775            850              Wide         0.879
+        3            549.020         28              v            0.797
+        4            700.384         28              w            0.874
+        5            858.947         42              x            0.900
+        6            590.160         10              Na           0.872
+        7            949.697         57              p            0.893
+        8            479.773         25              b            0.954
+      -------------------------------------------------------------------------
+
+      (1) The bandwidth in above tables is defined in terms of Full Width at
+          Half Maximum (FWHM) values, as described in [3-1].
+
+      (2) The quantum efficiency and the transmittance values are shown as the
+          mean of FWHM for reference.
+
+      (3) The transmittance values of the first table account for both the
+          optics and ND filter at the "Band Center".
+
+   The set of assignments below specifies wavelength center and bandwidth for
+   each filter, with units the same as in the table above.
+
+   \begindata
+
+      INS-37100_FILTER_BANDCENTER    = (  545      )
+      INS-37100_FILTER_BANDWIDTH     = (  482      )
+      INS-37100_FILTER_QE            = (    0.968  )
+      INS-37100_FILTER_TRANSMITTANCE = (    0.254  )
+
+      INS-37110_FILTER_BANDCENTER    = (  630      )
+      INS-37110_FILTER_BANDWIDTH     = (  142      )
+      INS-37110_FILTER_QE            = (    0.942  )
+      INS-37110_FILTER_TRANSMITTANCE = (    0.0605 )
+
+      INS-37120_FILTER_BANDCENTER    = (  595      )
+      INS-37120_FILTER_BANDWIDTH     = (  155      )
+      INS-37120_FILTER_QE            = (    0.951  )
+      INS-37120_FILTER_TRANSMITTANCE = (    0.238  )
+
+   \begintext
+
+
+FOV Definitions
+------------------------------------------------------------------------------
+
+   This section contains definitions for each of ONC camera heads.
+   These definitions are provided in a format consistent required by the
+   SPICE (CSPICE) function GETFOV (getfov_c).
+
+   Each of ONC camera heads has a square FOV:
+
+      --------------------------------------------
+         Camera     FOV
+         Head       (degrees)
+      --------------------------------------------
+         ONC-T       6.302 x  6.302
+         ONC-W1     69.71  x 69.71
+         ONC-W2     68.89  x 68.89
+      --------------------------------------------
+
+   For each of the frames, the boresight vector, along the +Z axis of
+   instrument frame, was scaled to be equal to the focal length.
+   The reference vector is a unit vector along the +Y axis of the frame.
+
+   \begindata
+
+      INS-37100_FOV_FRAME            = 'HAYABUSA2_ONC-T'
+      INS-37100_FOV_SHAPE            = 'RECTANGLE'
+      INS-37100_BORESIGHT            = ( 0.0     0.0   120.50 )
+      INS-37100_FOV_CLASS_SPEC       = 'ANGLES'
+      INS-37100_FOV_REF_VECTOR       = ( 0.0     1.0     0.0  )
+      INS-37100_FOV_REF_ANGLE        = ( 3.151 )
+      INS-37100_FOV_CROSS_ANGLE      = ( 3.151 )
+      INS-37100_FOV_ANGLE_UNITS      = 'DEGREES'
+
+      INS-37110_FOV_FRAME            = 'HAYABUSA2_ONC-W1'
+      INS-37110_FOV_SHAPE            = 'RECTANGLE'
+      INS-37110_BORESIGHT            = ( 0.0     0.0    10.22 )
+      INS-37110_FOV_CLASS_SPEC       = 'ANGLES'
+      INS-37110_FOV_REF_VECTOR       = ( 0.0     1.0     0.0  )
+      INS-37110_FOV_REF_ANGLE        = ( 34.855 )
+      INS-37110_FOV_CROSS_ANGLE      = ( 34.855 )
+      INS-37110_FOV_ANGLE_UNITS      = 'DEGREES'
+
+      INS-37120_FOV_FRAME            = 'HAYABUSA2_ONC-W2'
+      INS-37120_FOV_SHAPE            = 'RECTANGLE'
+      INS-37120_BORESIGHT            = ( 0.0     0.0    10.38 )
+      INS-37120_FOV_CLASS_SPEC       = 'ANGLES'
+      INS-37120_FOV_REF_VECTOR       = ( 0.0     1.0     0.0  )
+      INS-37120_FOV_REF_ANGLE        = ( 34.445 )
+      INS-37120_FOV_CROSS_ANGLE      = ( 34.445 )
+      INS-37120_FOV_ANGLE_UNITS      = 'DEGREES'
+
+   \begintext
+
+
+Optical Distortion
+------------------------------------------------------------------------------
+
+   The optical distortion for the ONC camera is described in [3-1] and updated
+   in [3-3].
+
+
+End of IK file.

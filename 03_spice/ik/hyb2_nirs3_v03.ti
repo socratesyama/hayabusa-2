@@ -1,0 +1,246 @@
+KPL/IK 
+
+Hayabusa2 NIRS3 Instrument kernel
+==============================================================================
+
+  This instrument kernel (I-kernel) file contains detector, optical, and
+  field-of-view parameters for the Hayabusa2 Near Infrared Spectrometer
+  (NIRS3) instrument.
+
+
+Version and Date
+------------------------------------------------------------------------------
+
+   Version 0.3 -- Feb. 18, 2025 -- Shin-ya Murakami, ISAS, JAXA
+     - Updated the "Instrument Optical Parameters" section.
+
+   Version 0.3b -- Sep. 6, 2024 -- Shin-ya Murakami, ISAS, JAXA
+     - Updated descriptions in the "Instrument Optical Parameters" section
+       and the "Instrument FOV Definition(s)" section.
+     - Added some keywords to the "Instrument Optical Parameters" section. 
+
+   Version 0.3a -- Feb. 10, 2023 -- Shin-ya Murakami, ISAS, JAXA
+     - Applied cosmetic changes.
+     - Update descriptions.
+
+   Version 0.2 -- Feb. 20, 2020 -- Yukio Yamamoto, ISAS, JAXA
+     - Updated major version for public release.
+
+   Version 0.1a -- Aug. 05, 2019 -- Shin-ya Murakami, ISAS, JAXA
+     - Applied cosmetic changes.
+     - Filled some blanks.
+
+   Version 0.1 -- Mar. 08, 2017 -- Kohei KITAZATO, Univ. of Aizu
+     - Fixed NIRS3 alignment as a result of the NIRS3 experiment.
+
+   Version 0.0 -- Jan. 12, 2017 -- Hayabusa2 DAC Team
+     - Initial version.
+
+
+Reference
+------------------------------------------------------------------------------
+
+   1. Kernel Pool Required Reading
+
+   2. GETFOV, getfoc_c, cspice_getfov headers
+
+   3. Hayabusa2 FK file, latest version
+
+   4. Iwata et al., 2017, NIRS3: The Near Infrared Spectrometer on Hayabusa2,
+      Space Sci. Rev., 208:317-337, https://doi.org/10.1007/s11214-017-0341-0
+
+   5. Kitazato et al., 2021, Software Interface Specification for the
+      Hayabusa2 NIRS3 Products, urn:jaxa:darts:hyb2_nirs3:document:nirs3_dpsis
+
+
+Contact Information
+------------------------------------------------------------------------------
+
+  Kohei KITAZATO, Univ. of Aizu, kitazato@u-aizu.ac.jp
+
+
+Implementation Notes
+------------------------------------------------------------------------------
+
+   This file is used by the SPICE system as follows: programs that make
+   use of this kernel must ``load'' the kernel, normally during program
+   initialization. The SPICE routine FURNSH loads a kernel file into
+   the pool as shown below.
+
+      CALL FURNSH ( 'frame_kernel_name; )    -- FORTRAN
+      furnsh_c ( "frame_kernel_name" );      -- C
+      cspice_furnsh, frame_kernel_name       -- IDL
+      cspice_furnsh( 'frame_kernel_name' )   -- MATLAB
+
+   Once the file has been loaded, the SPICE routine GETFOV (getfov_c in
+   C, cspice_getfov in IDL and MATLAB) can be used to retrieve FOV
+   parameters for a given instrument or structure.
+
+   This file was created and may be updated with a text editor or word
+   processor.
+
+
+Naming Conventions
+------------------------------------------------------------------------------
+
+   All names referencing values in this IK file start with the
+   characters `INS' followed by the NAIF Hayabusa2 ID number (-37)
+   followed by a NAIF three digit ID code for one of NIRS3:
+
+      HAYABUSA2_NIRS3-S               -37300
+
+   The remainder of the keyword name is an underscore character
+   followed by the unique name of the data item. For example, the
+   boresight direction of HAYABUSA2_NISR3-S is specified by:
+
+      INS-37300_BORESIGHT
+
+   The upper bound on the length of the name of any data item is 32
+   characters.
+
+   If the same item is included in more than one file, or if the same
+   item appears more than once within a single file, the latest value
+   supersedes any earlier values.
+
+
+Instrument Description
+------------------------------------------------------------------------------
+
+   From [4]:
+
+      NIRS3: The Near Infrared Spectrometer is installed on the Hayabusa2
+      spacecraft to observe the target C-type asteroid 162173 Ryugu at near
+      infrared wavelengths of 1.8 to 3.2 um. It aims to obtain reflectance
+      spectra in order to detect absorption bands of hydrated and hydroxide
+      minerals in the 3 um-band. We adopted a linear-image sensor with indium
+      arsenide (InAs) photo diodes and a cooling system with a passive
+      radiator to achieve an optics temperature of 188 K (-85 degrees
+      Celsius), which enables to retaining sufficient sensitivity and noise
+      level in the 3 um wavelength region. We conducted ground performance
+      tests for the NIRS3 flight model (FM) to confirm its baseline
+      specifications. The results imply that the properties such as the
+      signal-to-noise ratio (SNR) conform to scientific requirements to
+      determine the degree of aqueous alteration, such as CM or CI chondrite,
+      and the stage of thermal metamorphism on the asteroid surface.
+
+
+Mounting Alignment
+-------------------------------------------------------------------------------
+
+   Refer to the latest version of the Hayabusa2 Frames Definition Kernel (FK)
+   [3] for the instrument reference frame definitions and mounting
+   alignment information.
+
+
+Apparent FOV Layout
+------------------------------------------------------------------------------
+
+  This diagram illustrates the Hayabusa2 NIRS3 apparent FOV layout in the
+  HAYABUSA2_NIRS3-S reference frame.
+
+  The FOV size of the spectrometer unit of the NIRS3 (NIRS3-S) is
+  0.1 degrees x 0.11 degrees.
+
+
+                           ^ Y
+                           |
+        |                  |
+       ---            *----|----+
+        ^             |    |    |
+        |   0.11 deg  |    x-------> X
+        V             |         |
+       ---            +---------+
+        |                
+                      | 0.1 deg |
+                      |<------->|
+                      |         | Boresight (-Z axis) is into the page
+
+   For the alignment of the HAYABUSA2_NIRS3-S frame with respect to the
+   HAYABUSA2_SC_BUS_PRIME frame and with respect to each other, please
+   refer to [3].
+
+
+Instrument Detector/Sensor Parameters
+-------------------------------------------------------------------------------
+
+  The NIRS3 detector parameters are tabulated below, taken from [4].
+
+      -----------------------------------------------------------------
+      parameter                         value
+      -----------------------------------------------------------------
+      Pixel size                        50 um x 100 um
+      Detector Array Size               128
+      -----------------------------------------------------------------
+
+   \begindata
+
+      INS-37300_PIXEL_SIZE           = (  50, 100 )
+      INS-37300_PIXEL_SAMPLES        = ( 128      )
+      INS-37300_PIXEL_LINES          = (   1      )
+
+   \begintext
+
+
+Instrument Optical Parameters
+-------------------------------------------------------------------------------
+
+  The following nominal NIRS3 first order optical parameters are provided
+  in [5].
+
+      -----------------------------------------------------------------
+      parameter                         value
+      -----------------------------------------------------------------
+      f/ratio                           f/1.0
+      Aperture diameter                 30 mm
+      Slit size                         50 um x 55 um (*)
+      Effective spectral range          1.8 - 3.2 um
+      Spectral sampling                 18 nm / channel (in average)
+      -----------------------------------------------------------------
+
+   (*) According to [4], the slit size is 55 um x 55 um which is different
+       with the size in [5]. The size 55 um x 55 um is the design value and
+       the actual (measured) value is 50 um x 55 um. In [5], the slit size
+       is written as 50 um x 50 um in the SIS version 1.0, but the value is
+       mistakenly rounded.
+
+  IFOV is computed as 0.1 degree in radians, i.e., about 0.0017 radians.
+
+   \begindata
+
+      INS-37300_FOCAL_LENGTH         = (  30.0       )
+      INS-37100_F/RATIO              = (   1.0       )
+      INS-37100_IFOV                 = (   0.0017    )
+
+   \begintext
+
+
+Instrument FOV Definition(s)
+-------------------------------------------------------------------------------
+
+   FOV is 0.1 deg x 0.11 deg which is determined by slit size, 50 um x 55 um.
+
+   This section defines the following FOV(s):
+
+      ID       SHAPE        FRAME
+      -------  ---------    -----------------
+      -37300   RECTANGLE    HAYABUSA2_NIRS3-S
+
+   The boresight vector is along the -Z direction and magnitude is set to
+   approximate value of focal length, 30 mm, which is calculated from the
+   f/ratio and the aperture diameter.
+
+   \begindata
+
+      INS-37300_FOV_FRAME            = 'HAYABUSA2_NIRS3-S'
+      INS-37300_FOV_SHAPE            = 'RECTANGLE'
+      INS-37300_BORESIGHT            = (   0.0     0.0   -30.0 )
+      INS-37300_FOV_CLASS_SPEC       = 'ANGLES'
+      INS-37300_FOV_REF_VECTOR       = (   1.0     0.0     0.0  )
+      INS-37300_FOV_REF_ANGLE        = (  0.050  )
+      INS-37300_FOV_CROSS_ANGLE      = (  0.055  )
+      INS-37300_FOV_ANGLE_UNITS      = 'DEGREES'
+
+   \begintext
+
+
+End of the IK file.

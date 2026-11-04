@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?xml-model href="https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1G00.sch" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<?xml-model href="https://pds.nasa.gov/pds4/disp/v1/PDS4_DISP_1G00_1500.sch" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<?xml-model href="https://pds.nasa.gov/pds4/geom/v1/PDS4_GEOM_1G00_1920.sch" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<?xml-model href="https://pds.nasa.gov/pds4/proc/v1/PDS4_PROC_1G00_1210.sch" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<?xml-model href="https://pds.nasa.gov/pds4/img/v1/PDS4_IMG_1G00_1860.sch" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<?xml-model href="https://pds.nasa.gov/pds4/msn/v1/PDS4_MSN_1B00_1100.sch" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_Observational xmlns="http://pds.nasa.gov/pds4/pds/v1"
+    xmlns:disp="http://pds.nasa.gov/pds4/disp/v1"
+    xmlns:geom="http://pds.nasa.gov/pds4/geom/v1"
+    xmlns:img="http://pds.nasa.gov/pds4/img/v1" 
+    xmlns:msn="http://pds.nasa.gov/pds4/msn/v1" 
+    xmlns:pds="http://pds.nasa.gov/pds4/pds/v1" 
+    xmlns:proc="http://pds.nasa.gov/pds4/proc/v1" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+       http://pds.nasa.gov/pds4/pds/v1  https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1G00.xsd
+       http://pds.nasa.gov/pds4/disp/v1 https://pds.nasa.gov/pds4/disp/v1/PDS4_DISP_1G00_1500.xsd
+       http://pds.nasa.gov/pds4/img/v1  https://pds.nasa.gov/pds4/img/v1/PDS4_IMG_1G00_1860.xsd
+       http://pds.nasa.gov/pds4/proc/v1    https://pds.nasa.gov/pds4/proc/v1/PDS4_PROC_1G00_1210.xsd
+       http://pds.nasa.gov/pds4/msn/v1     https://pds.nasa.gov/pds4/msn/v1/PDS4_MSN_1B00_1100.xsd
+       http://pds.nasa.gov/pds4/geom/v1     https://pds.nasa.gov/pds4/geom/v1/PDS4_GEOM_1G00_1920.xsd">
+
+  <Identification_Area>
+    <logical_identifier>urn:jaxa:darts:hyb2_mascot_mascam:data_calibrated:mcam_1087724202_754_29464_i_rdr</logical_identifier>
+    <version_id>1.0</version_id>
+    <title>Hayabusa2 MASCOT Mascam Calibrated Image from 2018-10-03T14:54:54.459Z</title>
+    <information_model_version>1.16.0.0</information_model_version>
+    <product_class>Product_Observational</product_class>
+
+    <Modification_History>
+      <Modification_Detail>
+        <modification_date>2019-09-18</modification_date>
+        <version_id>1.0</version_id>
+        <description>First Version</description>
+      </Modification_Detail>
+    </Modification_History>
+  </Identification_Area>
+
+  <Observation_Area>
+    <comment>Observational Intent</comment>
+    <Time_Coordinates>
+      <start_date_time>2018-10-03T14:54:54.459Z</start_date_time>
+      <stop_date_time>2018-10-03T15:03:00.031Z</stop_date_time>
+      <local_mean_solar_time>05:37:14</local_mean_solar_time>
+    </Time_Coordinates>
+
+    <Primary_Result_Summary>
+      <purpose>Science</purpose>
+      <processing_level>Calibrated</processing_level>
+      <description>Radiometrically calibrated image</description>
+      <Science_Facets>
+        <wavelength_range>Visible</wavelength_range>
+        <domain>Surface</domain>
+        <discipline_name>Imaging</discipline_name>
+        <facet1>Grayscale</facet1>
+      </Science_Facets>
+    </Primary_Result_Summary>
+
+    <Investigation_Area>
+      <name>Hayabusa2</name>
+      <type>Mission</type>
+      <Internal_Reference>
+        <lid_reference>urn:jaxa:darts:context:investigation:mission.hyb2</lid_reference>
+        <reference_type>data_to_investigation</reference_type>
+      </Internal_Reference>
+    </Investigation_Area>
+
+    <Observing_System>
+      <description>MASCOT Camera</description>
+      <Observing_System_Component>
+        <name>MASCOT</name>
+        <type>Host</type>
+        <description>Instrument Host</description>
+        <Internal_Reference>
+          <lid_reference>urn:jaxa:darts:context:instrument_host:lander.mascot</lid_reference>
+          <reference_type>is_instrument_host</reference_type>
+        </Internal_Reference>
+      </Observing_System_Component>
+
+      <Observing_System_Component>
+        <name>Mascam</name>
+        <type>Instrument</type>
+        <description>MASCOT Camera</description>
+        <Internal_Reference>
+          <lid_reference>urn:jaxa:darts:context:instrument:mascot.mascam</lid_reference>
+          <reference_type>is_instrument</reference_type>
+        </Internal_Reference>
+      </Observing_System_Component>
+    </Observing_System>
+
+    <Target_Identification>
+      <name>(162173) Ryugu</name>
+      <alternate_designation>1999 JU3</alternate_designation>
+      <type>Asteroid</type>
+      <description>Cg Class Asteroid</description>
+      <Internal_Reference>
+        <lid_reference>urn:nasa:pds:context:target:asteroid.162173_ryugu</lid_reference>
+        <reference_type>data_to_target</reference_type>
+      </Internal_Reference>
+    </Target_Identification>
+
+    <Discipline_Area>
+      <disp:Display_Settings>
+        <Local_Internal_Reference>
+          <local_identifier_reference>mcam_1087724202_754_29464_i_rdr</local_identifier_reference>
+          <local_reference_type>display_settings_to_array</local_reference_type>
+        </Local_Internal_Reference>
+
+        <disp:Display_Direction>
+          <disp:horizontal_display_axis>Sample</disp:horizontal_display_axis>
+          <disp:horizontal_display_direction>Left to Right</disp:horizontal_display_direction>
+          <disp:vertical_display_axis>Line</disp:vertical_display_axis>
+          <disp:vertical_display_direction>Top to Bottom</disp:vertical_display_direction>
+        </disp:Display_Direction>
+      </disp:Display_Settings>
+
+      <geom:Geometry>
+        <geom:SPICE_Kernel_Files>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>naif0012.tls</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>pck00010.tpc</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>de430.bsp</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>hyb2_20190221_v01.tpc</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>hyb2_ryugu_v01.tf</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>2162173_Ryugu.bsp</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>hyb2_v13.tf</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>hyb2_mascot_v01.tf</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>hyb2_mascot_cam_v01.ti</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+          <geom:SPICE_Kernel_Identification>
+            <geom:spice_kernel_file_name>hyb2_mascot_instruments_v01.bsp</geom:spice_kernel_file_name>
+          </geom:SPICE_Kernel_Identification>
+
+        </geom:SPICE_Kernel_Files>
+
+        <geom:Geometry_Lander>
+          <geom:Camera_Model_Parameters>
+            <geom:model_type>CAHV</geom:model_type>
+
+            <geom:CAHV_Model>
+              <geom:Vector_Center>
+                <geom:x_position unit="mm">-85.863</geom:x_position>
+                <geom:y_position unit="mm">106.363</geom:y_position>
+                <geom:z_position unit="mm">103.887</geom:z_position>
+              </geom:Vector_Center>
+
+              <geom:Vector_Axis>
+                <geom:x_unit>0.0</geom:x_unit>
+                <geom:y_unit>0.92718387</geom:y_unit>
+                <geom:z_unit>-0.37460661</geom:z_unit>
+              </geom:Vector_Axis>
+
+              <geom:Vector_Horizontal>
+                <geom:x_pixel>1.0</geom:x_pixel>
+                <geom:y_pixel>0.0</geom:y_pixel>
+                <geom:z_pixel>0.0</geom:z_pixel>
+              </geom:Vector_Horizontal>
+
+              <geom:Vector_Vertical>
+                <geom:x_pixel>0.0</geom:x_pixel>
+                <geom:y_pixel>-0.37460661</geom:y_pixel>
+                <geom:z_pixel>-0.92718387</geom:z_pixel>
+              </geom:Vector_Vertical>
+            </geom:CAHV_Model>
+
+            <geom:Coordinate_Space_Reference>
+              <geom:Coordinate_Space_SPICE>
+                <geom:body_spice_name>HAYABUSA2_MASCOT</geom:body_spice_name>
+                <geom:frame_spice_name>HAYABUSA2_MASCOT</geom:frame_spice_name>
+              </geom:Coordinate_Space_SPICE>
+            </geom:Coordinate_Space_Reference>
+          </geom:Camera_Model_Parameters>
+
+          <geom:Coordinate_Space_Definition>
+            <local_identifier>MP_2c</local_identifier>
+            <geom:Coordinate_Space_Present>
+              <geom:Coordinate_Space_SPICE>
+                <geom:body_spice_name>HAYABUSA2_MASCOT</geom:body_spice_name>
+                <geom:frame_spice_name>HAYABUSA2_MASCOT</geom:frame_spice_name>
+              </geom:Coordinate_Space_SPICE>
+            </geom:Coordinate_Space_Present>
+
+            <geom:Vector_Origin_Offset>
+              <geom:x_position unit="km">0.302573</geom:x_position>
+              <geom:y_position unit="km">-0.280602</geom:y_position>
+              <geom:z_position unit="km">-0.169294</geom:z_position>
+            </geom:Vector_Origin_Offset>
+
+            <geom:Quaternion_Plus_Direction>
+              <geom:qcos>0.9165075554659846</geom:qcos>
+              <geom:qsin1>-0.002446999684597102</geom:qsin1>
+              <geom:qsin2>-0.0010679896556760196</geom:qsin2>
+              <geom:qsin3>-0.40000846536592705</geom:qsin3>
+              <geom:rotation_direction>Reference to Present</geom:rotation_direction>
+            </geom:Quaternion_Plus_Direction>
+
+            <geom:Coordinate_Space_Reference>
+              <geom:Coordinate_Space_SPICE>
+                <geom:body_spice_name>RYUGU</geom:body_spice_name>
+                <geom:frame_spice_name>RYUGU_FIXED</geom:frame_spice_name>
+              </geom:Coordinate_Space_SPICE>
+            </geom:Coordinate_Space_Reference>
+          </geom:Coordinate_Space_Definition>
+
+          <geom:Derived_Geometry>
+            <geom:incidence_angle unit="deg">93.38</geom:incidence_angle>
+            <geom:emission_angle unit="deg">68.00</geom:emission_angle>
+            <geom:phase_angle unit="deg">84.70</geom:phase_angle>
+            <geom:solar_azimuth unit="deg">262.90</geom:solar_azimuth>
+            <geom:solar_elevation unit="deg">-3.38</geom:solar_elevation>
+          </geom:Derived_Geometry>
+
+          <geom:Motion_Counter>
+            <geom:name>MP_2c</geom:name>
+            <geom:Motion_Counter_Index>
+              <geom:index_sequence_number>5</geom:index_sequence_number>
+            </geom:Motion_Counter_Index>
+          </geom:Motion_Counter>
+        </geom:Geometry_Lander>
+      </geom:Geometry>
+
+      <img:Imaging>
+        <Local_Internal_Reference>
+          <local_identifier_reference>mcam_1087724202_754_29464_i_rdr</local_identifier_reference>
+          <local_reference_type>imaging_parameters_to_image_object</local_reference_type>
+        </Local_Internal_Reference>
+
+        <img:Illumination>
+          <img:LED_Illumination_Source>
+            <img:name>IR</img:name>
+            <img:description>The infrared LED was used to illuminate the scene.</img:description>
+            <img:illumination_wavelength unit="nm">812</img:illumination_wavelength>
+          </img:LED_Illumination_Source>
+        </img:Illumination>
+
+        <img:Instrument_State>
+          <img:Device_Temperatures>
+            <img:Device_Temperature>
+              <img:device_name>Cam</img:device_name>
+              <img:temperature_value unit="degC">-10.54</img:temperature_value>
+            </img:Device_Temperature>
+          </img:Device_Temperatures>
+        </img:Instrument_State>
+
+        <img:Commanded_Parameters>
+          <img:Exposure>
+            <img:exposure_duration unit="ms">2946.38</img:exposure_duration>
+            <img:exposure_duration_count>13781</img:exposure_duration_count>
+          </img:Exposure>
+
+          <img:Onboard_Compression>
+            <img:onboard_compression_class>Lossy</img:onboard_compression_class>
+            <img:onboard_compression_mode>48</img:onboard_compression_mode>
+            <img:onboard_compression_ratio>2.851</img:onboard_compression_ratio>
+          </img:Onboard_Compression>
+        </img:Commanded_Parameters>
+      </img:Imaging>
+
+      <msn:Mission_Information>
+        <msn:mission_phase_name>Surface</msn:mission_phase_name>
+        <msn:spacecraft_clock_start>1087723222</msn:spacecraft_clock_start>
+        <msn:spacecraft_clock_stop>1087724202</msn:spacecraft_clock_stop>
+        <msn:Surface_Mission>
+          <msn:start_sol_number>2</msn:start_sol_number>
+          <msn:start_local_mean_solar_time>05:37:14</msn:start_local_mean_solar_time>
+        </msn:Surface_Mission>
+      </msn:Mission_Information>
+
+      <proc:Processing_Information>
+        <Local_Internal_Reference>
+          <local_identifier_reference>mcam_1087724202_754_29464_i_rdr</local_identifier_reference>
+          <local_reference_type>processing_information_to_data_object</local_reference_type>
+        </Local_Internal_Reference>
+
+        <proc:Process>
+          <proc:process_owner_institution_name>INSTITUT FUER PLANETENFORSCHUNG, DEUTSCHES ZENTRUM FUER LUFT- UND RAUMFAHRT</proc:process_owner_institution_name>
+          <proc:Software>
+            <proc:Software_Program>
+              <proc:name>mascamsyst</proc:name>
+              <proc:program_type_name>PERL</proc:program_type_name>
+              <proc:program_user>mexsyst</proc:program_user>
+              <proc:program_start_date_time>2018-10-18T10:41:20Z</proc:program_start_date_time>
+              <proc:description>Conversion from decompressed raw data to VICAR format</proc:description>
+            </proc:Software_Program>
+
+            <proc:Software_Program>
+              <proc:name>mascam_radcal</proc:name>
+              <proc:program_type_name>IDL</proc:program_type_name>
+              <proc:program_user>mexsyst</proc:program_user>
+              <proc:program_start_date_time>2018-10-18T13:44:43Z</proc:program_start_date_time>
+              <proc:description>Radiometric calibration</proc:description>
+              <proc:Software_Program_Parameters>
+                <proc:Parameter>
+                  <proc:name>Bias_Image</proc:name>
+                  <proc:parameter_type>Input</proc:parameter_type>
+                  <proc:value>mcam_1087609453_755_00002_n_edr.vic</proc:value>
+                </proc:Parameter>
+                <proc:Parameter>
+                  <proc:name>Dark_Image</proc:name>
+                  <proc:parameter_type>Input</proc:parameter_type>
+                  <proc:value>NULL</proc:value>
+                </proc:Parameter>
+                <proc:Parameter>
+                  <proc:name>Flatfield_Image</proc:name>
+                  <proc:parameter_type>Input</proc:parameter_type>
+                  <proc:value>mascot_mascam_flatfield_fm.cal</proc:value>
+                </proc:Parameter>
+                <proc:Parameter>
+                  <proc:name>Stray_Light_Image</proc:name>
+                  <proc:parameter_type>Input</proc:parameter_type>
+                  <proc:value>mascot_mascam_ir_straylight.cal</proc:value>
+                </proc:Parameter>
+                <proc:Parameter>
+                  <proc:name>Color_Ratio_Image</proc:name>
+                  <proc:parameter_type>Input</proc:parameter_type>
+                  <proc:value>mascot_mascam_ir_over_green.cal</proc:value>
+                </proc:Parameter>
+              </proc:Software_Program_Parameters>
+            </proc:Software_Program>
+          </proc:Software>
+        </proc:Process>
+      </proc:Processing_Information>
+    </Discipline_Area>
+  </Observation_Area>
+
+  <Reference_List>
+    <Internal_Reference>
+      <lid_reference>urn:jaxa:darts:hyb2_mascot_mascam:data_raw:mcam_1087609453_755_00002_n_edr</lid_reference>
+      <reference_type>data_to_calibration_product</reference_type>
+      <comment>Reference to the bias image used for calibration.</comment>
+    </Internal_Reference>
+    <Internal_Reference>
+      <lid_reference>urn:jaxa:darts:hyb2_mascot_mascam:calibration:mascot_mascam_flatfield_fm</lid_reference>
+      <reference_type>data_to_calibration_product</reference_type>
+      <comment>Reference to the flatfield image used for calibration.</comment>
+    </Internal_Reference>
+    <Internal_Reference>
+      <lid_reference>urn:jaxa:darts:hyb2_mascot_mascam:calibration:mascot_mascam_ir_straylight</lid_reference>
+      <reference_type>data_to_calibration_product</reference_type>
+      <comment>Reference to the stray light image used for calibration.</comment>
+    </Internal_Reference>
+    <Internal_Reference>
+      <lid_reference>urn:jaxa:darts:hyb2_mascot_mascam:calibration:mascot_mascam_ir_over_green</lid_reference>
+      <reference_type>data_to_calibration_product</reference_type>
+      <comment>Reference to the color ratio image used for calibration.</comment>
+    </Internal_Reference>
+
+    <External_Reference>
+      <doi>10.1007/s11214-016-0263-2</doi>
+      <reference_text>R. Jaumann, et al., The Camera of the MASCOT Asteroid Lander on Board Hayabusa2, 
+       Space Sci Rev, DOI 10.1007/s11214-016-0263-2</reference_text>
+    </External_Reference>
+  </Reference_List>
+
+  <File_Area_Observational>
+    <File>
+      <file_name>mcam_1087724202_754_29464_i_rdr.vic</file_name>
+      <creation_date_time>2018-10-18T10:46:25Z</creation_date_time>
+      <file_size unit="byte">4198400</file_size>
+      <md5_checksum>a4d4e22faa59fb81332d5d0ed9c6ce65</md5_checksum>
+      <comment>Image Data File</comment>
+    </File>
+
+    <Header>
+      <local_identifier>VICAR_Header</local_identifier>
+      <offset unit="byte">0</offset>
+      <object_length unit="byte">4096</object_length>
+      <parsing_standard_id>VICAR2</parsing_standard_id>
+      <description>VICAR Header</description>
+    </Header>
+
+    <Array_2D_Image>
+      <name>VICAR_MASCOT_CAM</name>
+      <local_identifier>mcam_1087724202_754_29464_i_rdr</local_identifier>
+      <offset unit="byte">4096</offset>
+      <axes>2</axes>
+      <axis_index_order>Last Index Fastest</axis_index_order>
+
+      <Element_Array>
+        <data_type>IEEE754LSBSingle</data_type>
+        <unit>W*m**-2*sr**-1</unit>
+      </Element_Array>
+
+      <Axis_Array>
+        <axis_name>Line</axis_name>
+        <local_identifier>line</local_identifier>
+        <elements>1024</elements>
+        <sequence_number>1</sequence_number>
+      </Axis_Array>
+
+      <Axis_Array>
+        <axis_name>Sample</axis_name>
+        <local_identifier>sample</local_identifier>
+        <elements>1024</elements>
+        <sequence_number>2</sequence_number>
+      </Axis_Array>
+    </Array_2D_Image>
+  </File_Area_Observational>
+
+</Product_Observational>

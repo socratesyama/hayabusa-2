@@ -1,0 +1,279 @@
+KPL/IK
+
+Hayabusa2 TIR Instrument kernel
+==============================================================================
+
+   This instrument kernel (I-kernel) file contains detector, optical, and
+   field-of-view parameters for the Hayabusa2 Thermal Infrared Imager (TIR)
+   instrument.
+
+
+Version and Date
+------------------------------------------------------------------------------
+
+   Version 0.4b    -- September 20, 2024 -- Shin-ya Murakami, ISAS, JAXA
+      - Updated the Optical Parameters and the Detector Parameters sections.
+
+   Version 0.4a    -- July 13, 2022 -- Shin-ya Murakami, ISAS, JAXA
+      - Updated Contact Information.
+
+   Version 0.3     -- February 20, 2020 -- Yukio Yamamoto, ISAS, JAXA
+      - Updated major version for public release.
+
+   Version 0.2a    -- August 5, 2019 -- Shin-ya Murakami, ISAS, JAXA
+      - Applied cosmetic changes.
+
+
+References
+------------------------------------------------------------------------------
+
+   1. Kernel Pool Required Reading
+
+   2. GETFOV, getfoc_c, cspice_getfov headers
+
+   3. Hayabusa2 FK file, latest version
+
+   4. Okada et al., 2017, Thermal Infrared Imaging Experiments of C-Type
+      Asteroid 162173 Ryugu on Hayabusa2, Space Sci. Rev., 208:255-286,
+      https://doi.org/10.1007/s11214-016-0286-8
+
+   5. Hayabusa2 Flight Planning Document, PMY-014052, Feb. 2014.
+
+
+Contact Information
+------------------------------------------------------------------------------
+
+   Takehiko Arai, Ashikaga University, arai.takehiko@ashitech.ac.jp
+   Tatsuaki Okada, ISAS/JAXA, okada@planeta.sci.isas.jaxa.jp
+
+
+Implementation Notes
+------------------------------------------------------------------------------
+
+   This file is used by the SPICE system as follows: programs that make
+   use of this kernel must ``load'' the kernel, normally during program
+   initialization. The SPICE routine FURNSH loads a kernel file into
+   the pool as shown below.
+
+      CALL FURNSH ( 'frame_kernel_name; )    -- FORTRAN
+      furnsh_c ( "frame_kernel_name" );      -- C
+      cspice_furnsh, frame_kernel_name       -- IDL
+      cspice_furnsh( 'frame_kernel_name' )   -- MATLAB
+
+   Once the file has been loaded, the SPICE routine GETFOV (getfov_c in
+   C, cspice_getfov in IDL and MATLAB) can be used to retrieve FOV
+   parameters for a given instrument or structure.
+
+   This file was created and may be updated with a text editor or word
+   processor.
+
+
+Naming Conventions
+------------------------------------------------------------------------------
+
+   All names referencing values in this IK file start with the
+   characters `INS' followed by the NAIF Hayabusa2 ID number (-37)
+   followed by a NAIF three digit ID code for one of TIR:
+
+      HAYABUSA2_TIR-S       -37200
+
+   The remainder of the keyword name is an underscore character
+   followed by the unique name of the data item. For example, the
+   boresight direction of HAYABUSA2_TIR-S is specified by:
+
+      INS-37200_BORESIGHT
+
+   The upper bound on the length of the name of any data item is 32
+   characters.
+
+   If the same item is included in more than one file, or if the same
+   item appears more than once within a single file, the latest value
+   supersedes any earlier values.
+
+
+Instrument Description
+------------------------------------------------------------------------------
+
+   From [4]:
+      The thermal infrared imager TIR onboard Hayabusa2 has been developed to
+      investigate thermo-physical properties of C-type, near-Earth asteroid
+      162173 Ryugu. TIR is one of the remote science instruments on Hayabusa2
+      designed to understand the nature of a volatile-rich solar system small
+      body, but it also has significant mission objectives to provide
+      information on surface physical properties and conditions for sampling
+      The thermal infrared imager TIR onboard Hayabusa2 has been developed to
+      investigate thermo-physical properties of C-type, near-Earth asteroid
+      162173 Ryugu. TIR is one of the remote science instruments on Hayabusa2
+      designed to understand the nature of a volatile-rich solar system small
+      body, but it also has significant mission objectives to provide
+      information on surface physical properties and conditions for sampling
+      site selection as well as the assessment of safe landing operations. TIR
+      is based on a two-dimensional uncooled micro-bolometer array inherited
+      from the Longwave Infrared Camera LIR on Akatsuki (Fukuhara et al.,
+      2011). TIR takes images of thermal infrared emission in 8 to 12 um with
+      a field of view of 16x12 degrees and a spatial resolution of 0.05
+      degrees per pixel. TIR covers the temperature range from 150 to 460 K,
+      including the well calibrated range from 230 to 420 K. Temperature
+      accuracy is within 2 K or better for summed images, and the relative
+      accuracy or noise equivalent temperature difference (NETD) at each of
+      pixels is 0.4 K or lower for the well-calibrated temperature range. TIR
+      takes a couple of images with shutter open and closed, the corresponding
+      dark frame, and provides a true thermal image by dark frame subtraction.
+      Data processing involves summation of multiple images, image processing
+      including the StarPixel compression (Hihara et al., 2014), and transfer
+      to the data recorder in the spacecraft digital electronics (DE).
+
+
+Optical Parameters
+------------------------------------------------------------------------------
+
+   TIR first order optical parameters are included in the data section below,
+   taken from [5]:
+
+      -------------------------------------------------------
+      parameter
+      -------------------------------------------------------
+      Focal Length      42.2 mm
+      f/ratio           1.4
+      IFOV (1)
+        Cross-track     0.051 deg (0.0008901179185171081 rad)
+        Along-track     0.051 deg (0.0008901179185171081 rad)
+      -------------------------------------------------------
+
+   (1) IFOV is approximately computed as total FOV divided by number
+       of pixels:
+
+              IFOV = 0.051 degrees
+                   = 0.0008901179185171081 radians
+                   ~ FOV / npixels degrees
+
+              For horizontal,
+
+                     = 16.74 degrees / 328 
+                     = 0.051036585365853655 degrees
+
+              For vertical,
+                     = 12.66 degrees / 248
+                     = 0.051048387096774193 degrees
+
+   \begindata
+
+      INS-37200_FOCAL_LENGTH       = ( 42.2         )
+      INS-37200_FOCAL_LENGTH_UNITS = 'mm'
+      INS-37200_F/RATIO            = (  1.4         )
+      INS-37200_IFOV               = (  0.0008901179185171081, 
+                                        0.0008901179185171081  )
+      INS-37200_IFOV_UNITS         = 'RADIANS'
+
+   \begintext
+
+
+Detector Parameters
+------------------------------------------------------------------------------
+
+   The detector parameters are included in the data section below, taken
+   from [5]:
+
+      -----------------------------------
+      parameter
+      -----------------------------------
+      Pixel Size, micrometers
+          Cross-track [um]       37
+          Along-track [um]       37
+      Detector Array Size
+          Cross-track            248
+          Along-track            328
+      Detector Array Center
+          Cross-track            124.5
+          Along-track            164.5
+      -----------------------------------
+
+   The values are given in um for PIXEL_SIZE keywords and in counts for
+   PIXEL_SAMPLES, PIXEL_LINES, and DETECTOR_CENTER keywords.
+
+   The values of PIXEL_SAMPLES and PIXEL_LINES are equal to the diameter of
+   each filter, in counts.
+
+   \begindata
+
+      INS-37200_PIXEL_SIZE         = ( 37, 37 )
+      INS-37200_PIXEL_SIZE_UNITS   = 'um'
+      INS-37200_PIXEL_SAMPLES      = ( 328 )
+      INS-37200_PIXEL_LINES        = ( 248 )
+      INS-37200_DETECTOR_CENTER    = ( 164.5, 124.5 )
+
+   \begintext
+
+
+Wavelength Ranges and Filter Parameters
+------------------------------------------------------------------------------
+
+   This section contains assignments specifying TIR filter wavelength range
+   and other filter parameters.
+
+   The following filter data are taken from [4]:
+
+      -----------------------------------------------------------------------
+      Channel         Band Center,  Bandwidth,       Quantum    Transmittance
+                      micrometers   micrometers (1)  Efficiency (2)
+      -----------------------------------------------------------------------
+      10 micrometers      10            4             0.85       0.509
+      -----------------------------------------------------------------------
+
+   (1) The bandwidth is defined in terms of Full Width at Half Peak (FWHP)
+       values, as described in [4].
+
+   (2) The transmittance values account for both the optics and the filter.
+
+   The set of assignments below specifies wavelength center and bandwidth for
+   each optical condition, with units in nanometer for the bandcenter and the
+   bandwidth which are different with the table above.
+
+   \begindata
+
+      INS-37200_FILTER_BANDCENTER    = (  10000     )
+      INS-37200_FILTER_BANDWIDTH     = (   4000     )
+      INS-37200_FILTER_BAND_UNITS    = 'nm'
+      INS-37200_FILTER_QE            = (      0.85  )
+      INS-37200_FILTER_TRANSMITTANCE = (      0.509 )
+
+   \begintext
+
+
+FOV Definitions
+------------------------------------------------------------------------------
+
+   This section contains definitions for TIR. These definitions are provided
+   in a format consistent required by the SPICE (CSPICE) function GETFOV
+   (getfov_c).
+
+   Since the TIR FOV is rectangle 12.66 x 16.74 degrees, looking down the
+   -Z-axis in the Hayabusa2 frame, we have: (Note we are arbitrarily choosing
+   a vector that terminates in the Z=1 plane.)
+
+   \begindata
+
+      INS-37200_FOV_FRAME            = 'HAYABUSA2_TIR-S'
+      INS-37200_FOV_SHAPE            = 'RECTANGLE'
+      INS-37200_BORESIGHT            = ( 0.0000000   0.000000   1.000000 )
+      INS-37200_FOV_CLASS_SPEC       = 'ANGLES'
+      INS-37200_FOV_REF_VECTOR       = ( 0.0000000   1.000000   0.000000 )
+      INS-37200_FOV_REF_ANGLE        = 6.33
+      INS-37200_FOV_CROSS_ANGLE      = 8.37
+      INS-37200_FOV_ANGLE_UNITS      = 'DEGREES'
+
+   \begintext
+
+
+Optical Distortion
+-----------------------------------------------------------------------------
+
+   This section provides optical distortion and geometric calibration data
+   for TIR.
+
+   Simple evaluation test for optical distortion which had been carried out
+   by using a collimator in a laboratory before the launch shows no problem
+   in the optics. Hence, no correction for the optical distortion is
+   considered in image processing.
+
+End of IK file.

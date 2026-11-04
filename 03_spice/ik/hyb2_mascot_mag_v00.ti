@@ -1,0 +1,114 @@
+KPL/IK
+
+Hayabusa2 MASCOT MASMAG Instrument kernel
+==============================================================================
+
+   This instrument kernel (I-kernel) contains no parameters but instrument's
+   description for the Hayabusa2 MASCOT magnetometer (MASMAG) instrument.
+
+
+Version and Date
+------------------------------------------------------------------------------
+
+   Version 0.0     -- January 17, 2024 -- David Hercik, TU-Braunschweig,
+                                          instrument provider, and
+                                          Shin-ya Murakami, ISAS/JAXA
+
+      - Initial version.
+
+
+References
+------------------------------------------------------------------------------
+
+   1. ``Frames Required Reading''
+
+   2. Hayabusa2 Mascot Lander Frames Kernel, Latest Version
+
+   3. Hercik, D., Auster, H.-U., Blum, J., Fornacon, K.-H., Fujimoto, M.,
+      Gebauer, K., et al. (2017). The MASCOT Magnetometer. Space Science
+      Reviews, 208(1-4), 433-449. https://doi.org/10.1007/s11214-016-0236-5
+
+   4. Hercik, D., Auster, H.-U., Constantinescu, D., Blum, J., Fornacon,
+      K.-H., Fujimoto, M., et al. (2020). Magnetic Properties of Asteroid
+      (162173) Ryugu. Journal of Geophysical Research: Planets, 125(1),
+      e2019JE006035. https://doi.org/10.1029/2019JE006035
+
+
+Contact Information
+------------------------------------------------------------------------------
+
+   David Hercik, TU-BS, d.hercik@tu-bs.de
+
+
+Naming Conventions and Conventions for Specifying Data
+------------------------------------------------------------------------------
+
+   All names referencing values in this IK file start with the
+   characters `INS' followed by the NAIF Hayabusa2 spacecraft ID number
+   (-37) followed by a NAIF three digit ID code for the Hayabusa2 MASCOT
+   magnetometer (MasMag) sensors. This is the full list of names and IDs
+   for the MasMag instrument described by this IK file:
+   
+      Name                         NAIF ID
+      ------------------------     ---------
+      HAYABUSA2_MASCOT_MASMAG      -37760
+
+   The upper bound on the length of the name of any data item is 32
+   characters.
+
+   If the same item is included in more than one file, or if the same
+   item appears more than once within a single file, the latest value
+   supersedes any earlier values.
+
+
+Overview
+------------------------------------------------------------------------------
+
+   From [3]:
+
+     The MASCOT magnetometer instrument is a vector-compensated three-axis
+     fluxgate magnetometer consisting of a sensor head and digital
+     electronics. The instrument has a long heritage from various space
+     missions such as THEMIS, Venus Express, ROSETTA or BepiColombo. The
+     sensor itself has been built at the Institut fur Geophysik und
+     extraterrestrische Physik (IGeP), Technische Universitaet Braunschweig
+     in cooperation with Magson GmbH (Berlin) providing the electronics. The
+     MasMag electronics board (PCB) is placed inside MASCOT's common
+     electronics box, while the sensor itself is mounted near a corner of the
+     lander's body frame.
+
+
+Instrument performance and parameters
+------------------------------------------------------------------------------
+
+   This section contains overview of the magnetometer basic parameters and
+   performance [3].
+
+      Parameter                           Value
+      --------------------------------    ------------------
+      Sensor mass [g]                     89
+      Electronics mass [g]                180
+      Power consumption [W]               0.5
+      Sensor dimensions [mm3]             pi x 27.5^2 x 50
+      Electronics dimensions [mm3]        109 x 94 x 20
+      Dynamic range [nT]                  +/-12000
+      Sensor noise @1 Hz [pT/sqrt(Hz)]    < 15
+      Resolution [pT]                     2
+      Sampling rate [Hz]                  10
+      Nominal data volume [bit/s]         1010
+
+
+Mounting Alignment
+------------------------------------------------------------------------------
+
+   Refer to the latest version of the Hayabusa2 Mascot Lander Frames Kernel
+   (FK) [2] for the instrument reference frame definitions and mounting
+   alignment information.
+
+
+Instrument FOV Definition(s)
+------------------------------------------------------------------------------
+
+   No FOV is applicable to a magnetometer.
+
+End of IK file.
