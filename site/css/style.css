@@ -13,11 +13,11 @@ p,h1,h2,h3,dl{margin:0}
 /* ヒーロー */
 #hero{position:fixed;left:var(--pad);top:13vh;max-width:calc(100vw - 28px);z-index:5;transition:opacity .9s}
 #hero[hidden]{display:block;opacity:0;pointer-events:none}
-#hero h1{white-space:nowrap;font-size:clamp(28px,4.4vw,56px);font-weight:700;line-height:1.25;letter-spacing:.02em}
-#hero p{margin:14px 0 28px;font-size:clamp(15px,1.6vw,18px);color:var(--dim);max-width:30em}
+#hero h1{white-space:nowrap;font-size:clamp(30px,5.4vw,72px);font-weight:700;line-height:1.25;letter-spacing:.02em}
+#hero p{margin:16px 0 32px;font-size:clamp(16px,1.6vw,20px);color:var(--dim);max-width:30em}
 #go{background:var(--gold);color:#1a1405;font-weight:700;font-size:16px;padding:14px 34px;border-radius:2px;min-height:48px}
 #go:not(:disabled):hover{background:#f2c660}
-#boot{position:fixed;right:var(--pad);bottom:48px;list-style:none;padding:0;color:var(--dim);font-size:12px;text-align:right;transition:opacity 1.4s;z-index:4;max-width:60vw}
+#boot{display:none;position:fixed;right:var(--pad);bottom:48px;list-style:none;padding:0;color:var(--dim);font-size:12px;text-align:right;transition:opacity 1.4s;z-index:4;max-width:60vw}
 #boot.quiet,body.on #boot{opacity:0;pointer-events:none}
 #boot li{animation:in .5s both}
 @keyframes in{from{opacity:0;transform:translateY(4px)}}
@@ -56,7 +56,7 @@ body.instant *{transition-duration:0s!important;transition-delay:0s!important}
 #instr{position:fixed;right:var(--pad);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;z-index:3;align-items:flex-end}
 .ins{display:flex;flex-direction:column;align-items:flex-end;padding:10px 0 10px 18px;min-height:48px;color:var(--dim);position:relative}
 .ins b{font-size:15px;letter-spacing:.12em;font-weight:500}
-.ins span{font-size:12px}
+.ins span{font-size:13px}
 .ins:hover{color:var(--ink)}
 .ins[aria-pressed=true]{color:var(--ink)}
 .ins[aria-pressed=true]::after{content:"";position:absolute;right:-12px;top:50%;width:6px;height:6px;margin-top:-3px;background:var(--ink)}
@@ -68,11 +68,11 @@ body[data-mode=sample] .ins[aria-pressed=true]::after{background:var(--gold)}
 #card .top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
 #card .place{font-size:16px;font-weight:500}
 #card .ins-name{font-size:12px;color:var(--dim);letter-spacing:.08em;white-space:nowrap}
-#card .coords,#card .when{font-size:12px;color:var(--dim)}
+#card .coords,#card .when{font-size:13px;color:var(--dim)}
 #card .body{margin-top:10px}
 #card .body:empty{display:none}
-#card .ins-long{font-size:11px;color:#6f7587;margin-top:8px}
-.note{font-size:12px;color:var(--dim);line-height:1.7;margin-top:6px}
+#card .ins-long{display:none}
+.note{font-size:13px;color:var(--dim);line-height:1.7;margin-top:6px}
 .big{font-size:26px;font-weight:500}.big span{font-size:12px;color:var(--dim);font-weight:400}
 .curve{color:var(--ink);margin-top:4px}.curve svg{display:block;width:100%;height:auto;max-height:56px}
 .curve .dot{fill:var(--ink)}
@@ -130,8 +130,8 @@ body[data-mode=sample] .ins[aria-pressed=true]::after{background:var(--gold)}
 .panel .row{display:flex;gap:10px;flex-wrap:wrap}
 body.panel-back #card,body.panel-report #card{opacity:1}
 
-#foot{position:fixed;left:var(--pad);bottom:14px;font-size:11px;z-index:3}
-#foot a{color:#6f7587;text-decoration:none}#foot a:hover{color:var(--ink)}
+#foot{position:fixed;left:var(--pad);bottom:14px;font-size:12px;z-index:3}
+#foot a{background:var(--ground);padding:3px 8px;color:#a4a9b6;text-decoration:none}#foot a:hover{color:var(--ink)}
 #fade{position:fixed;inset:0;background:var(--ground);opacity:0;pointer-events:none;transition:opacity .42s;z-index:7}
 #fade.show{opacity:1}
 #fail{position:fixed;inset:0;background:var(--ground);z-index:20;padding:20vh 24px;max-width:560px}
@@ -170,3 +170,11 @@ body[data-view=far] .ins{pointer-events:none}
 @media (max-width:760px){.ctl button,.ins{min-height:44px}#tools button{min-height:44px}#viewbtn{min-height:44px}.tick{width:44px;left:-15px}}
 
 @media (max-width:1100px){body.grain-open #card{display:none}}
+
+/* 使っていないあいだは操作の表示を引き、星と地表だけを残す */
+#left,#stamp .ctl,#tools,#instr,#card{transition:opacity 1.2s}
+body.on.idle #left{opacity:.16}
+body.on.idle #stamp .ctl,body.on.idle #tools{opacity:0}
+body.on.idle #instr{opacity:.35}
+body.on.idle #card{opacity:.72}
+#b-log{list-style:none;padding:0;margin:0 0 12px;font-size:12px;color:var(--dim);display:grid;gap:2px}

@@ -20,10 +20,9 @@ export class UI {
   }
   // ---------------------------------------------------------------- 起動の表示
   boot(line) {
-    const ul = $('#boot'); const li = el('li', null, line); ul.appendChild(li);
-    while (ul.children.length > 7) ul.removeChild(ul.firstChild);
+    const lg = $('#b-log'); if (lg) lg.appendChild(el('li', null, line));
   }
-  ready() { document.body.classList.add('ready'); const b = $('#go'); b.disabled = false; b.textContent = '降り立つ'; setTimeout(() => $('#boot').classList.add('quiet'), 3600); this.viewChanged(); this.modeChanged(); this.refresh(true); }
+  ready() { document.body.classList.add('ready'); const b = $('#go'); b.disabled = false; b.textContent = '降り立つ'; this.viewChanged(); this.modeChanged(); this.refresh(true); }
   thermalDone(ms) { this.thermalMs = ms; this.boot(`熱モデル 1,680 通りを ${ms.toFixed(0)} ms で解いた`); }
   setSamples(s) { this.samples = s; }
   heroOut(quick) { document.body.classList.add('on'); if (quick) document.body.classList.add('instant'); $('#hero').hidden = true; }
@@ -88,7 +87,7 @@ export class UI {
     $('#backbtn').addEventListener('click', () => this.togglePanel('back'));
     $('#sharebtn').addEventListener('click', () => this.openReport());
     $('#aboutbtn').addEventListener('click', () => this.togglePanel('about'));
-    $('#aboutlink').addEventListener('click', (e) => { e.preventDefault(); this.togglePanel('about'); });
+    
     document.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => this.closePanels()));
     $('#grain-close').addEventListener('click', () => { this.S.grainSel = null; this.S.grains.forEach((g) => (g.sel = false)); $('#grain').classList.remove('show'); document.body.classList.remove('grain-open'); });
     $('#jump').addEventListener('submit', (e) => { e.preventDefault(); this.jumpForm(); });
@@ -96,6 +95,8 @@ export class UI {
     $('#copyjson').addEventListener('click', () => this.copy(JSON.stringify(this.exportData(), null, 2), '#copyjson'));
     $('#dljson').addEventListener('click', () => { const b = new Blob([JSON.stringify(this.exportData(), null, 2)], { type: 'application/json' }); const a = el('a'); a.href = URL.createObjectURL(b); a.download = 'ryugu_conditions.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); });
     addEventListener('resize', () => this.scene && this.scene.resize());
+    let idleT = 0; const wake = () => { document.body.classList.remove('idle'); clearTimeout(idleT); idleT = setTimeout(() => { if (document.body.classList.contains('on') && !document.querySelector('.panel:not([hidden])')) document.body.classList.add('idle'); }, 5000); };
+    ['pointermove', 'pointerdown', 'keydown', 'touchstart', 'wheel'].forEach((ev) => addEventListener(ev, wake, { passive: true })); wake();
   }
   togglePlay() { const S = this.S; if (S.speed) { this._prev = S.speed; S.speed = 0; } else S.speed = this._prev || 60; this.syncPlay(); }
   syncPlay() { const S = this.S; $('#play').textContent = S.speed ? '止める' : '動かす'; $('#speed').textContent = S.speed ? speedLabel(S.speed) : '速さ'; $('#speed').disabled = !S.speed && false; }
@@ -176,7 +177,7 @@ export class UI {
     c.querySelector('.when').textContent = fmtDate(S.t) + (S.view === 'near' && bag.alt != null ? `　高度 ${bag.alt >= 1000 ? (bag.alt / 1000).toFixed(1) + ' km' : Math.max(0, Math.round(bag.alt)) + ' m'}` : '');
     // 装置ごとの本体
     const body = c.querySelector('.body'); const sig = mode + (S.view === 'far' ? 'f' : 'n');
-    if (S.view === 'far') { body.replaceChildren(el('p', 'note', S.t > this.C.EVENTS.find((x) => x.id === 'return').t ? 'はやぶさ2は、次の小惑星へ向かっている。' : 'はやぶさ2の軌道。リュウグウは、地球の軌道に近い。')); this._sig = sig; return; }
+    if (S.view === 'far') { body.replaceChildren(el('p', 'note', S.t > this.C.EVENTS.find((x) => x.id === 'return').t ? 'はやぶさ2は次の小惑星1998 KY26へ向かっている。' : 'はやぶさ2の軌道。リュウグウの軌道は地球の軌道の近くを通る。')); this._sig = sig; return; }
     if (mode === 'onc') this.cardOnc(body); else if (mode === 'tir') this.cardTir(body, bag); else if (mode === 'lidar') this.cardLidar(body); else this.cardSample(body);
     // 裏側
     if (!$('#back').hidden) this.fillBack(bag, st, e);
@@ -187,7 +188,7 @@ export class UI {
     const key = best && bd < 3 * 3600 ? best.f : null;
     if (key === this._onc && body.dataset.k === 'onc') { return; }
     this._onc = key; body.dataset.k = 'onc';
-    if (!key) { const p = el('p', 'note', 'この時刻の観測画像はない。時間を動かすと、撮影した瞬間に出会える。'); body.replaceChildren(p); return; }
+    if (!key) { const p = el('p', 'note', 'この時刻の画像は収録していない。時間を動かすと撮影した瞬間に出会える。'); body.replaceChildren(p); return; }
     const lab = on.labels[best.nav]; const im = el('img', 'thumbimg'); im.src = 'data/onc/' + key; im.alt = 'ONCが撮影した画像'; im.loading = 'lazy';
     const cap = el('p', 'note', `${lab ? lab.title : ''}。${fmtDate(best.t)} に撮影。©JAXA`);
     body.replaceChildren(im, cap);
@@ -207,13 +208,13 @@ export class UI {
     body.dataset.k = 'lidar'; const sc = this.scene, S = this.S; const lt = sc.lidar; const tt = S.t - lt.t0;
     let lo = 0, hi = lt.n; while (lo < hi) { const m = (lo + hi) >> 1; if (lt.times[m] <= tt) lo = m + 1; else hi = m; }
     const big = el('p', 'big', `${lo.toLocaleString()} 点`); big.appendChild(el('span', null, `　/ ${lt.n.toLocaleString()}`));
-    const note = el('p', 'note', lo === 0 ? '2018年6月30日から、レーザが測った点が現れる。時間を動かす。' : 'レーザが往復する時間から、一点ずつ距離を測った。実測の点だけを描いている。');
+    const note = el('p', 'note', lo === 0 ? '2018年6月30日から、レーザが測った点が現れる。時間を動かしてみる。' : 'レーザが往復する時間から、一点ずつ距離を測った。実測の点だけを描いている。');
     body.replaceChildren(big, note);
   }
   cardSample(body) {
     body.dataset.k = 'sample'; if (body.querySelector('.mass')) return;
-    const m = el('div', 'mass'); m.innerHTML = `<div class="m"><i class="d big"></i><span>約5.4 g<br>持ち帰った</span></div><div class="m"><i class="d small"></i><span>0.1 g<br>目標の最小値</span></div>`;
-    const note = el('p', 'note', '2か所で採った粒が、地球に届いた。浮かぶ粒をタップすると、実物の顕微鏡画像が開く。');
+    const m = el('div', 'mass'); m.innerHTML = `<div class="m"><i class="d big"></i><span>約5.4 g<br>持ち帰った</span></div><div class="m"><i class="d small"></i><span>0.1 g<br>最低目標</span></div>`;
+    const note = el('p', 'note', '2か所で採った粒が地球に届いた。大きな金色の粒は実物で、タップすると顕微鏡画像が開く。小さな粒は演出。');
     body.replaceChildren(m, note);
   }
   grainChanged(g) {
@@ -227,9 +228,9 @@ export class UI {
       const tick = (x) => `<text x="${((x - x0) / (x1 - x0) * W).toFixed(1)}" y="${H + 14}" text-anchor="middle">${x}</text>`;
       const x27 = (2.7 - x0) / (x1 - x0) * W;
       sv.innerHTML = `<svg viewBox="0 0 ${W} ${H + 20}" role="img" aria-label="赤外線スペクトル"><rect x="${(x27 - 3).toFixed(1)}" y="0" width="6" height="${H}" class="band"/><polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="1.5"/>${tick(2.5)}${tick(3)}${tick(3.5)}${tick(4)}</svg>`;
-      p.querySelector('.specnote').textContent = '横軸は波長(µm)。2.7 µm付近の落ち込みは、水酸基を含む鉱物のしるし。FTIRによる実測。';
+      p.querySelector('.specnote').textContent = '横軸は波長(µm)。2.7 µm付近の落ち込みは水酸基を含む鉱物のしるし。FTIRによる実測。';
     } else { sv.replaceChildren(); p.querySelector('.specnote').textContent = ''; }
-    p.querySelector('.credit').textContent = '画像・スペクトル: JAXA／ISAS 分析チーム公開データ';
+    p.querySelector('.credit').textContent = '画像とスペクトルは、JAXA地球外物質研究グループ(キュレーション)のデータ。';
   }
 
   // ---------------------------------------------------------------- 裏側
@@ -238,7 +239,7 @@ export class UI {
     const et = (S.t - 946728000 + 69.184);
     set('et', et.toFixed(1) + ' s'); set('w', (deg(e.W) % 360 + 360 % 360).toFixed(2) + '°');
     const sb = S.sunBody; if (sb) { set('sub', `緯度 ${deg(Math.asin(sb[2])).toFixed(2)}°　経度 ${((deg(Math.atan2(sb[1], sb[0])) + 360) % 360).toFixed(2)}°`); }
-    set('au', eph.sunAU(S.t).toFixed(4) + ' au'); set('delay', st.craftEarthKm ? (st.craftEarthKm / C_KMS).toFixed(1) + ' 秒(探査機と地球)' : '—');
+    set('au', eph.sunAU(S.t).toFixed(4) + ' au'); set('delay', st.craftEarthKm ? (st.craftEarthKm / C_KMS).toFixed(0) + ' 秒' : '—');
     set('lut', this.thermalMs != null ? this.thermalMs.toFixed(0) + ' ms' : '計算中'); set('fps', bag.fps.toFixed(0) + ' fps');
     set('tris', `${sc.stats.tris.toLocaleString()} 面`); set('lidar', `${sc.stats.lidar.toLocaleString()} 点`);
     set('track', `${eph.proxT.length.toLocaleString()} 時刻`);
@@ -262,10 +263,10 @@ export class UI {
     const main = Object.entries(L.instr).sort((a, b) => b[1] - a[1])[0];
     const lines = [];
     lines.push(`この探査の時刻は ${fmtDate(S.t)}(日本時間)。`);
-    if (dwell) { const [la, lo] = dwell[0].split(','); lines.push(`いちばん長くいたのは、緯度${la}°、経度${lo}°のあたり。約${Math.max(1, Math.round(dwell[1]))}秒、滞在した。`); }
+    if (dwell) { const [la, lo] = dwell[0].split(','); lines.push(`いちばん長くいたのは緯度${la}°、経度${lo}°のあたりで、約${Math.max(1, Math.round(dwell[1]))}秒滞在した。`); }
     lines.push(`使った時間が最も長い装置は ${names[main[0]]}(${Math.round(main[1] / total * 100)}%)。`);
-    lines.push(L.disc.size ? `出会った発見は ${L.disc.size} 件。` : 'まだ発見カードには出会っていない。降りて、時間を動かしてみる。');
-    if (L.grains.size) lines.push(`顕微鏡で見た粒は ${[...L.grains].join('、')}。`);
+    lines.push(L.disc.size ? `出会った発見は ${L.disc.size} 件。` : 'まだ発見カードに出会っていない。降りて時間を動かしてみる。');
+    if (L.grains.size) lines.push(`顕微鏡画像を開いた粒は ${[...L.grains].join('、')}。`);
     const list = r.querySelector('.lines'); list.replaceChildren(...lines.map((t) => el('p', null, t)));
     r.querySelector('.urlbox').value = this.api.shareUrl();
     r.querySelector('.urlbox').onfocus = (e) => e.target.select();

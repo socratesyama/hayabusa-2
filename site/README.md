@@ -1,6 +1,6 @@
 # RYUGU: リュウグウは、触れる。
 
-はやぶさ2が持ち帰ったデータで、小惑星リュウグウへ降り立つ Web サイト(非公式のファンサイト)。
+はやぶさ2の観測データで小惑星リュウグウへ降り立つ、非公式のファンサイトです。
 最小限の画面の裏で、軌道・自転・影・温度をその場で計算して描きます。
 
 ## 動かす
@@ -46,5 +46,7 @@ python3 -m http.server 8000     # → http://localhost:8000/
 
 - 非公式のファンサイトです。JAXA、ISAS とは関係ありません。
 - Data: JAXA/ISAS/DARTS(CC BY 4.0)。画像・形状モデル・軌道: ©JAXA
-- プラネタリウム用地図: 日本プラネタリウム協議会(CC BY)
+- 形状モデル: JAXA／神戸大(SPC、Watanabe et al., 2019)。ONC画像と地図: JAXA、東京大、高知大、立教大、名古屋大、千葉工大、明治大、会津大、産総研
+- はやぶさ2本体の3Dモデル: JAXAの公開資料から作った非公式の簡易モデル(JAXAの設計データではありません)
+- 全文: [credits.html](credits.html)
 - 公式: <https://www.hayabusa2.jaxa.jp/> / <https://data.darts.isas.jaxa.jp/>

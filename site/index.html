@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>リュウグウは、触れる。</title>
-<meta name="description" content="はやぶさ2が持ち帰ったデータで、小惑星リュウグウへ降り立つ。実測の軌道・形状・温度・試料から、いま計算して描く非公式のファンサイト。">
+<meta name="description" content="はやぶさ2の観測データから、小惑星リュウグウの軌道・形状・自転・温度をその場で計算して描く、非公式のファンサイト。">
 <meta name="theme-color" content="#05070d">
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -13,7 +13,7 @@
 
 <main id="hero">
   <h1>リュウグウは、触れる。</h1>
-  <p>はやぶさ2が持ち帰ったデータで、小惑星へ降り立て。</p>
+  <p>はやぶさ2が観測したデータで、小惑星へ降り立て。</p>
   <button id="go" type="button" disabled>準備中</button>
 </main>
 
@@ -60,20 +60,22 @@
 
 <section id="back" class="panel" hidden>
   <button class="x" data-close type="button">閉じる</button>
-  <h2>いま、裏で動いている計算</h2>
+  <h2>いま裏で動いている計算</h2>
   <dl>
     <dt>暦表時 ET</dt><dd id="b-et"></dd>
     <dt>自転角 W</dt><dd id="b-w"></dd>
     <dt>太陽の真下</dt><dd id="b-sub"></dd>
     <dt>太陽との距離</dt><dd id="b-au"></dd>
-    <dt>通信の遅れ</dt><dd id="b-delay"></dd>
+    <dt>電波の片道時間</dt><dd id="b-delay"></dd>
     <dt>熱モデル</dt><dd id="b-lut"></dd>
     <dt>形状モデル</dt><dd id="b-tris"></dd>
     <dt>LIDAR実測</dt><dd id="b-lidar"></dd>
     <dt>探査機の軌跡</dt><dd id="b-track"></dd>
     <dt>描画</dt><dd id="b-fps"></dd>
   </dl>
-  <p class="small">軌道はSPICEカーネルを自前で読み、自転は極の向きと自転速度から毎フレーム計算している。影は太陽の向きから描き直し、温度は熱慣性の地図から熱の流れを解いている。</p>
+  <h2>起動の記録</h2>
+  <ul id="b-log"></ul>
+  <p class="small">軌道はSPICEカーネルを自前で読み、自転は極の向きと自転速度から毎フレーム計算している。影は太陽の向きから描き直し、温度は熱慣性の地図から熱の伝わりを計算している。</p>
   <form id="jump" autocomplete="off">
     <h2>座標と時刻を指定して飛ぶ</h2>
     <label>日時(日本時間)<input name="t" type="text" placeholder="2019-02-22 07:29"></label>
@@ -90,7 +92,7 @@
   <label>この場所と時刻へのURL<input class="urlbox" readonly></label>
   <div class="row"><button id="copyurl" type="button">URLをコピー</button></div>
   <h2>研究者向け</h2>
-  <p class="small">いまの時刻・位置・装置の条件を、画像IDと出典つきのJSONで書き出す。</p>
+  <p class="small">いまの時刻・位置・装置の条件を、画像のファイル名と出典つきのJSONで書き出す。</p>
   <div class="row"><button id="copyjson" type="button">JSONをコピー</button><button id="dljson" type="button">JSONを保存</button></div>
 </section>
 
@@ -98,13 +100,13 @@
   <button class="x" data-close type="button">閉じる</button>
   <h2>このサイトについて</h2>
   <p>JAXAやISASとは関係のない、非公式のファンサイトです。</p>
-  <p>データ: JAXA／ISAS／DARTS(CC BY 4.0)。画像・形状モデル・軌道: ©JAXA。プラネタリウム用地図: 日本プラネタリウム協議会(CC BY)。</p>
-  <p>実測のもの: 軌道、形状、ONC画像と地図、LIDARの測距点、試料の顕微鏡画像とスペクトル。計算で補ったもの: 温度(1次元の熱モデル)、探査機の姿勢(ホームポジションの向きを仮定)、星空。タッチダウン前後の探査機位置は、公表された地点につないでいる。</p>
-  <p>科学的な再現と、見せるための演出は区別している。正確な値は、公式の資料を参照してください。</p>
-  <p><a href="https://www.hayabusa2.jaxa.jp/" target="_blank" rel="noopener">はやぶさ2プロジェクト(JAXA)</a>　<a href="https://data.darts.isas.jaxa.jp/" target="_blank" rel="noopener">DARTS</a></p>
+  <p>データ: JAXA／ISAS／DARTS(CC BY 4.0)。画像: ©JAXA。形状モデルはJAXA／神戸大のSPCモデルです。</p>
+  <p>実測のものは、軌道、形状、ONCの画像と地図、LIDARの測距点、試料の顕微鏡画像とスペクトルです。温度は熱モデルの推定値で、探査機の姿勢は仮定です。探査機の3Dモデルは、JAXAの公開資料から作った非公式の簡易モデルです。星空と粒子の動きは演出です。</p>
+  <p>科学的な再現と見せるための演出は区別しています。正確な値は公式の資料を参照してください。</p>
+  <p><a href="credits.html" target="_blank" rel="noopener">出典とクレジットの全文</a>　<a href="https://www.hayabusa2.jaxa.jp/" target="_blank" rel="noopener">はやぶさ2プロジェクト(JAXA)</a>　<a href="https://darts.isas.jaxa.jp/missions/hayabusa2/index_ja.html" target="_blank" rel="noopener">DARTS</a></p>
 </section>
 
-<p id="foot"><a id="aboutlink" href="#about">非公式ファンサイト。データ: JAXA／ISAS／DARTS ©JAXA</a></p>
+<p id="foot"><a id="aboutlink" href="credits.html">非公式ファンサイト。データ: JAXA／ISAS／DARTS ©JAXA</a></p>
 
 <div id="fade"></div>
 <div id="fail" hidden><h2>読み込めませんでした</h2><p></p><p>WebGL2に対応したブラウザで、サーバー経由で開いてください。</p></div>

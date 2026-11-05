@@ -24,14 +24,14 @@ const eph = new Ephem(); let scene, ui, tiCPU = null, onc = null;
 // ------------------------------------------------------------------ 起動
 async function boot() {
   ui = new UI(S, { MODES, EVENTS, RAIL, INSTRUMENTS, tToF, fToT, SITES, FEATURES, NEAR_T0, NEAR_T1 });
-  ui.boot('SPICE暦を読み込み: 探査機・地球・リュウグウの軌道');
+  ui.boot('SPICE暦から探査機・地球・リュウグウの軌道を読み込む');
   await eph.load('data/');
-  ui.boot(`軌道 ${eph.nDaily.toLocaleString()} 日分、近傍 ${eph.proxT.length.toLocaleString()} 時刻`);
+  ui.boot(`軌道 ${eph.nDaily.toLocaleString()} 日分と、リュウグウ近傍の ${eph.proxT.length.toLocaleString()} 時刻を読み込む`);
   scene = new Scene($('#gl'), eph);
   await scene.init((k, n) => {
-    if (k === 'shape') ui.boot(`形状モデル ${n.toLocaleString()} 面`);
-    if (k === 'maps') ui.boot(`ONC地図 ${n.toLocaleString()} px・高解像度地図・熱慣性地図`);
-    if (k === 'lidar') ui.boot(`LIDAR 実測点 ${n.toLocaleString()} 点`);
+    if (k === 'shape') ui.boot(`形状モデル ${n.toLocaleString()} 面を読み込む`);
+    if (k === 'maps') ui.boot('ONC地図と高解像度地図、熱慣性地図を読み込む');
+    if (k === 'lidar') ui.boot(`LIDARの実測点 ${n.toLocaleString()} 点を読み込む`);
   });
   S.scene = scene; ui.scene = scene;
   // CPU側の熱慣性地図とONC画像一覧
@@ -52,7 +52,7 @@ async function boot() {
 
 function startThermal() {
   const done = (lut, ms) => { scene.setLUT(lut, ms); ui.thermalDone(ms); };
-  ui.boot('熱モデルを解く: 熱慣性×太陽高度×時角 の 1,680 通り');
+  ui.boot('熱モデルを解く(熱慣性×太陽高度×時角の 1,680 通り)');
   let w = null;
   try { w = new Worker('js/thermal.worker.js', { type: 'module' }); } catch (e) { w = null; }
   if (w) {
@@ -201,7 +201,7 @@ function start() {
   S.mode = 0; ui.modeChanged();
   flySite(surfacePoint(st.lat, st.lon), { dist: 110, el: 0.32, az: -0.95, dur: REDUCED ? 0.01 : 3.2 });
   S.farT.dist = 3.4;
-  ui.hint('ドラッグで見回す。ホイールで高度を変える。');
+  ui.hint('ドラッグで見回し、ホイールやピンチで高度を変える。');
 }
 
 // ------------------------------------------------------------------ 入力
@@ -289,12 +289,12 @@ function applyUrl() {
 
 // ------------------------------------------------------------------ 発見
 const DISC = [
-  { id: 'touch', ok: (c) => c.near && Math.abs(S.t - SITES.td1.t) < 25 && c.craftAlt != null && c.craftAlt < 6 && c.nearSite === 'td1', text: '2019年2月22日 7:29。この瞬間、はやぶさ2は地表に触れた。' },
-  { id: 'sci', ok: (c) => c.near && c.nearSite === 'sci' && c.camDist < 260, text: 'ここは人工クレーター。銅の弾の衝突で、地下の物質が現れた。' },
-  { id: 'night', ok: (c) => c.near && S.mode === 1 && c.T != null && c.T < 205 && !c.sunUp, text: '夜のリュウグウは、急速に冷える。' },
-  { id: 'day', ok: (c) => c.near && S.mode === 1 && c.T != null && c.T > 335 && c.sunUp, text: () => `昼の地表は、約${Math.round(S.__T)} Kまで温まる。熱モデルによる推定。` },
+  { id: 'touch', ok: (c) => c.near && Math.abs(S.t - SITES.td1.t) < 25 && c.craftAlt != null && c.craftAlt < 6 && c.nearSite === 'td1', text: '2019年2月22日 7:29(日本時間)、はやぶさ2は地表に触れた。' },
+  { id: 'sci', ok: (c) => c.near && c.nearSite === 'sci' && c.camDist < 260, text: 'ここは人工クレーター。銅の弾の衝突で地下の物質が現れた。' },
+  { id: 'night', ok: (c) => c.near && S.mode === 1 && c.T != null && c.T < 205 && !c.sunUp, text: '夜のリュウグウは急速に冷える。' },
+  { id: 'day', ok: (c) => c.near && S.mode === 1 && c.T != null && c.T > 335 && c.sunUp, text: () => `昼の地表は約${Math.round(S.__T)} Kまで温まる。熱モデルによる推定。` },
   { id: 'lidar', ok: (c) => c.near && S.mode === 2 && S.speed > 0, text: 'レーザの往復時間から、一点ずつ距離を測っている。' },
-  { id: 'grain', ok: () => S.grainSel != null, text: '予定していた量の約54倍が、地球に戻った。' },
+  { id: 'grain', ok: () => S.grainSel != null, text: '最低目標の約54倍にあたる約5.4 gが、地球に戻った。' },
 ];
 let discCool = 0;
 function checkDiscoveries(ctx) {
