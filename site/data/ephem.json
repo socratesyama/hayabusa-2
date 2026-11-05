@@ -1,0 +1,38 @@
+{
+ "daily_t0": 1417564800.0,
+ "daily_step": 86400.0,
+ "daily_n": 4048,
+ "daily_cols": [
+  "craft_x_au",
+  "craft_y_au",
+  "craft_z_au",
+  "earth_x_au",
+  "earth_y_au",
+  "earth_z_au",
+  "ryugu_x_au",
+  "ryugu_y_au",
+  "ryugu_z_au",
+  "craft_earth_km"
+ ],
+ "prox_n": 45104,
+ "prox_t0": 1530066600.0,
+ "prox_t1": 1574126100.0,
+ "pole_ra_deg": 96.43112,
+ "pole_dec_deg": -66.38741,
+ "pm_w0_deg": 274.16225,
+ "pm_rate_deg_per_day": 1131.98280286,
+ "et_minus_utc_s": 69.184,
+ "obliquity_deg": 23.4392911,
+ "au_km": 149597870.7,
+ "sources": [
+  "SPICE hyb2_spice_v001 (DARTS)",
+  "hyb2_sfm_pos / hyb2_spc_pos (body-fixed craft positions)",
+  "hyb2_hpk (home-position keeping)",
+  "hyb2_de430_de440 (planets)",
+  "ryugu_v10.tpc (rotation)"
+ ],
+ "ryugu_kepler": {
+  "a_au": 1.1895855815918357,
+  "e": 0.19031521682272565
+ }
+}
