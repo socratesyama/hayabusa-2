@@ -626,7 +626,7 @@ for k, (elev, azim, title) in enumerate(views):
     ax.set_xlim(-3.1, 3.1); ax.set_ylim(-3.1, 3.1); ax.set_zlim(-1.9, 1.4)
     ax.set_box_aspect((3.1, 3.1, 1.65))
     ax.view_init(elev=elev, azim=azim)
-    ax.set_title(title)
+    ax.set_title(title, color='#e8e8ec', pad=10)
     ax.axis('off')
     ax.set_facecolor('#0a0d12')
 plt.tight_layout()
