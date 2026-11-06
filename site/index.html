@@ -3,114 +3,96 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>リュウグウは、触れる。</title>
-<meta name="description" content="はやぶさ2の観測データから、小惑星リュウグウの軌道・形状・自転・温度をその場で計算して描く、非公式のファンサイト。">
-<meta name="theme-color" content="#05070d">
-<link rel="stylesheet" href="css/style.css">
+<title>Ryugu Pencil Atlas｜観測データから、リュウグウを描く。</title>
+<meta name="description" content="はやぶさ2の画像から作られた形状モデルの点群31万点を、いま、鉛筆の線として一本ずつ描く。非公式のファンサイト。">
+<meta name="theme-color" content="#f4f1e9">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&display=swap">
+<link rel="stylesheet" href="css/atlas.css">
 </head>
-<body>
-<canvas id="gl" aria-label="小惑星リュウグウの3D表示"></canvas>
+<body data-sec="ryugu">
+<canvas id="gl" aria-label="鉛筆で描いた小惑星リュウグウ。ドラッグで回転、ホイールで拡大"></canvas>
+<div id="paper" aria-hidden="true"></div>
+<svg id="notes" aria-hidden="true"></svg>
+
+<header id="bar">
+  <button id="brand" type="button" data-go="ryugu">RYUGU</button>
+  <nav id="nav" aria-label="章">
+    <button type="button" data-go="ryugu" aria-current="true">RYUGU</button>
+    <button type="button" data-go="shape">SHAPE</button>
+    <button type="button" data-go="touchdown">TOUCHDOWN</button>
+    <button type="button" data-go="sci">SCI</button>
+    <button type="button" data-go="observation">OBSERVATION</button>
+    <button type="button" data-go="samples">SAMPLES</button>
+  </nav>
+</header>
 
 <main id="hero">
-  <h1>リュウグウは、触れる。</h1>
-  <p>はやぶさ2が観測したデータで、小惑星へ降り立て。</p>
-  <button id="go" type="button" disabled>準備中</button>
+  <h1>観測データから、<br>リュウグウを描く。</h1>
+  <p>画面の線は、はやぶさ2の画像から作られた形状モデルの点を、いま一本ずつ描いたものです。ドラッグで回し、ホイールで近づけます。</p>
+  <p id="drawing" role="status"><span id="drawing-text">リュウグウを描いています。</span> <span id="drawing-n" class="num"></span></p>
+  <button id="enter" type="button" disabled>形を見る</button>
 </main>
 
-<ul id="boot" aria-live="polite"></ul>
+<aside id="sheet" hidden>
+  <button id="sheet-x" type="button" aria-label="閉じる">閉じる</button>
 
-<nav id="left" aria-label="時間">
-  <button id="viewbtn" type="button">太陽系を見る</button>
-  <div id="rail" tabindex="0" role="slider" aria-label="時間(2014年から2031年)"></div>
-</nav>
+  <section data-sec="shape" hidden>
+    <h2>SHAPE　リュウグウの形</h2>
+    <p>約31.6万の点が、そのままリュウグウの表面です。点ごとに、位置、向き、明るさ、影から、線の有無と濃さを決めています。</p>
+    <dl class="facts">
+      <dt>点の数</dt><dd class="num">315,803 点 <i class="tag derived">計算</i><small>はやぶさ2の画像から作ったSfM形状モデル(1,579,014頂点)を、約1/5に間引いた頂点です。</small></dd>
+      <dt>大きさ</dt><dd>平均直径 約896 m、自転周期 約7.63時間 <i class="tag obs">実測</i></dd>
+      <dt>線の向き</dt><dd>点の近傍から推定した法線に沿う <i class="tag est">推定</i></dd>
+      <dt>線の濃さ</dt><dd>光の当たり方と、ONC地図の明るさ <i class="tag derived">計算</i></dd>
+      <dt>線そのもの</dt><dd>実際の鉛筆の跡ではありません <i class="tag illus">説明用</i></dd>
+    </dl>
+    <div class="ctl">
+      <div class="seg" role="group" aria-label="見かた"><button type="button" data-style="pencil" aria-pressed="true">鉛筆</button><button type="button" data-style="plain" aria-pressed="false">点群</button><button type="button" data-style="form" aria-pressed="false">形成</button></div>
+      <label class="rng" id="formbox" hidden>点が集まる<input id="form" type="range" min="0" max="1" step="0.001" value="0"><output id="form-out" class="num"></output></label>
+      <div class="seg" role="group" aria-label="ひかり"><button type="button" data-light="studio" aria-pressed="true">製図灯</button><button type="button" data-light="sun" aria-pressed="false">太陽の向き</button></div>
+      <label class="rng">濃さ<input id="ink" type="range" min="0.4" max="1.8" step="0.05" value="1"></label>
+      <label class="rng" id="timebox" hidden>日時<input id="tsun" type="range" min="0" max="1" step="0.0005" value="0.4"><output id="tsun-out" class="num"></output></label>
+    </div>
+    <p class="small">隠れた側の線は、参考形状モデル(SPC・20万面)を、見えない遮蔽物にして消しています。モデルの違いのため、数mの食い違いがあります。</p>
+  </section>
 
-<section id="stamp" aria-live="off">
-  <p id="date"></p><p id="clock"></p>
-  <div class="ctl"><button id="play" type="button">動かす</button><button id="speed" type="button">速さ</button></div>
-</section>
+  <section data-sec="touchdown" hidden>
+    <h2>TOUCHDOWN　2回の着地</h2>
+    <div class="seg" role="group" aria-label="地点"><button type="button" data-site="td1" aria-pressed="true">TD1</button><button type="button" data-site="td2" aria-pressed="false">TD2</button></div>
+    <div id="td-body"></div>
+  </section>
 
-<nav id="instr" aria-label="観測装置"></nav>
+  <section data-sec="sci" hidden>
+    <h2>SCI　人工クレーター</h2>
+    <div id="sci-body"></div>
+  </section>
 
-<section id="card" data-mode="onc">
-  <div class="top"><p class="place"></p><p class="ins-name"></p></div>
-  <p class="coords"></p>
-  <p class="when"></p>
-  <div class="body"></div>
-  <p class="ins-long"></p>
-</section>
+  <section data-sec="observation" hidden>
+    <h2>OBSERVATION　ONCが撮った画像</h2>
+    <p>はやぶさ2の光学航法カメラ(ONC)の画像です。<i class="tag obs">実測</i> 画像が写した範囲と、左の3Dの位置は対応づけていません。</p>
+    <div id="obs-body"></div>
+  </section>
 
-<div id="labels" aria-hidden="true"></div>
+  <section data-sec="samples" hidden>
+    <h2>SAMPLES　持ち帰った粒</h2>
+    <p>約5.4 gを地球に持ち帰りました。最低目標の0.1 gの約54倍です。<i class="tag obs">実測</i></p>
+    <div id="smp-body"></div>
+  </section>
 
-<aside id="discover" role="status"><p></p></aside>
-<p id="hint" role="status"></p>
-
-<aside id="grain">
-  <button id="grain-close" type="button" aria-label="閉じる">閉じる</button>
-  <h3></h3><p class="where"></p>
-  <img alt="" width="360" height="360">
-  <div class="spec"></div><p class="specnote"></p>
-  <p class="credit"></p>
+  <p class="legend">
+    <i class="tag obs">実測</i>観測・計測そのもの
+    <i class="tag derived">計算</i>観測から計算した値
+    <i class="tag est">推定</i>推定値
+    <i class="tag interp">補間</i>補間による値
+    <i class="tag illus">説明用</i>実測ではない模式表現
+  </p>
 </aside>
 
-<div id="tools">
-  <button id="backbtn" type="button">裏側</button>
-  <button id="sharebtn" type="button">レポート</button>
-  <button id="aboutbtn" type="button">出典</button>
-</div>
-
-<section id="back" class="panel" hidden>
-  <button class="x" data-close type="button">閉じる</button>
-  <h2>いま裏で動いている計算</h2>
-  <dl>
-    <dt>暦表時 ET</dt><dd id="b-et"></dd>
-    <dt>自転角 W</dt><dd id="b-w"></dd>
-    <dt>太陽の真下</dt><dd id="b-sub"></dd>
-    <dt>太陽との距離</dt><dd id="b-au"></dd>
-    <dt>電波の片道時間</dt><dd id="b-delay"></dd>
-    <dt>熱モデル</dt><dd id="b-lut"></dd>
-    <dt>形状モデル</dt><dd id="b-tris"></dd>
-    <dt>LIDAR実測</dt><dd id="b-lidar"></dd>
-    <dt>探査機の軌跡</dt><dd id="b-track"></dd>
-    <dt>描画</dt><dd id="b-fps"></dd>
-  </dl>
-  <h2>起動の記録</h2>
-  <ul id="b-log"></ul>
-  <p class="small">軌道はSPICEカーネルを自前で読み、自転は極の向きと自転速度から毎フレーム計算している。影は太陽の向きから描き直し、温度は熱慣性の地図から熱の伝わりを計算している。</p>
-  <form id="jump" autocomplete="off">
-    <h2>座標と時刻を指定して飛ぶ</h2>
-    <label>日時(日本時間)<input name="t" type="text" placeholder="2019-02-22 07:29"></label>
-    <label>緯度<input name="lat" type="text" inputmode="decimal" placeholder="4.3"></label>
-    <label>経度<input name="lon" type="text" inputmode="decimal" placeholder="206.5"></label>
-    <button type="submit">飛ぶ</button>
-  </form>
-</section>
-
-<section id="report" class="panel" hidden>
-  <button class="x" data-close type="button">閉じる</button>
-  <h2>探査レポート</h2>
-  <div class="lines"></div>
-  <label>この場所と時刻へのURL<input class="urlbox" readonly></label>
-  <div class="row"><button id="copyurl" type="button">URLをコピー</button></div>
-  <h2>研究者向け</h2>
-  <p class="small">いまの時刻・位置・装置の条件を、画像のファイル名と出典つきのJSONで書き出す。</p>
-  <div class="row"><button id="copyjson" type="button">JSONをコピー</button><button id="dljson" type="button">JSONを保存</button></div>
-</section>
-
-<section id="about" class="panel" hidden>
-  <button class="x" data-close type="button">閉じる</button>
-  <h2>このサイトについて</h2>
-  <p>JAXAやISASとは関係のない、非公式のファンサイトです。</p>
-  <p>データ: JAXA／ISAS／DARTS(CC BY 4.0)。画像: ©JAXA。形状モデルはJAXA／神戸大のSPCモデルです。</p>
-  <p>実測のものは、軌道、形状、ONCの画像と地図、LIDARの測距点、試料の顕微鏡画像とスペクトルです。温度は熱モデルの推定値で、探査機の姿勢は仮定です。探査機の3Dモデルは、JAXAの公開資料から作った非公式の簡易モデルです。星空と粒子の動きは演出です。</p>
-  <p>科学的な再現と見せるための演出は区別しています。正確な値は公式の資料を参照してください。</p>
-  <p><a href="credits.html" target="_blank" rel="noopener">出典とクレジットの全文</a>　<a href="https://www.hayabusa2.jaxa.jp/" target="_blank" rel="noopener">はやぶさ2プロジェクト(JAXA)</a>　<a href="https://darts.isas.jaxa.jp/missions/hayabusa2/index_ja.html" target="_blank" rel="noopener">DARTS</a></p>
-</section>
-
-<p id="foot"><a id="aboutlink" href="credits.html">非公式ファンサイト。データ: JAXA／ISAS／DARTS ©JAXA</a></p>
-
-<div id="fade"></div>
+<div id="lightbox" hidden><button type="button" id="lb-x">閉じる</button><figure><img alt=""><figcaption></figcaption></figure></div>
+<p id="foot"><a href="credits.html">非公式ファンサイト。データ: JAXA／ISAS／DARTS ©JAXA</a></p>
 <div id="fail" hidden><h2>読み込めませんでした</h2><p></p><p>WebGL2に対応したブラウザで、サーバー経由で開いてください。</p></div>
-<noscript><div id="nojs"><h1>リュウグウは、触れる。</h1><p>このページはJavaScriptとWebGL2で小惑星を描きます。有効にしてお試しください。</p><p>非公式のファンサイトです。データ: JAXA／ISAS／DARTS ©JAXA</p></div></noscript>
-<script type="module" src="js/main.js"></script>
+<noscript><div id="nojs"><h1>Ryugu Pencil Atlas</h1><p>このページはJavaScriptとWebGL2で小惑星を描きます。有効にしてお試しください。</p><p>非公式のファンサイトです。データ: JAXA／ISAS／DARTS ©JAXA</p></div></noscript>
+<script type="module" src="js/atlas.js"></script>
 </body>
 </html>

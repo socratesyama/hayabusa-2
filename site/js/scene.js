@@ -14,7 +14,8 @@ export class Scene {
     this.lastVP = null; this.view = { near: null, far: null };
   }
 
-  async init(step = () => {}) {
+  async init(step = () => {}, opts = {}) {
+    const full = !opts.light;
     const gl = this.gl;
     this.pBody = makeProgram(gl, S.BODY_VS, S.BODY_FS, 'body');
     this.pDepth = makeProgram(gl, S.DEPTH_VS, S.DEPTH_FS, 'depth');
@@ -56,6 +57,7 @@ export class Scene {
     this._buildRadiusGrid();
     step('shape', nf);
 
+    if (full) {
     // --- テクスチャ(ONC基準地図・低緯度の高解像度地図・熱慣性) ---
     const [base, hi, ti, hiMeta] = await Promise.all([
       loadTexture(gl, 'data/tex/onc.jpg'), loadTexture(gl, 'data/tex/onc_hi.jpg'), loadTexture(gl, 'data/tex/ti.png', { mips: false }),
@@ -63,6 +65,7 @@ export class Scene {
     ]);
     this.tex = { base: base.tex, hi: hi.tex, ti: ti.tex }; this.hiMeta = hiMeta;
     step('maps', base.w);
+    }
 
     // --- 影(太陽方向の深度マップ) ---
     this.shadowSize = 2048;
@@ -73,6 +76,7 @@ export class Scene {
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.shadowTex, 0);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
+    if (full) {
     // --- 星・探査機・LIDAR点群 ---
     const st = new Float32Array(await (await fetch('data/stars.bin')).arrayBuffer());
     this.nStars = st.length / 4; this.vaoStar = gl.createVertexArray(); gl.bindVertexArray(this.vaoStar);
@@ -94,13 +98,14 @@ export class Scene {
     buffer(gl, lq); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.SHORT, false, 0, 0);
     buffer(gl, lt); gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 1, gl.FLOAT, false, 0, 0);
     this.stats.lidar = ln; step('lidar', ln);
+    }
 
     this.vaoEmpty = gl.createVertexArray();
     this.vaoGrain = gl.createVertexArray(); gl.bindVertexArray(this.vaoGrain);
     this.bufGrain = buffer(gl, new Float32Array(5 * 4), gl.ARRAY_BUFFER, gl.DYNAMIC_DRAW);
     gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 16, 0);
     gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 1, gl.FLOAT, false, 16, 12);
-    this._initFar();
+    if (full) this._initFar();
     this.lutTex = gl.createTexture();
     gl.bindVertexArray(null);
   }

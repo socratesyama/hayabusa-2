@@ -6,13 +6,13 @@
 <title>出典とクレジット｜リュウグウは、触れる。</title>
 <meta name="robots" content="noindex">
 <style>
-:root{--ground:#05070d;--ink:#ecebe6;--dim:#9aa0ad;--gold:#e9b64a}
+:root{--ground:#f4f1e9;--ink:#23232a;--dim:#5b5d66;--red:#b3361f}
 *{box-sizing:border-box}
 body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.8 "Noto Sans JP","Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,sans-serif}
 main{max-width:760px;margin:0 auto;padding:48px 20px 96px}
 h1{font-size:26px;margin:0 0 8px}h2{font-size:17px;margin:40px 0 10px}
 p{margin:0 0 10px;color:var(--dim)}p strong{color:var(--ink);font-weight:500}
-a{color:var(--ink);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+a{color:var(--ink);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--red);outline-offset:3px}
 dl{display:grid;grid-template-columns:minmax(0,12em) 1fr;gap:10px 20px;margin:0}
 dt{color:var(--ink)}dd{margin:0;color:var(--dim)}
 @media (max-width:620px){dl{grid-template-columns:1fr;gap:0}dd{margin-bottom:14px}}
@@ -20,58 +20,42 @@ dt{color:var(--ink)}dd{margin:0;color:var(--dim)}
 </head>
 <body>
 <main>
-<p><a href="./">リュウグウは、触れる。へ戻る</a></p>
+<p><a href="./">観測データから、リュウグウを描く。へ戻る</a></p>
 <h1>出典とクレジット</h1>
 <p>このサイトはJAXAやISASとは関係のない、非公式のファンサイトです。公式の認定や後援を受けていません。JAXAのロゴやマークは使っていません。</p>
 
 <h2>データの出どころ</h2>
 <dl>
-<dt>軌道・自転・時刻</dt>
-<dd>SPICEカーネル(探査機の軌道、リュウグウと地球の星暦、リュウグウの極の向きと自転)。Data: JAXA/ISAS/DARTS。<a href="https://doi.org/10.17597/isas.darts/hyb2-00600" target="_blank" rel="noopener">DOI 10.17597/isas.darts/hyb2-00600</a></dd>
-<dt>形状</dt>
-<dd>SPC形状モデル(49k面と200k面、v20200323)。JAXA／神戸大(Watanabe et al., 2019)。DARTSのDSK形式を、OBJに変換して使用。</dd>
-<dt>表面の地図</dt>
-<dd>ONC v帯の全球ベースマップと、低緯度の高解像度ベースマップ。JAXA、東京大、高知大、立教大、名古屋大、千葉工大、明治大、会津大、産総研。Data: JAXA/ISAS/DARTS。</dd>
-<dt>熱慣性の地図</dt>
-<dd>TIR(中間赤外カメラ)による熱慣性地図。JAXA/ISAS/DARTS。画像の色から値を逆算して使っており、元の数値データそのものではありません。</dd>
-<dt>LIDARの測距点</dt>
-<dd>LIDAR L2地形時系列。JAXA/ISAS/DARTS。<a href="https://doi.org/10.17597/isas.darts/hyb2-00500" target="_blank" rel="noopener">DOI 10.17597/isas.darts/hyb2-00500</a></dd>
-<dt>ONC画像</dt>
-<dd>はやぶさ2プロジェクトサイトの画像ギャラリーに掲載された画像。©JAXA、東京大、高知大、立教大、名古屋大、千葉工大、明治大、会津大、産総研。</dd>
+<dt>点群(約31.6万点)</dt>
+<dd>はやぶさ2の画像から作られたSfM形状モデルの頂点を、約1/5に間引いたもの。Data: JAXA/ISAS/DARTS、©JAXA。点の色(明るさ)は、ONCのベースマップから取っています。</dd>
+<dt>隠れた線を消すための形状</dt>
+<dd>SPC形状モデル(200k面、v20200323)。JAXA／神戸大(Watanabe et al., 2019)。画面には出しません。点群とは別のモデルなので、数mの食い違いがあります。</dd>
+<dt>太陽の向き・自転</dt>
+<dd>SPICEカーネル(リュウグウの極の向きと自転、太陽の星暦)。Data: JAXA/ISAS/DARTS。<a href="https://doi.org/10.17597/isas.darts/hyb2-00600" target="_blank" rel="noopener">DOI 10.17597/isas.darts/hyb2-00600</a></dd>
+<dt>表面の地図と画像</dt>
+<dd>ONC v帯のベースマップと、はやぶさ2プロジェクトサイトの画像ギャラリーに掲載された画像。©JAXA、東京大、高知大、立教大、名古屋大、千葉工大、明治大、会津大、産総研。</dd>
 <dt>試料の顕微鏡画像とスペクトル</dt>
-<dd>JAXA地球外物質研究グループ(キュレーション)が公開しているリュウグウ試料のデータ。粒A0002、A0004(第1回タッチダウン)とC0002、C0003、C0004(第2回タッチダウン)。<a href="https://curation.isas.jaxa.jp/sample-curation/ryugu/" target="_blank" rel="noopener">リュウグウ試料カタログ</a></dd>
+<dd>JAXA地球外物質研究グループ(キュレーション)が公開しているリュウグウ試料のデータ。<a href="https://curation.isas.jaxa.jp/sample-curation/ryugu/" target="_blank" rel="noopener">リュウグウ試料カタログ</a></dd>
 <dt>できごとの日時と場所</dt>
-<dd>はやぶさ2プロジェクトとISASが公開しているミッション年表、タッチダウン地点の位置情報。</dd>
-<dt>地形の名前</dt>
-<dd>国際天文学連合(IAU)が承認したリュウグウの地名。</dd>
+<dd>はやぶさ2プロジェクトとISASが公開しているミッション年表、タッチダウン地点とSCIの位置情報。</dd>
 </dl>
 
 <h2>このサイトが作ったもの・補ったもの</h2>
 <dl>
-<dt>はやぶさ2本体の3Dモデル</dt>
-<dd>JAXAの公式3Dモデルではありません。JAXAの公開資料にある寸法と機器構成から作った、非公式の簡易モデルです。</dd>
-<dt>表面温度</dt>
-<dd>熱慣性の地図と太陽の位置から、1次元の熱モデルで計算した推定値です。観測値ではありません。</dd>
-<dt>探査機の姿勢</dt>
-<dd>ホームポジションでの向き(地球方向と太陽方向)を仮定して描いています。実際の姿勢の記録ではありません。</dd>
-<dt>探査機の位置の補間</dt>
-<dd>データの無い区間は補間しています。タッチダウンの前後は、公表された地点につないでいます。人工クレーター作成時と、2023年9月以降は描いていません。</dd>
-<dt>星空・粒子の動き・カメラの動き</dt>
-<dd>演出です。実際の星の位置や、試料の粒の動きを再現したものではありません。</dd>
+<dt>鉛筆の線</dt>
+<dd>説明用です。実際の鉛筆の跡ではありません。線の位置は点の座標、向きは近傍の点から推定した法線、濃さは光の当たり方と地図の明るさから、画面に描くたびに計算しています。</dd>
+<dt>法線</dt>
+<dd>近くの点16個から推定した値です。観測値ではありません。</dd>
+<dt>地点の位置</dt>
+<dd>公表された緯度・経度を、形状モデルの表面に合わせた位置です。第2回タッチダウンの緯度は、資料によって10.13°と10.04°の2通りがあります。</dd>
+<dt>断面の図</dt>
+<dd>説明用の模式図です。実際の地形ではありません。</dd>
+<dt>形成の演出</dt>
+<dd>「形成」で点が集まってくる動きと、背景の星は演出です。観測の順序や実際の星の位置を再現したものではありません。</dd>
 </dl>
 
-<h2>利用条件</h2>
-<p>DARTSの科学データはISASのデータポリシー(CC BY 4.0)に従って使っています。JAXAが公開した画像は、JAXAサイトポリシーに従い「©JAXA」を付けています。</p>
-<p>DARTSが推奨する謝辞: This research made use of data obtained from Data ARchives and Transmission System (DARTS), provided by Center for Science-satellite Operation and Data Archive (C-SODA) at ISAS/JAXA.</p>
-<p>各提供元の規約は改訂されることがあります。正確な内容は、次の一次情報で確認してください。</p>
-
-<h2>公式のページ</h2>
-<dl>
-<dt>はやぶさ2プロジェクト</dt><dd><a href="https://www.hayabusa2.jaxa.jp/" target="_blank" rel="noopener">www.hayabusa2.jaxa.jp</a></dd>
-<dt>DARTS(科学データ)</dt><dd><a href="https://darts.isas.jaxa.jp/missions/hayabusa2/index_ja.html" target="_blank" rel="noopener">darts.isas.jaxa.jp</a></dd>
-<dt>ISASデータポリシー</dt><dd><a href="https://www.isas.jaxa.jp/en/researchers/data-policy/" target="_blank" rel="noopener">isas.jaxa.jp</a></dd>
-<dt>JAXAサイトポリシー</dt><dd><a href="https://www.jaxa.jp/policy_j.html" target="_blank" rel="noopener">jaxa.jp/policy_j.html</a></dd>
-</dl>
+<h2>ライセンス</h2>
+<p>Data: JAXA/ISAS/DARTS(CC BY 4.0)。画像・形状モデル: ©JAXA。公式の情報は <a href="https://www.hayabusa2.jaxa.jp/" target="_blank" rel="noopener">はやぶさ2プロジェクト</a> と <a href="https://data.darts.isas.jaxa.jp/" target="_blank" rel="noopener">DARTS</a> を参照してください。</p>
 </main>
 </body>
 </html>
