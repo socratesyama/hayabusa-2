@@ -141,10 +141,14 @@ export class Pencil {
       }
       if(!filled)break;
     }
-    const valid=R.filter(x=>x>0&&Number.isFinite(x));
-    if(!valid.length)throw new Error('SfM点群から外形グリッドを作れませんでした');
-    const fallback=valid.reduce((a,b)=>a+b,0)/valid.length;
-    for(let i=0;i<R.length;i++)if(!(R[i]>0)||!Number.isFinite(R[i]))R[i]=fallback;
+    // Unobserved angular cells fall back to the existing SPC reference grid,
+    // never to an arbitrary mean radius.
+    const ref=this.scene?.rgrid?.R;
+    for(let i=0;i<R.length;i++)if(!(R[i]>0)||!Number.isFinite(R[i])){
+      const value=ref && ref.length===R.length ? ref[i] : 0;
+      if(value>0 && Number.isFinite(value))R[i]=value;
+      else throw new Error('SfM点群にも参照形状にも有効な外形値がありません');
+    }
     this.rgrid={R,W,H};
   }
 
