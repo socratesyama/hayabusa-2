@@ -1,488 +1,954 @@
 [
   {
     "name": "本体 (Main Body)",
-    "description": "箱型本体 1.0×1.6×1.25m。表面は金の断熱材(MLI)で覆われる",
-    "faces": 32768,
-    "vertices": 98304
+    "name_en": "Main Body",
+    "description": "構体外形 1.6(X)×1.0(Y)×1.25(Z)m。表面は金のMLI断熱材で覆われる。+Z=HGA/太陽・地球方向、-Z=リュウグウ方向(科学機器)、+X=イオンエンジン面、-X=カプセル・STT面",
+    "faces": 27648,
+    "vertices": 82944
   },
   {
-    "name": "太陽電池パドル 左翼パネル1 (SAP Panel)",
-    "description": "高効率3接合太陽電池。3パネル×2翼、計6面で1460W@1.42AUを発電",
+    "name": "ラジエータパネル (±Y面)",
+    "name_en": "Radiator Panel",
+    "description": "機器排熱用の銀色ラジエータパネル。+Y/-Y面に複数枚が貼られる",
     "faces": 12,
     "vertices": 36
   },
   {
-    "name": "パドルヒンジ (左翼1-2)",
-    "description": "パネル間の折りたたみヒンジ",
+    "name": "ラジエータパネル (±Y面)",
+    "name_en": "Radiator Panel",
+    "description": "機器排熱用の銀色ラジエータパネル。+Y/-Y面に複数枚が貼られる",
     "faces": 12,
     "vertices": 36
   },
   {
-    "name": "太陽電池パドル 左翼パネル2 (SAP Panel)",
-    "description": "高効率3接合太陽電池。3パネル×2翼、計6面で1460W@1.42AUを発電",
+    "name": "ラジエータパネル (±Y面)",
+    "name_en": "Radiator Panel",
+    "description": "機器排熱用の銀色ラジエータパネル。+Y/-Y面に複数枚が貼られる",
     "faces": 12,
     "vertices": 36
   },
   {
-    "name": "パドルヒンジ (左翼2-3)",
-    "description": "パネル間の折りたたみヒンジ",
+    "name": "ラジエータパネル (±Y面)",
+    "name_en": "Radiator Panel",
+    "description": "機器排熱用の銀色ラジエータパネル。+Y/-Y面に複数枚が貼られる",
     "faces": 12,
     "vertices": 36
   },
   {
-    "name": "太陽電池パドル 左翼パネル3 (SAP Panel)",
-    "description": "高効率3接合太陽電池。3パネル×2翼、計6面で1460W@1.42AUを発電",
+    "name": "ラジエータパネル (±Y面)",
+    "name_en": "Radiator Panel",
+    "description": "機器排熱用の銀色ラジエータパネル。+Y/-Y面に複数枚が貼られる",
     "faces": 12,
     "vertices": 36
   },
   {
-    "name": "パドル取付ブラケット (左翼)",
-    "description": "本体側面とパドルを接続する架台",
+    "name": "ラジエータパネル (-Y面)",
+    "name_en": "Radiator Panel",
+    "description": "機器排熱用の銀色ラジエータパネル。+Y/-Y面に複数枚が貼られる",
     "faces": 12,
     "vertices": 36
   },
   {
-    "name": "太陽電池パドル 右翼パネル1 (SAP Panel)",
-    "description": "高効率3接合太陽電池。3パネル×2翼、計6面で1460W@1.42AUを発電",
+    "name": "ラジエータパネル (-Y面)",
+    "name_en": "Radiator Panel",
+    "description": "機器排熱用の銀色ラジエータパネル。+Y/-Y面に複数枚が貼られる",
     "faces": 12,
     "vertices": 36
   },
   {
-    "name": "パドルヒンジ (右翼1-2)",
-    "description": "パネル間の折りたたみヒンジ",
+    "name": "ラジエータパネル (-Y面)",
+    "name_en": "Radiator Panel",
+    "description": "機器排熱用の銀色ラジエータパネル。+Y/-Y面に複数枚が貼られる",
     "faces": 12,
     "vertices": 36
   },
   {
-    "name": "太陽電池パドル 右翼パネル2 (SAP Panel)",
-    "description": "高効率3接合太陽電池。3パネル×2翼、計6面で1460W@1.42AUを発電",
+    "name": "ラジエータパネル (-Y面)",
+    "name_en": "Radiator Panel",
+    "description": "機器排熱用の銀色ラジエータパネル。+Y/-Y面に複数枚が貼られる",
     "faces": 12,
     "vertices": 36
   },
   {
-    "name": "パドルヒンジ (右翼2-3)",
-    "description": "パネル間の折りたたみヒンジ",
+    "name": "ラジエータパネル (-Y面)",
+    "name_en": "Radiator Panel",
+    "description": "機器排熱用の銀色ラジエータパネル。+Y/-Y面に複数枚が貼られる",
     "faces": 12,
     "vertices": 36
   },
   {
-    "name": "太陽電池パドル 右翼パネル3 (SAP Panel)",
-    "description": "高効率3接合太陽電池。3パネル×2翼、計6面で1460W@1.42AUを発電",
+    "name": "-X面ラジエータ",
+    "name_en": "Radiator Panel (-X)",
+    "description": "-X面中央上部の放熱パネル(公式図面の斜線領域)",
     "faces": 12,
     "vertices": 36
   },
   {
-    "name": "パドル取付ブラケット (右翼)",
-    "description": "本体側面とパドルを接続する架台",
+    "name": "パドル駆動機構 SADA (+Y翼)",
+    "name_en": "SADA (Paddle Drive)",
+    "description": "太陽電池パドルの駆動機構。太陽方向へパドルを追従させる",
     "faces": 12,
     "vertices": 36
   },
   {
-    "name": "X帯高利得アンテナ (X-band HGA)",
-    "description": "X帯の平面型高利得アンテナ。パラボラを平面化して着陸機の搭載スペースを確保",
-    "faces": 192,
-    "vertices": 576
+    "name": "パドルヨーク (+Y翼)",
+    "name_en": "Paddle Yoke",
+    "description": "本体とパネルを接続するアーム(長さ1130mm、2本フレーム)",
+    "faces": 12,
+    "vertices": 36
   },
   {
-    "name": "X帯HGA外周リム",
+    "name": "パドルヨーク (+Y翼)",
+    "name_en": "Paddle Yoke",
+    "description": "本体とパネルを接続するアーム(長さ1130mm、2本フレーム)",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "太陽電池パドル +Y翼パネル1",
+    "name_en": "Solar Array Panel",
+    "description": "高効率3接合太陽電池。片翼3枚×2翼=6面で2.6kW級を発電",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "太陽電池パドル +Y翼パネル2",
+    "name_en": "Solar Array Panel",
+    "description": "高効率3接合太陽電池。片翼3枚×2翼=6面で2.6kW級を発電",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "太陽電池パドル +Y翼パネル3",
+    "name_en": "Solar Array Panel",
+    "description": "高効率3接合太陽電池。片翼3枚×2翼=6面で2.6kW級を発電",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "パドルヒンジ (+Y翼)",
+    "name_en": "Panel Hinge",
+    "description": "パネル間の折りたたみヒンジ(展開時の関節)",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "パドルヒンジ (+Y翼)",
+    "name_en": "Panel Hinge",
+    "description": "パネル間の折りたたみヒンジ(展開時の関節)",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "パドル裏ハーネス (+Y翼)",
+    "name_en": "Paddle Harness",
+    "description": "パネル裏面の配線ハーネス(公式図面「太陽電池パドルの裏側」)",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "パドル裏ハーネス (+Y翼)",
+    "name_en": "Paddle Harness",
+    "description": "パネル裏面の配線ハーネス(公式図面「太陽電池パドルの裏側」)",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "パドル裏ハーネス (+Y翼)",
+    "name_en": "Paddle Harness",
+    "description": "パネル裏面の配線ハーネス(公式図面「太陽電池パドルの裏側」)",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "パドル駆動機構 SADA (-Y翼)",
+    "name_en": "SADA (Paddle Drive)",
+    "description": "太陽電池パドルの駆動機構。太陽方向へパドルを追従させる",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "パドルヨーク (-Y翼)",
+    "name_en": "Paddle Yoke",
+    "description": "本体とパネルを接続するアーム(長さ1130mm、2本フレーム)",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "パドルヨーク (-Y翼)",
+    "name_en": "Paddle Yoke",
+    "description": "本体とパネルを接続するアーム(長さ1130mm、2本フレーム)",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "太陽電池パドル -Y翼パネル1",
+    "name_en": "Solar Array Panel",
+    "description": "高効率3接合太陽電池。片翼3枚×2翼=6面で2.6kW級を発電",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "太陽電池パドル -Y翼パネル2",
+    "name_en": "Solar Array Panel",
+    "description": "高効率3接合太陽電池。片翼3枚×2翼=6面で2.6kW級を発電",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "太陽電池パドル -Y翼パネル3",
+    "name_en": "Solar Array Panel",
+    "description": "高効率3接合太陽電池。片翼3枚×2翼=6面で2.6kW級を発電",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "パドルヒンジ (-Y翼)",
+    "name_en": "Panel Hinge",
+    "description": "パネル間の折りたたみヒンジ(展開時の関節)",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "パドルヒンジ (-Y翼)",
+    "name_en": "Panel Hinge",
+    "description": "パネル間の折りたたみヒンジ(展開時の関節)",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "パドル裏ハーネス (-Y翼)",
+    "name_en": "Paddle Harness",
+    "description": "パネル裏面の配線ハーネス(公式図面「太陽電池パドルの裏側」)",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "パドル裏ハーネス (-Y翼)",
+    "name_en": "Paddle Harness",
+    "description": "パネル裏面の配線ハーネス(公式図面「太陽電池パドルの裏側」)",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "パドル裏ハーネス (-Y翼)",
+    "name_en": "Paddle Harness",
+    "description": "パネル裏面の配線ハーネス(公式図面「太陽電池パドルの裏側」)",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "X帯高利得アンテナ (XHGA)",
+    "name_en": "X-band High-Gain Antenna",
+    "description": "X帯(8GHz)の平面型高利得アンテナ。パラボラを平面化して着陸機搭載スペースを確保。+Z面+Y側に搭載",
+    "faces": 288,
+    "vertices": 864
+  },
+  {
+    "name": "XHGA中心給電部",
+    "name_en": "XHGA Feed",
+    "description": "アンテナ中心の給電部",
+    "faces": 96,
+    "vertices": 288
+  },
+  {
+    "name": "XHGA外周リム",
+    "name_en": "XHGA Rim",
+    "description": "平面アンテナの外周フレーム",
+    "faces": 1344,
+    "vertices": 4032
+  },
+  {
+    "name": "XHGA取付架台",
+    "name_en": "XHGA Pedestal",
+    "description": "平面アンテナの取付・指向架台",
+    "faces": 128,
+    "vertices": 384
+  },
+  {
+    "name": "Ka帯高利得アンテナ (KaHGA)",
+    "name_en": "Ka-band High-Gain Antenna",
+    "description": "高速通信用に新規追加されたKa帯(32GHz)平面アンテナ。X帯の約4倍のデータ伝送。+Z面-Y側に搭載",
+    "faces": 288,
+    "vertices": 864
+  },
+  {
+    "name": "KaHGA中心給電部",
+    "name_en": "KaHGA Feed",
+    "description": "アンテナ中心の給電部",
+    "faces": 96,
+    "vertices": 288
+  },
+  {
+    "name": "KaHGA外周リム",
+    "name_en": "KaHGA Rim",
+    "description": "平面アンテナの外周フレーム",
+    "faces": 1344,
+    "vertices": 4032
+  },
+  {
+    "name": "KaHGA取付架台",
+    "name_en": "KaHGA Pedestal",
+    "description": "平面アンテナの取付・指向架台",
+    "faces": 128,
+    "vertices": 384
+  },
+  {
+    "name": "X帯中利得アンテナ (X-MGA)",
+    "name_en": "X-band Medium-Gain Antenna",
+    "description": "X帯中利得アンテナ(ホーン型)。HGAの指向が取れない局面で使用",
+    "faces": 128,
+    "vertices": 384
+  },
+  {
+    "name": "X-MGA開口リム",
+    "name_en": "X-MGA Aperture Rim",
     "description": "",
-    "faces": 1536,
-    "vertices": 4608
+    "faces": 1344,
+    "vertices": 4032
   },
   {
-    "name": "Ka帯高利得アンテナ (Ka-band HGA)",
-    "description": "高速通信用に新規追加されたKa帯アンテナ(皿型)",
-    "faces": 192,
-    "vertices": 576
-  },
-  {
-    "name": "Ka帯HGA外周リム",
-    "description": "",
-    "faces": 1536,
-    "vertices": 4608
-  },
-  {
-    "name": "Ka帯HGAフィード",
-    "description": "",
-    "faces": 192,
-    "vertices": 576
-  },
-  {
-    "name": "X帯中利得アンテナ (X-band MGA)",
-    "description": "中利得アンテナ(円錐ホーン型)",
-    "faces": 192,
-    "vertices": 576
-  },
-  {
-    "name": "X帯低利得アンテナ (X-band LGA)",
-    "description": "全方向性の低利得アンテナ(ロッド型)",
-    "faces": 192,
-    "vertices": 576
+    "name": "Y帯低利得アンテナ (YLGA-A)",
+    "name_en": "Y-band Low-Gain Antenna",
+    "description": "全方位性の低利得アンテナ(緊急時通信)。機体各面に分散配置",
+    "faces": 64,
+    "vertices": 192
   },
   {
     "name": "DCAM3 (分離カメラ)",
-    "description": "SCI衝突実験の様子を撮影するため分離される小型カメラ",
+    "name_en": "Deployable Camera (DCAM3)",
+    "description": "SCI衝突実験の様子を上空から撮影するため分離される小型カメラ",
+    "faces": 128,
+    "vertices": 384
+  },
+  {
+    "name": "DCAM3アンテナ (DCAM3-ANT)",
+    "name_en": "DCAM3 Antenna",
+    "description": "分離したDCAM3との通信アンテナ",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "DCAM3-ANTホイップ",
+    "name_en": "",
+    "description": "",
+    "faces": 48,
+    "vertices": 144
+  },
+  {
+    "name": "粗太陽センサ CSAS-B",
+    "name_en": "Coarse Sun Aspect Sensor",
+    "description": "太陽方向を粗く検出するセンサ(姿勢制御用)",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "粗太陽センサ CSAS-A",
+    "name_en": "Coarse Sun Aspect Sensor",
+    "description": "太陽方向を粗く検出するセンサ(姿勢制御用)",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "通信系機器ボックス",
+    "name_en": "Communication Equipment Box",
+    "description": "X帯/Ka帯通信用の電子機器(フィルタ・スイッチ等)",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "下面中央リング構造",
+    "name_en": "Bottom Center Ring",
+    "description": "ロケットとの分離面を構成する中央リング。タッチダウン時の基部構造",
+    "faces": 288,
+    "vertices": 864
+  },
+  {
+    "name": "分離リング外周トーラス",
+    "name_en": "Separation Ring Torus",
+    "description": "衛星分離面(1575mm径級)の外周",
+    "faces": 1344,
+    "vertices": 4032
+  },
+  {
+    "name": "SCI (小型衝突装置)",
+    "name_en": "Small Carry-on Impactor",
+    "description": "火薬で2kgの銅弾を約2km/sに加速し、人工クレーター(おむすびころりん)を作った世界初の装置",
     "faces": 192,
     "vertices": 576
   },
   {
-    "name": "サンプラホーン取付リング (Horn Mount)",
-    "description": "ホーン上部と本体の接続部",
+    "name": "SCI先端キャップ",
+    "name_en": "SCI Cap",
+    "description": "SCIの分離時キャップ",
     "faces": 192,
     "vertices": 576
   },
   {
-    "name": "サンプルキャッチャ (Sample Catcher)",
+    "name": "サンプラホーン取付部",
+    "name_en": "Sampler Horn Mount",
+    "description": "ホーンと本体下面の接続構造",
+    "faces": 192,
+    "vertices": 576
+  },
+  {
+    "name": "サンプルキャッチャ",
+    "name_en": "Sample Catcher",
     "description": "ホーン最上部の試料容器。3室に分かれ、複数回の採取試料を別々に保管",
     "faces": 192,
     "vertices": 576
   },
   {
-    "name": "上部ホーン (Upper Horn)",
-    "description": "アルミ円筒。直径20cm・全長約1mのホーンの上段",
+    "name": "上部ホーン (アルミ円筒)",
+    "name_en": "Upper Horn (Aluminum)",
+    "description": "直径20cm・全長約1mのサンプラホーンの上段(アルミ円筒)",
     "faces": 192,
     "vertices": 576
   },
   {
-    "name": "中部ホーン (Middle Horn)",
-    "description": "ベクトラン布製の円筒。着地時の衝撃を吸収する伸縮構造",
+    "name": "中部ホーン (ベクトラン布・蛇腹)",
+    "name_en": "Middle Horn (Bellows)",
+    "description": "ベクトラン布製の蛇腹構造。着地時の衝撃を吸収する伸縮部",
     "faces": 192,
     "vertices": 576
   },
   {
-    "name": "下部ホーン (Lower Horn)",
-    "description": "アルミ円筒。ホーンの下段",
+    "name": "下部ホーン (アルミ円筒)",
+    "name_en": "Lower Horn (Aluminum)",
+    "description": "ホーンの下段(アルミ円筒)",
     "faces": 192,
     "vertices": 576
   },
   {
-    "name": "ホーン接合リング",
-    "description": "下部・中部・上部ホーンの接合部の補強リング",
-    "faces": 1536,
-    "vertices": 4608
-  },
-  {
-    "name": "ホーン接合リング",
-    "description": "下部・中部・上部ホーンの接合部の補強リング",
-    "faces": 1536,
-    "vertices": 4608
-  },
-  {
-    "name": "サンプラホーン先端ベル (Horn Bell)",
+    "name": "サンプラホーン先端ベル",
+    "name_en": "Horn Bell (Sampling Horn)",
     "description": "先端がリュウグウ表面に触れると弾(タンタル玉)を発射し、跳ね上がった物質を捕集",
     "faces": 192,
     "vertices": 576
   },
   {
-    "name": "ホーン先端折返し (Horn Cuff)",
-    "description": "先端内側の折り返し(返し)。1〜5mmの礫を引っかけて捕獲する",
-    "faces": 1536,
-    "vertices": 4608
+    "name": "ホーンベル補強リブ1",
+    "name_en": "Horn Bell Rib",
+    "description": "ベル外側の補強リング",
+    "faces": 1344,
+    "vertices": 4032
+  },
+  {
+    "name": "ホーンベル補強リブ2",
+    "name_en": "Horn Bell Rib",
+    "description": "ベル外側の補強リング",
+    "faces": 1344,
+    "vertices": 4032
+  },
+  {
+    "name": "ホーンベル補強リブ3",
+    "name_en": "Horn Bell Rib",
+    "description": "ベル外側の補強リング",
+    "faces": 1344,
+    "vertices": 4032
+  },
+  {
+    "name": "ホーン先端折返し (返し)",
+    "name_en": "Horn Cuff",
+    "description": "先端内側の折り返し。1〜5mmの礫を引っかけて捕獲する",
+    "faces": 1344,
+    "vertices": 4032
+  },
+  {
+    "name": "ターゲットマーカ TM-A",
+    "name_en": "Target Marker",
+    "description": "タッチダウンの目印として表面に投下される反射材入りの小球(直径10cm)。中には88万人の名前入りシート",
+    "faces": 1280,
+    "vertices": 3840
+  },
+  {
+    "name": "ターゲットマーカ TM-B",
+    "name_en": "Target Marker",
+    "description": "タッチダウンの目印として表面に投下される反射材入りの小球(直径10cm)。中には88万人の名前入りシート",
+    "faces": 1280,
+    "vertices": 3840
+  },
+  {
+    "name": "ターゲットマーカ TM-C",
+    "name_en": "Target Marker",
+    "description": "タッチダウンの目印として表面に投下される反射材入りの小球(直径10cm)。中には88万人の名前入りシート",
+    "faces": 1280,
+    "vertices": 3840
+  },
+  {
+    "name": "ターゲットマーカ TM-D",
+    "name_en": "Target Marker",
+    "description": "タッチダウンの目印として表面に投下される反射材入りの小球(直径10cm)。中には88万人の名前入りシート",
+    "faces": 1280,
+    "vertices": 3840
+  },
+  {
+    "name": "ターゲットマーカ TM-E",
+    "name_en": "Target Marker",
+    "description": "タッチダウンの目印として表面に投下される反射材入りの小球(直径10cm)。中には88万人の名前入りシート",
+    "faces": 1280,
+    "vertices": 3840
   },
   {
     "name": "ONC-T (光学航法カメラ・望遠)",
-    "description": "望遠光学航法カメラ。科学観測にも使用",
+    "name_en": "ONC-T (Telescopic Camera)",
+    "description": "望遠光学航法カメラ(視野6.35°)。科学観測にも使用。下面-X+Y側",
     "faces": 1536,
     "vertices": 4608
   },
   {
-    "name": "ONC-T レンズ",
+    "name": "ONC-Tレンズ",
+    "name_en": "ONC-T Lens",
     "description": "",
-    "faces": 192,
-    "vertices": 576
+    "faces": 128,
+    "vertices": 384
   },
   {
-    "name": "ONC-T レンズフード",
+    "name": "ONC-Tレンズフード",
+    "name_en": "ONC-T Hood",
     "description": "",
-    "faces": 1536,
-    "vertices": 4608
+    "faces": 1344,
+    "vertices": 4032
   },
   {
     "name": "ONC-W1 (光学航法カメラ・広角)",
-    "description": "広角光学航法カメラ(機体下面側)",
+    "name_en": "ONC-W1 (Wide Camera)",
+    "description": "広角光学航法カメラ(視野65°)。下面に下向き。ONC-Tの隣",
     "faces": 1536,
     "vertices": 4608
   },
   {
-    "name": "ONC-W1 レンズ",
+    "name": "ONC-W1レンズ",
+    "name_en": "ONC-W1 Lens",
     "description": "",
-    "faces": 192,
-    "vertices": 576
+    "faces": 128,
+    "vertices": 384
+  },
+  {
+    "name": "ONC-W1レンズフード",
+    "name_en": "ONC-W1 Hood",
+    "description": "",
+    "faces": 1344,
+    "vertices": 4032
   },
   {
     "name": "LIDAR (レーザ高度計)",
-    "description": "レーザパルスの往復時間からリュウグウまでの距離を測定",
+    "name_en": "Laser Altimeter (LIDAR)",
+    "description": "レーザパルス往復時間で距離を測定(30m〜25km)。下面-X-Y側",
     "faces": 1536,
     "vertices": 4608
   },
   {
-    "name": "LIDAR 光学系",
+    "name": "LIDAR光学系",
+    "name_en": "LIDAR Optics",
     "description": "",
-    "faces": 192,
-    "vertices": 576
-  },
-  {
-    "name": "NIRS3 (近赤外分光計)",
-    "description": "3μm帯の吸収から含水鉱物や有機物を検出",
-    "faces": 1408,
-    "vertices": 4224
-  },
-  {
-    "name": "NIRS3 光学系",
-    "description": "",
-    "faces": 192,
-    "vertices": 576
+    "faces": 128,
+    "vertices": 384
   },
   {
     "name": "TIR (熱赤外カメラ)",
-    "description": "表面温度分布を撮影し、熱慣性を調査",
+    "name_en": "Thermal Infrared Camera (TIR)",
+    "description": "8〜12μm帯で表面温度分布を撮影し熱慣性を調査。下面+X+Y側",
     "faces": 768,
     "vertices": 2304
   },
   {
-    "name": "TIR 光学系",
+    "name": "TIRフード",
+    "name_en": "TIR Hood",
     "description": "",
-    "faces": 192,
-    "vertices": 576
+    "faces": 128,
+    "vertices": 384
   },
   {
-    "name": "SCI (衝突装置)",
-    "description": "火薬で2kgの銅弾を約7.2km/sに加速し、人工クレーター(おむすびころりん)を作った世界初の装置",
-    "faces": 192,
-    "vertices": 576
-  },
-  {
-    "name": "SCI 先端キャップ",
-    "description": "",
-    "faces": 192,
-    "vertices": 576
-  },
-  {
-    "name": "MASCOT (小型着陸機)",
-    "description": "ドイツDLR・フランスCNES開発。リュウグウ表面で約17時間観測",
-    "faces": 4608,
-    "vertices": 13824
-  },
-  {
-    "name": "MINERVA-II1A (ローバ)",
-    "description": "リュウグウ表面をホッピング移動した自律小型ローバ(イブー)",
-    "faces": 192,
-    "vertices": 576
-  },
-  {
-    "name": "MINERVA-II1B (ローバ)",
-    "description": "自律小型ローバ(アウル)",
-    "faces": 192,
-    "vertices": 576
-  },
-  {
-    "name": "MINERVA-II2 (ローバ)",
-    "description": "自律小型ローバII2",
-    "faces": 192,
-    "vertices": 576
-  },
-  {
-    "name": "ターゲットマーカ1 (Target Marker)",
-    "description": "タッチダウンの目印として表面に投下される反射材入りの小球",
-    "faces": 1280,
-    "vertices": 3840
-  },
-  {
-    "name": "ターゲットマーカ2 (Target Marker)",
-    "description": "タッチダウンの目印として表面に投下される反射材入りの小球",
-    "faces": 1280,
-    "vertices": 3840
-  },
-  {
-    "name": "ターゲットマーカ3 (Target Marker)",
-    "description": "タッチダウンの目印として表面に投下される反射材入りの小球",
-    "faces": 1280,
-    "vertices": 3840
-  },
-  {
-    "name": "ターゲットマーカ4 (Target Marker)",
-    "description": "タッチダウンの目印として表面に投下される反射材入りの小球",
-    "faces": 1280,
-    "vertices": 3840
-  },
-  {
-    "name": "ターゲットマーカ5 (Target Marker)",
-    "description": "タッチダウンの目印として表面に投下される反射材入りの小球",
-    "faces": 1280,
-    "vertices": 3840
-  },
-  {
-    "name": "イオンエンジン・ジンバル台 (IES Gimbal)",
-    "description": "μ10イオンエンジン4基を載せる2軸ジンバル架台",
+    "name": "FLA (フラッシュライト)",
+    "name_en": "Flash Light (FLA)",
+    "description": "タッチダウン時にターゲットマーカを照らすストロボ",
     "faces": 12,
     "vertices": 36
   },
   {
-    "name": "イオンエンジン μ10 (Ion Engine)",
-    "description": "キセノンをマイクロ波放電でイオン化して高速噴射。推力10mN×4基、最大3基同時運転",
+    "name": "LRF-S1 (レーザレンジファインダ)",
+    "name_en": "Laser Range Finder (LRF-S1)",
+    "description": "タッチダウン直前の高度・姿勢を測る短距離レーザセンサ",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "LRF-S2 (レーザレンジファインダ)",
+    "name_en": "Laser Range Finder (LRF-S2)",
+    "description": "タッチダウン直前の高度・姿勢を測る短距離レーザセンサ",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "MASCOT射出機構 (NESS)",
+    "name_en": "MASCOT Ejection (NESS)",
+    "description": "小型着陸機MASCOTの搭載・射出機構。MASCOT本体は-Y面に露出",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "MINERVA-II1A (ローバ)",
+    "name_en": "MINERVA-II1A Rover",
+    "description": "リュウグウ表面をホッピング移動した自律小型ローバ(イブー)。下面+X-Y側",
+    "faces": 128,
+    "vertices": 384
+  },
+  {
+    "name": "MINERVA-II1B (ローバ)",
+    "name_en": "MINERVA-II1B Rover",
+    "description": "自律小型ローバ(アウル)",
+    "faces": 128,
+    "vertices": 384
+  },
+  {
+    "name": "MINERVA-II2 (ローバ)",
+    "name_en": "MINERVA-II2 Rover",
+    "description": "自律小型ローバII2(東北大学等)。下面-X-Y側",
+    "faces": 128,
+    "vertices": 384
+  },
+  {
+    "name": "X帯低利得アンテナ (XLGA-C)",
+    "name_en": "X-band Low-Gain Antenna (XLGA-C)",
+    "description": "下面側の低利得アンテナ",
+    "faces": 48,
+    "vertices": 144
+  },
+  {
+    "name": "イオンエンジン搭載パネル (IES)",
+    "name_en": "Ion Engine Panel",
+    "description": "μ10イオンエンジン4基を搭載する+X面の黒いパネル(2軸ジンバルで推力方向を制御)",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "イオンエンジン μ10",
+    "name_en": "Ion Engine (μ10)",
+    "description": "キセノンをマイクロ波放電でイオン化し高速噴射。推力10mN×4基、最大3基同時運転",
     "faces": 192,
     "vertices": 576
   },
   {
-    "name": "イオンエンジン放電グリッド",
+    "name": "μ10加速グリッド",
+    "name_en": "Ion Engine Grid",
     "description": "マイクロ波放電の加速グリッド",
-    "faces": 1536,
-    "vertices": 4608
+    "faces": 1344,
+    "vertices": 4032
   },
   {
-    "name": "イオンエンジン μ10 (Ion Engine)",
-    "description": "キセノンをマイクロ波放電でイオン化して高速噴射。推力10mN×4基、最大3基同時運転",
+    "name": "μ10放電面",
+    "name_en": "Ion Engine Discharge",
+    "description": "マイクロ波放電室",
+    "faces": 128,
+    "vertices": 384
+  },
+  {
+    "name": "中性化器 (NEUT)",
+    "name_en": "Neutralizer",
+    "description": "イオンビームを中性化する電子放出器",
+    "faces": 96,
+    "vertices": 288
+  },
+  {
+    "name": "イオンエンジン μ10",
+    "name_en": "Ion Engine (μ10)",
+    "description": "キセノンをマイクロ波放電でイオン化し高速噴射。推力10mN×4基、最大3基同時運転",
     "faces": 192,
     "vertices": 576
   },
   {
-    "name": "イオンエンジン放電グリッド",
+    "name": "μ10加速グリッド",
+    "name_en": "Ion Engine Grid",
     "description": "マイクロ波放電の加速グリッド",
-    "faces": 1536,
-    "vertices": 4608
+    "faces": 1344,
+    "vertices": 4032
   },
   {
-    "name": "イオンエンジン μ10 (Ion Engine)",
-    "description": "キセノンをマイクロ波放電でイオン化して高速噴射。推力10mN×4基、最大3基同時運転",
+    "name": "μ10放電面",
+    "name_en": "Ion Engine Discharge",
+    "description": "マイクロ波放電室",
+    "faces": 128,
+    "vertices": 384
+  },
+  {
+    "name": "中性化器 (NEUT)",
+    "name_en": "Neutralizer",
+    "description": "イオンビームを中性化する電子放出器",
+    "faces": 96,
+    "vertices": 288
+  },
+  {
+    "name": "イオンエンジン μ10",
+    "name_en": "Ion Engine (μ10)",
+    "description": "キセノンをマイクロ波放電でイオン化し高速噴射。推力10mN×4基、最大3基同時運転",
     "faces": 192,
     "vertices": 576
   },
   {
-    "name": "イオンエンジン放電グリッド",
+    "name": "μ10加速グリッド",
+    "name_en": "Ion Engine Grid",
     "description": "マイクロ波放電の加速グリッド",
-    "faces": 1536,
-    "vertices": 4608
+    "faces": 1344,
+    "vertices": 4032
   },
   {
-    "name": "イオンエンジン μ10 (Ion Engine)",
-    "description": "キセノンをマイクロ波放電でイオン化して高速噴射。推力10mN×4基、最大3基同時運転",
+    "name": "μ10放電面",
+    "name_en": "Ion Engine Discharge",
+    "description": "マイクロ波放電室",
+    "faces": 128,
+    "vertices": 384
+  },
+  {
+    "name": "中性化器 (NEUT)",
+    "name_en": "Neutralizer",
+    "description": "イオンビームを中性化する電子放出器",
+    "faces": 96,
+    "vertices": 288
+  },
+  {
+    "name": "イオンエンジン μ10",
+    "name_en": "Ion Engine (μ10)",
+    "description": "キセノンをマイクロ波放電でイオン化し高速噴射。推力10mN×4基、最大3基同時運転",
     "faces": 192,
     "vertices": 576
   },
   {
-    "name": "イオンエンジン放電グリッド",
+    "name": "μ10加速グリッド",
+    "name_en": "Ion Engine Grid",
     "description": "マイクロ波放電の加速グリッド",
-    "faces": 1536,
-    "vertices": 4608
+    "faces": 1344,
+    "vertices": 4032
   },
   {
-    "name": "帰還カプセル (Re-entry Capsule)",
-    "description": "サンプルコンテナを内蔵し、約12km/sで大気圏に再突入。2020年12月6日、ウーメラ砂漠に着地",
+    "name": "μ10放電面",
+    "name_en": "Ion Engine Discharge",
+    "description": "マイクロ波放電室",
+    "faces": 128,
+    "vertices": 384
+  },
+  {
+    "name": "中性化器 (NEUT)",
+    "name_en": "Neutralizer",
+    "description": "イオンビームを中性化する電子放出器",
+    "faces": 96,
+    "vertices": 288
+  },
+  {
+    "name": "IPPU-A (イオンエンジン電源)",
+    "name_en": "Ion Power Processing Unit (IPPU-A)",
+    "description": "イオンエンジンの電源処理装置A。+X面上端",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "IPPU-B (イオンエンジン電源)",
+    "name_en": "Ion Power Processing Unit (IPPU-B)",
+    "description": "イオンエンジンの電源処理装置B。+X面下端",
+    "faces": 12,
+    "vertices": 36
+  },
+  {
+    "name": "X帯低利得アンテナ (XLGA-B)",
+    "name_en": "X-band Low-Gain Antenna (XLGA-B)",
+    "description": "+X面下端の低利得アンテナ",
+    "faces": 48,
+    "vertices": 144
+  },
+  {
+    "name": "スタートラッカ1 (STT)",
+    "name_en": "Star Tracker",
+    "description": "恒星を撮像して姿勢を決定する装置。-X面上端に2基(冗長系)",
+    "faces": 128,
+    "vertices": 384
+  },
+  {
+    "name": "STTバッフル1",
+    "name_en": "STT Baffle",
+    "description": "スタートラッカの遮光バッフル",
+    "faces": 1344,
+    "vertices": 4032
+  },
+  {
+    "name": "スタートラッカ2 (STT)",
+    "name_en": "Star Tracker",
+    "description": "恒星を撮像して姿勢を決定する装置。-X面上端に2基(冗長系)",
+    "faces": 128,
+    "vertices": 384
+  },
+  {
+    "name": "STTバッフル2",
+    "name_en": "STT Baffle",
+    "description": "スタートラッカの遮光バッフル",
+    "faces": 1344,
+    "vertices": 4032
+  },
+  {
+    "name": "帰還カプセル (SRC)",
+    "name_en": "Re-entry Capsule",
+    "description": "サンプルコンテナを内蔵。2020年12月6日、約12km/sで大気圏再突入しウーメラ砂漠に着地。-X面下部中央",
     "faces": 192,
     "vertices": 576
   },
   {
-    "name": "帰還カプセル 熱防御シールド",
-    "description": "再突入時の熱から守るアブレータ",
+    "name": "帰還カプセル熱防御シールド",
+    "name_en": "Capsule Heat Shield",
+    "description": "再突入時(約3000℃)の熱から守るアブレータ。外側(-X)を向く",
     "faces": 192,
     "vertices": 576
   },
   {
-    "name": "帰還カプセル 分離リング",
+    "name": "帰還カプセル分離リング",
+    "name_en": "Capsule Separation Ring",
     "description": "",
-    "faces": 1536,
-    "vertices": 4608
+    "faces": 1344,
+    "vertices": 4032
   },
   {
-    "name": "スタートラッカー1 (Star Tracker)",
-    "description": "恒星を撮像して姿勢を決定する装置",
-    "faces": 192,
-    "vertices": 576
+    "name": "NIRS3 (近赤外分光計)",
+    "name_en": "Near-Infrared Spectrometer (NIRS3)",
+    "description": "3μm帯の吸収から含水鉱物や有機物を検出。光学系は-X面下部+Y側に張り出し、下向きに観測",
+    "faces": 1664,
+    "vertices": 4992
   },
   {
-    "name": "スタートラッカー1 バッフル",
-    "description": "",
-    "faces": 1536,
-    "vertices": 4608
+    "name": "NIRS3光学系",
+    "name_en": "NIRS3 Optics",
+    "description": "近赤外望遠鏡の開口",
+    "faces": 96,
+    "vertices": 288
   },
   {
-    "name": "スタートラッカー2 (Star Tracker)",
-    "description": "恒星を撮像して姿勢を決定する装置(冗長系)",
-    "faces": 192,
-    "vertices": 576
-  },
-  {
-    "name": "スタートラッカー2 バッフル",
-    "description": "",
-    "faces": 1536,
-    "vertices": 4608
+    "name": "MASCOT (小型着陸機)",
+    "name_en": "MASCOT Lander",
+    "description": "独DLR・仏CNES開発の小型着陸機(30×28×19cm)。2018年10月3日に分離、リュウグウ表面で約17時間観測。-Y面上部に露出",
+    "faces": 7552,
+    "vertices": 22656
   },
   {
     "name": "ONC-W2 (光学航法カメラ・広角2)",
-    "description": "広角光学航法カメラ(機体側面)",
+    "name_en": "ONC-W2 (Wide Camera)",
+    "description": "側面(横)向きの広角光学航法カメラ。ローバ分離や降下の監視に使用。-Y面下端",
     "faces": 640,
     "vertices": 1920
   },
   {
-    "name": "RCSスラスタポッド (RCS Thrusters)",
-    "description": "化学推進系20Nスラスタ(計12基)。姿勢制御・軌道修正に使用",
+    "name": "CAM-H (モニタカメラ)",
+    "name_en": "Monitor Camera (CAM-H)",
+    "description": "タッチダウン直後の撮影に使用された小型モニタカメラ。-Y面下端",
+    "faces": 64,
+    "vertices": 192
+  },
+  {
+    "name": "RCSスラスタポッド (-X-Y)",
+    "name_en": "RCS Thruster Pod",
+    "description": "化学推進20Nスラスタ(12基)。姿勢制御・軌道修正に使用。本体四隅に配置",
     "faces": 2048,
     "vertices": 6144
   },
   {
-    "name": "RCS ノズル",
+    "name": "RCSノズル",
+    "name_en": "RCS Nozzle",
     "description": "",
-    "faces": 192,
-    "vertices": 576
+    "faces": 64,
+    "vertices": 192
   },
   {
-    "name": "RCS ノズル",
+    "name": "RCSノズル",
+    "name_en": "RCS Nozzle",
     "description": "",
-    "faces": 192,
-    "vertices": 576
+    "faces": 64,
+    "vertices": 192
   },
   {
-    "name": "RCSスラスタポッド (RCS Thrusters)",
-    "description": "化学推進系20Nスラスタ(計12基)。姿勢制御・軌道修正に使用",
+    "name": "RCSノズル",
+    "name_en": "RCS Nozzle",
+    "description": "",
+    "faces": 64,
+    "vertices": 192
+  },
+  {
+    "name": "RCSスラスタポッド (-X+Y)",
+    "name_en": "RCS Thruster Pod",
+    "description": "化学推進20Nスラスタ(12基)。姿勢制御・軌道修正に使用。本体四隅に配置",
     "faces": 2048,
     "vertices": 6144
   },
   {
-    "name": "RCS ノズル",
+    "name": "RCSノズル",
+    "name_en": "RCS Nozzle",
     "description": "",
-    "faces": 192,
-    "vertices": 576
+    "faces": 64,
+    "vertices": 192
   },
   {
-    "name": "RCS ノズル",
+    "name": "RCSノズル",
+    "name_en": "RCS Nozzle",
     "description": "",
-    "faces": 192,
-    "vertices": 576
+    "faces": 64,
+    "vertices": 192
   },
   {
-    "name": "RCSスラスタポッド (RCS Thrusters)",
-    "description": "化学推進系20Nスラスタ(計12基)。姿勢制御・軌道修正に使用",
+    "name": "RCSノズル",
+    "name_en": "RCS Nozzle",
+    "description": "",
+    "faces": 64,
+    "vertices": 192
+  },
+  {
+    "name": "RCSスラスタポッド (+X-Y)",
+    "name_en": "RCS Thruster Pod",
+    "description": "化学推進20Nスラスタ(12基)。姿勢制御・軌道修正に使用。本体四隅に配置",
     "faces": 2048,
     "vertices": 6144
   },
   {
-    "name": "RCS ノズル",
+    "name": "RCSノズル",
+    "name_en": "RCS Nozzle",
     "description": "",
-    "faces": 192,
-    "vertices": 576
+    "faces": 64,
+    "vertices": 192
   },
   {
-    "name": "RCS ノズル",
+    "name": "RCSノズル",
+    "name_en": "RCS Nozzle",
     "description": "",
-    "faces": 192,
-    "vertices": 576
+    "faces": 64,
+    "vertices": 192
   },
   {
-    "name": "RCSスラスタポッド (RCS Thrusters)",
-    "description": "化学推進系20Nスラスタ(計12基)。姿勢制御・軌道修正に使用",
+    "name": "RCSノズル",
+    "name_en": "RCS Nozzle",
+    "description": "",
+    "faces": 64,
+    "vertices": 192
+  },
+  {
+    "name": "RCSスラスタポッド (+X+Y)",
+    "name_en": "RCS Thruster Pod",
+    "description": "化学推進20Nスラスタ(12基)。姿勢制御・軌道修正に使用。本体四隅に配置",
     "faces": 2048,
     "vertices": 6144
   },
   {
-    "name": "RCS ノズル",
+    "name": "RCSノズル",
+    "name_en": "RCS Nozzle",
     "description": "",
-    "faces": 192,
-    "vertices": 576
+    "faces": 64,
+    "vertices": 192
   },
   {
-    "name": "RCS ノズル",
+    "name": "RCSノズル",
+    "name_en": "RCS Nozzle",
     "description": "",
-    "faces": 192,
-    "vertices": 576
+    "faces": 64,
+    "vertices": 192
+  },
+  {
+    "name": "RCSノズル",
+    "name_en": "RCS Nozzle",
+    "description": "",
+    "faces": 64,
+    "vertices": 192
   }
 ]
