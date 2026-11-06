@@ -32,3 +32,12 @@ DARTS・JAXA公式サイトの更新に追従するための管理方法と、�
 - `provenance/`: 出典レジストリ(CSV)とライセンス規則(JSON)を作成。
 - `conversion/` + `generated/`: タイル(425枚、5地図×z0-z3)、標高・法線マップ(1024/2048px)、LOD・コリジョンメッシュを生成。
 - MINERVA-II1着陸地点の精密座標は未公表のため null とし、推測で埋めていない。
+
+### 2026-11-06(品質修正)
+
+- `conversion/build_quadtree_tiles.py`: 2:1正距円筒図法のタイル分割を修正。旧来の正方形分割(2^z×2^z)では経度方向が圧縮され3D貼り付け時に歪むため、x=2^(z+1)×y=2^z 分割(元画像上で正方形タイル)に変更。全タイルを再生成(425枚→850枚、5地図×170枚)。
+- `conversion/build_heightmap_normal.py`: 経度0/360°境界をまたぐ三角形の描画を修正(旧:境界外をクリップ→反対端に描かず、穴を近傍最大値で埋めていた。境界の不連続は中央値0.32m/最大5.58m)。新:シーム跨ぎ座標のままラスタライズし両端に描画(境界列差 中央値0.11m≒内部隣接列差0.10m)。法線マップの経度勾配も周期差分に変更。補間統計(補間px数・膨張距離・最近傍頂点との誤差)をmetaに記録(2048px版: 補間8,778px=0.42%、最大膨張2px、誤差中央値3.0m/最大9.3m)。標高・法線マップ(1024/2048px)を再生成。
+- `education/quizzes.json`: q08(オトヒメ・サクスムの直径)の正解番号を修正(0→1。正解は「約160m」、解説と整合。USGS地名データ0.16kmと整合)。
+- `samples_metadata.json`: 試料総量5.424gとA+B+Cの和5.275gの差(約0.15g)について、数値を変更せず注記を追加(キャッチャ全体計量 vs 室別計量の差=「その他」分+不確かさ。JAXA記者説明会2021-12-06、Nakato et al. 2022 doi:10.2343/geochemj.GJ22017 を出典に追加)。
+- `11_spacecraft_model/LICENSE` を追加(MIT。source_registry.csv SRC013が参照)。ルートREADME.mdの探査機モデル記述を修正(80パーツ→136パーツ・88,288面、11_spacecraft_model/README.mdとparts_list.json=136と整合)。
+- `provenance/source_registry.csv`: SRC013のライセンス表記を実際のLICENSEファイル(11_spacecraft_model/LICENSE)に対応する形に修正。

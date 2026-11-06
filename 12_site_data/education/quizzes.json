@@ -1,1 +1,218 @@
-{"description": "WASD探索型サイト用のクイズデータ。設問・選択肢・正解・解説・関連POI・出典を収録。難易度は elementary(小中学生) / advanced(中高生〜一般)。", "retrieved_date": "2026-11-06", "quizzes": [{"id": "q01_shape", "difficulty": "elementary", "poi_id": "ryujin_dorsum", "question": "リュウグウはどんな形をしている?", "choices": ["まるいボール型", "そろばんの珠(トップシェイプ)型", "細長い棒状", "平たい円盤型"], "answer_index": 1, "explanation": "リュウグウは赤道部分が膨らんだ「トップシェイプ」と呼ばれる形。赤道半径502m・極半径438mと、自転による遠心力で赤道が膨らんでいる。7.6時間という速い自転が原因。", "source": [{"label": "Watanabe et al. 2019, Nature Astronomy", "url": "https://doi.org/10.1038/s41550-019-0932-0"}]}, {"id": "q02_color", "difficulty": "elementary", "poi_id": "td1", "question": "リュウグウの表面はどんな色?", "choices": ["まっ白", "黄金色", "とても暗い黒っぽい色", "赤く輝く"], "answer_index": 2, "explanation": "リュウグウはC型(炭素質)小惑星で、反射率(アルベド)は約0.045と非常に暗い。瀬戸内海の玄武岩と比べてもさらに暗い。ただし地表の岩の一部には明るい場所もある。", "source": [{"label": "Sugita et al. 2019, Science 364, 252", "url": "https://doi.org/10.1126/science.aaw0422"}]}, {"id": "q03_gravity", "difficulty": "elementary", "poi_id": "mascot_landing", "question": "リュウグウの表面での重力は地球の何倍?", "choices": ["約同じ", "約半分", "約60分の1", "約6万分の1"], "answer_index": 3, "explanation": "リュウグウの表面重力は地球の約6万分の1。そのためMASCOTは着陸時に何度もバウンドし、ローバは「歩く」代わりに「ホップ」で移動した。人が立ったら、ジャンプすれば宇宙に飛び出しそうなほど弱い重力。", "source": [{"label": "DLR: MASCOT着陸シーケンス(重力比較)", "url": "https://www.dlr.de/en/research-and-transfer/projects-and-missions/hayabusa2/mascot-landing-on-ryugu-operational-sequence"}]}, {"id": "q04_td1_accuracy", "difficulty": "advanced", "poi_id": "td1", "question": "第1回タッチダウンでは、直径何mの領域のどこに着地できた?", "choices": ["直径100mの領域の中央付近", "直径20mの領域の中央付近", "直径6mの領域の中心から1m以内", "直径1mの領域の中心から60cm以内"], "answer_index": 2, "explanation": "TD1は直径6m(L08-E1)の領域を半径3mの円で狙い、中心から1m以内の精度で着地した。TD2ではさらに精度が上がり、目標中心から60cmという「100点満点で1000点」(津田PM)の着陸になった。", "source": [{"label": "JAXA記者説明会(2019-03-05)", "url": "https://www.hayabusa2.jaxa.jp/en/enjoy/material/press/Hayabusa2_Press20190305_ver9_en.pdf"}, {"label": "JAXA記者説明会(2019-07-25)", "url": "https://www.hayabusa2.jaxa.jp/en/enjoy/material/press/Hayabusa2_Press20190725_ver9_en3.pdf"}]}, {"id": "q05_sci_speed", "difficulty": "advanced", "poi_id": "sci_crater", "question": "SCI(衝突装置)の銅弾は何km/sでリュウグウに衝突した?", "choices": ["約0.2km/s", "約2km/s", "約20km/s", "約200km/s"], "answer_index": 1, "explanation": "2kgの銅弾が約2km/sで衝突し、直径14.5m・深さ1.7mのクレーターができた。この比較的「遅い」衝突でも大きく掘れたのは、リュウグウの表面が弱い(重力がクレーター形成を支配する「重力支配領域」)ため。", "source": [{"label": "Arakawa et al. 2020, Science 368, 67-71", "url": "https://doi.org/10.1126/science.aaz1701"}]}, {"id": "q06_sample_amount", "difficulty": "elementary", "poi_id": "td2", "question": "はやぶさ2が持ち帰ったリュウグウの試料は何グラム?", "choices": ["約0.1g", "約0.5g", "約5.4g", "約540g"], "answer_index": 2, "explanation": "合計5.424g(チャンバーA=3.237g、チャンバーC=2.025g)。目標の最小値0.1gの50倍以上を達成した。", "source": [{"label": "Yada et al. 2021, Nature Astronomy 5, 246", "url": "https://doi.org/10.1038/s41550-021-01550-6"}]}, {"id": "q07_chamber", "difficulty": "advanced", "poi_id": "td2", "question": "2つの試料チャンバー(AとC)の中身の違いは?", "choices": ["A=表面物質、C=地下物質を含む", "A=岩、C=氷", "A=北極、C=南極の物質", "A=昼側、C=夜側の物質"], "answer_index": 0, "explanation": "チャンバーAは第1回タッチダウン(たまてばこ)で採った表面物質、チャンバーCは第2回タッチダウン(うちでのこづち)で採った人工クレーター近傍の物質で、地下由来を多く含む。「太陽系の履歴書」とも呼ばれる2種類の比較が初期分析の柱になった。", "source": [{"label": "ISAS地球外試料キュレーションセンター", "url": "https://curation.isas.jaxa.jp/research/hayabusa2/"}, {"label": "Yada et al. 2021, Nature Astronomy", "url": "https://doi.org/10.1038/s41550-021-01550-6"}]}, {"id": "q08_boulder", "difficulty": "advanced", "poi_id": "otohime_saxum", "question": "リュウグウ最大級の岩「オトヒメ・サクスム」の直径は?", "choices": ["約16m", "約160m", "約1.6km", "約16cm"], "answer_index": 0, "explanation": "直径約160m(0.16km)。リュウグウ最大級のボルダーで、リュウグウ自身の大きさ(約900m)の6分の1以上もある。", "source": [{"label": "USGS: Planetary Nomenclature - Ryugu", "url": "https://planetarynames.wr.usgs.gov/Page/Ryugu/target"}]}, {"id": "q09_age", "difficulty": "advanced", "poi_id": "urashima_crater", "question": "リュウグウの表面の年齢はいくつと推定されている?", "choices": ["約900年", "約9万年", "約900万年", "約90億年"], "answer_index": 2, "explanation": "クレーターの数や宇宙線照射年代から、表面は約900万年と若い。ただしリュウグウの母体(親天体)の物質自体は太陽系誕生時(約46億年前)のまま。", "source": [{"label": "Sugita et al. 2019, Science 364, 252", "url": "https://doi.org/10.1126/science.aaw0422"}]}, {"id": "q10_names", "difficulty": "elementary", "poi_id": "td1", "question": "リュウグウの地名は何をテーマに付けられている?", "choices": ["神話の神々", "科学者の名前", "世界の昔話・童話の登場人物", "地球の地名"], "answer_index": 2, "explanation": "IAU承認の地名は「民話・童話に登場する人物や場所」から(ウラシマ、モモタロウ、シンデレラ=サンドリヨンなど)。プロジェクトが付けた愛称(たまてばこ、うちでのこづち、トリトニス、アリスの不思議の国)も物語にちなむ。", "source": [{"label": "ISAS: リュウグウ表面の地名が決定!", "url": "https://www.isas.jaxa.jp/topics/002025.html"}, {"label": "USGS: Planetary Nomenclature - Ryugu", "url": "https://planetarynames.wr.usgs.gov/Page/Ryugu/target"}]}]}
+{
+ "description": "WASD探索型サイト用のクイズデータ。設問・選択肢・正解・解説・関連POI・出典を収録。難易度は elementary(小中学生) / advanced(中高生〜一般)。",
+ "retrieved_date": "2026-11-06",
+ "quizzes": [
+  {
+   "id": "q01_shape",
+   "difficulty": "elementary",
+   "poi_id": "ryujin_dorsum",
+   "question": "リュウグウはどんな形をしている?",
+   "choices": [
+    "まるいボール型",
+    "そろばんの珠(トップシェイプ)型",
+    "細長い棒状",
+    "平たい円盤型"
+   ],
+   "answer_index": 1,
+   "explanation": "リュウグウは赤道部分が膨らんだ「トップシェイプ」と呼ばれる形。赤道半径502m・極半径438mと、自転による遠心力で赤道が膨らんでいる。7.6時間という速い自転が原因。",
+   "source": [
+    {
+     "label": "Watanabe et al. 2019, Nature Astronomy",
+     "url": "https://doi.org/10.1038/s41550-019-0932-0"
+    }
+   ]
+  },
+  {
+   "id": "q02_color",
+   "difficulty": "elementary",
+   "poi_id": "td1",
+   "question": "リュウグウの表面はどんな色?",
+   "choices": [
+    "まっ白",
+    "黄金色",
+    "とても暗い黒っぽい色",
+    "赤く輝く"
+   ],
+   "answer_index": 2,
+   "explanation": "リュウグウはC型(炭素質)小惑星で、反射率(アルベド)は約0.045と非常に暗い。瀬戸内海の玄武岩と比べてもさらに暗い。ただし地表の岩の一部には明るい場所もある。",
+   "source": [
+    {
+     "label": "Sugita et al. 2019, Science 364, 252",
+     "url": "https://doi.org/10.1126/science.aaw0422"
+    }
+   ]
+  },
+  {
+   "id": "q03_gravity",
+   "difficulty": "elementary",
+   "poi_id": "mascot_landing",
+   "question": "リュウグウの表面での重力は地球の何倍?",
+   "choices": [
+    "約同じ",
+    "約半分",
+    "約60分の1",
+    "約6万分の1"
+   ],
+   "answer_index": 3,
+   "explanation": "リュウグウの表面重力は地球の約6万分の1。そのためMASCOTは着陸時に何度もバウンドし、ローバは「歩く」代わりに「ホップ」で移動した。人が立ったら、ジャンプすれば宇宙に飛び出しそうなほど弱い重力。",
+   "source": [
+    {
+     "label": "DLR: MASCOT着陸シーケンス(重力比較)",
+     "url": "https://www.dlr.de/en/research-and-transfer/projects-and-missions/hayabusa2/mascot-landing-on-ryugu-operational-sequence"
+    }
+   ]
+  },
+  {
+   "id": "q04_td1_accuracy",
+   "difficulty": "advanced",
+   "poi_id": "td1",
+   "question": "第1回タッチダウンでは、直径何mの領域のどこに着地できた?",
+   "choices": [
+    "直径100mの領域の中央付近",
+    "直径20mの領域の中央付近",
+    "直径6mの領域の中心から1m以内",
+    "直径1mの領域の中心から60cm以内"
+   ],
+   "answer_index": 2,
+   "explanation": "TD1は直径6m(L08-E1)の領域を半径3mの円で狙い、中心から1m以内の精度で着地した。TD2ではさらに精度が上がり、目標中心から60cmという「100点満点で1000点」(津田PM)の着陸になった。",
+   "source": [
+    {
+     "label": "JAXA記者説明会(2019-03-05)",
+     "url": "https://www.hayabusa2.jaxa.jp/en/enjoy/material/press/Hayabusa2_Press20190305_ver9_en.pdf"
+    },
+    {
+     "label": "JAXA記者説明会(2019-07-25)",
+     "url": "https://www.hayabusa2.jaxa.jp/en/enjoy/material/press/Hayabusa2_Press20190725_ver9_en3.pdf"
+    }
+   ]
+  },
+  {
+   "id": "q05_sci_speed",
+   "difficulty": "advanced",
+   "poi_id": "sci_crater",
+   "question": "SCI(衝突装置)の銅弾は何km/sでリュウグウに衝突した?",
+   "choices": [
+    "約0.2km/s",
+    "約2km/s",
+    "約20km/s",
+    "約200km/s"
+   ],
+   "answer_index": 1,
+   "explanation": "2kgの銅弾が約2km/sで衝突し、直径14.5m・深さ1.7mのクレーターができた。この比較的「遅い」衝突でも大きく掘れたのは、リュウグウの表面が弱い(重力がクレーター形成を支配する「重力支配領域」)ため。",
+   "source": [
+    {
+     "label": "Arakawa et al. 2020, Science 368, 67-71",
+     "url": "https://doi.org/10.1126/science.aaz1701"
+    }
+   ]
+  },
+  {
+   "id": "q06_sample_amount",
+   "difficulty": "elementary",
+   "poi_id": "td2",
+   "question": "はやぶさ2が持ち帰ったリュウグウの試料は何グラム?",
+   "choices": [
+    "約0.1g",
+    "約0.5g",
+    "約5.4g",
+    "約540g"
+   ],
+   "answer_index": 2,
+   "explanation": "合計5.424g(チャンバーA=3.237g、チャンバーC=2.025g)。目標の最小値0.1gの50倍以上を達成した。",
+   "source": [
+    {
+     "label": "Yada et al. 2021, Nature Astronomy 5, 246",
+     "url": "https://doi.org/10.1038/s41550-021-01550-6"
+    }
+   ]
+  },
+  {
+   "id": "q07_chamber",
+   "difficulty": "advanced",
+   "poi_id": "td2",
+   "question": "2つの試料チャンバー(AとC)の中身の違いは?",
+   "choices": [
+    "A=表面物質、C=地下物質を含む",
+    "A=岩、C=氷",
+    "A=北極、C=南極の物質",
+    "A=昼側、C=夜側の物質"
+   ],
+   "answer_index": 0,
+   "explanation": "チャンバーAは第1回タッチダウン(たまてばこ)で採った表面物質、チャンバーCは第2回タッチダウン(うちでのこづち)で採った人工クレーター近傍の物質で、地下由来を多く含む。「太陽系の履歴書」とも呼ばれる2種類の比較が初期分析の柱になった。",
+   "source": [
+    {
+     "label": "ISAS地球外試料キュレーションセンター",
+     "url": "https://curation.isas.jaxa.jp/research/hayabusa2/"
+    },
+    {
+     "label": "Yada et al. 2021, Nature Astronomy",
+     "url": "https://doi.org/10.1038/s41550-021-01550-6"
+    }
+   ]
+  },
+  {
+   "id": "q08_boulder",
+   "difficulty": "advanced",
+   "poi_id": "otohime_saxum",
+   "question": "リュウグウ最大級の岩「オトヒメ・サクスム」の直径は?",
+   "choices": [
+    "約16m",
+    "約160m",
+    "約1.6km",
+    "約16cm"
+   ],
+   "answer_index": 1,
+   "explanation": "直径約160m(0.16km)。リュウグウ最大級のボルダーで、リュウグウ自身の大きさ(約900m)の6分の1以上もある。",
+   "source": [
+    {
+     "label": "USGS: Planetary Nomenclature - Ryugu",
+     "url": "https://planetarynames.wr.usgs.gov/Page/Ryugu/target"
+    }
+   ]
+  },
+  {
+   "id": "q09_age",
+   "difficulty": "advanced",
+   "poi_id": "urashima_crater",
+   "question": "リュウグウの表面の年齢はいくつと推定されている?",
+   "choices": [
+    "約900年",
+    "約9万年",
+    "約900万年",
+    "約90億年"
+   ],
+   "answer_index": 2,
+   "explanation": "クレーターの数や宇宙線照射年代から、表面は約900万年と若い。ただしリュウグウの母体(親天体)の物質自体は太陽系誕生時(約46億年前)のまま。",
+   "source": [
+    {
+     "label": "Sugita et al. 2019, Science 364, 252",
+     "url": "https://doi.org/10.1126/science.aaw0422"
+    }
+   ]
+  },
+  {
+   "id": "q10_names",
+   "difficulty": "elementary",
+   "poi_id": "td1",
+   "question": "リュウグウの地名は何をテーマに付けられている?",
+   "choices": [
+    "神話の神々",
+    "科学者の名前",
+    "世界の昔話・童話の登場人物",
+    "地球の地名"
+   ],
+   "answer_index": 2,
+   "explanation": "IAU承認の地名は「民話・童話に登場する人物や場所」から(ウラシマ、モモタロウ、シンデレラ=サンドリヨンなど)。プロジェクトが付けた愛称(たまてばこ、うちでのこづち、トリトニス、アリスの不思議の国)も物語にちなむ。",
+   "source": [
+    {
+     "label": "ISAS: リュウグウ表面の地名が決定!",
+     "url": "https://www.isas.jaxa.jp/topics/002025.html"
+    },
+    {
+     "label": "USGS: Planetary Nomenclature - Ryugu",
+     "url": "https://planetarynames.wr.usgs.gov/Page/Ryugu/target"
+    }
+   ]
+  }
+ ]
+}

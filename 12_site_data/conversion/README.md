@@ -8,18 +8,33 @@
 | スクリプト | 入力 | 出力 | 用途 |
 |---|---|---|---|
 | `build_quadtree_tiles.py` | 全球マップ(JPG/TIF、2:1正距円筒) | `tiles/{z}/{x}/{y}.jpg` | グロブ表示の詳細ズーム |
-| `build_heightmap_normal.py` | 形状モデルOBJ(200k面) | 16bit標高PNG + 法線PNG | WASD移動の地形追従・凹凸表現 |
+| `build_heightmap_normal.py` | 形状モデルOBJ(200k面) | 16bit標高PNG + 法線PNG + 補間統計 | WASD移動の地形追従・凹凸表現 |
 | `build_lod_collision.py` | 形状モデルOBJ(200k面) | LODメッシュ(5k/15k面) + 当たり判定メッシュ | 低スペック端末向け表示・物理当たり |
 | `extract_image_geometry.py` | l2dbpc緯度経度FITS(tgz展開後) | 画像ごとの中心座標JSON | 画像↔リュウグウ表面座標の対応 |
+
+### タイルの分割方式(重要)
+
+入力は縦横比2:1(経度360°×緯度180°)の正距円筒図法。**経度方向の分割数を緯度方向の2倍**にする
+ことで、各タイルの元画像上の領域が正方形(ピクセル比1:1)になり、3Dモデルへの貼り付け時に
+縦横の歪みが生じない。
+
+- 各ズーム: x方向 `2^(z+1)` 分割、y方向 `2^z` 分割
+- タイル数: z0=2、z1=8、z2=32、z3=128(合計170枚/地図、5地図で850枚)
 
 ## 実行例
 
 ```bash
-# タイル生成(全5種の全球マップ)
-for m in 01_ONC_v-band_Basemap1 04_ONC_Normal_Albedo_RGB 05_ONC_Normal_Albedo_v-band \
-         06_ONC_Vis_Slope_b-x 07_TIR_Thermal_Inertia; do
+# タイル生成(全5種の全球マップ。legend画像を除く主図を指定すること)
+declare -A SRC=(
+  [01_ONC_v-band_Basemap1]=hyb2_onc_Global_01_l3dm_v06.jpg
+  [04_ONC_Normal_Albedo_RGB]=JADE_Ryugu_NormAlbedoV1j_rgb_bvx.jpg
+  [05_ONC_Normal_Albedo_v-band]=v-band_Normal_albedo_map.jpg
+  [06_ONC_Vis_Slope_b-x]=b-x_Slope_Map.jpg
+  [07_TIR_Thermal_Inertia]=Thermal_Inertia_Map.jpg
+)
+for m in "${!SRC[@]}"; do
   python3 12_site_data/conversion/build_quadtree_tiles.py \
-    "04_science_data/map_products/$m/$(ls 04_science_data/map_products/$m | grep -E '^(hyb2|JADE|Thermal).*\.jpg$' | head -1)" \
+    "04_science_data/map_products/$m/${SRC[$m]}" \
     "12_site_data/generated/tiles/$m" --max-zoom 3
 done
 
