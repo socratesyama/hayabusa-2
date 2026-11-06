@@ -44,7 +44,7 @@
       <dt>点の数</dt><dd class="num">315,803 点 <i class="tag derived">計算</i><small>はやぶさ2の画像から作ったSfM形状モデル(1,579,014頂点)を、約1/5に間引いた頂点です。</small></dd>
       <dt>大きさ</dt><dd>平均直径 約896 m、自転周期 約7.63時間 <i class="tag obs">実測</i></dd>
       <dt>線の向き</dt><dd>点の近傍から推定した法線に沿う <i class="tag est">推定</i></dd>
-      <dt>線の濃さ</dt><dd>光の当たり方と、ONC地図の明るさ <i class="tag derived">計算</i></dd>
+      <dt>線の濃さ</dt><dd>光の当たり方と、PLY頂点RGBから計算した輝度 <i class="tag derived">計算</i></dd>
       <dt>線そのもの</dt><dd>実際の鉛筆の跡ではありません <i class="tag illus">説明用</i></dd>
     </dl>
     <div class="ctl">
@@ -54,7 +54,7 @@
       <label class="rng">濃さ<input id="ink" type="range" min="0.4" max="1.8" step="0.05" value="1"></label>
       <label class="rng" id="timebox" hidden>日時<input id="tsun" type="range" min="0" max="1" step="0.0005" value="0.4"><output id="tsun-out" class="num"></output></label>
     </div>
-    <p class="small">隠れた側の線は、参考形状モデル(SPC・20万面)を、見えない遮蔽物にして消しています。モデルの違いのため、数mの食い違いがあります。</p>
+    <p class="small">隠れた側の線は、参考形状モデル(SPC・20万面)を遮蔽用の参照形状として消しています。SfM点群とは別モデルのため、境界付近では遮蔽位置に差が残る場合があります。</p>
   </section>
 
   <section data-sec="touchdown" hidden>
