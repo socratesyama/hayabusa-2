@@ -1,0 +1,10 @@
+source_obj=ryugu_shape_spc_200k_v20200323_web.obj (units km, IAU_RYUGU)
+projection=equirectangular, lon 0-360E (left=0), lat +90(top) to -90(bottom)
+width_px=2048
+height_px=1024
+radius_min_m=379.789
+radius_max_m=527.332
+heightmap: 0=radius_min, 65535=radius_max (16bit PNG)
+normal map: RGB = surface normal xyz in [-1,1] mapped to [0,255]
+method=triangle rasterization (barycentric) + vertex scatter + max-dilation fill
+credit: JAXA/ISAS/DARTS (shape model SPC v20200323, Watanabe et al. 2019)

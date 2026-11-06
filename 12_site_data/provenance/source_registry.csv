@@ -1,0 +1,22 @@
+id,category,name_ja,provider,license,credit_required,access_url,retrieved_date,local_path
+SRC001,shape_model,SPC形状モデル 200k面 v20200323 (DSK+OBJ),JAXA/ISAS/DARTS,ISAS Data Policy / CC BY 4.0,Data: JAXA/ISAS/DARTS(神戸大 Watanabe et al. 2019),https://darts.isas.jaxa.jp/doi/hayabusa2/ryugu.dsk.html,2026-11-04,01_shape_models/ryugu_shape_spc_200k_v20200323_web.obj
+SRC002,shape_model,SfM形状モデル 50k面 v20200815 (OBJ),JAXA/ISAS/DARTS + 会津大・神戸大,ISAS Data Policy / CC BY 4.0,Data: JAXA/ISAS/DARTS(会津大・神戸大),https://darts.isas.jaxa.jp/,2026-11-04,01_shape_models/ryugu_shape_sfm_50k_v20200815_web.obj
+SRC003,shape_model,プラネタリウム用Web 3Dモデル(SfM 200k他),日本プラネタリウム協議会,CC BY,3Dデータ: 日本プラネタリウム協議会(JAXA/会津大/神戸大のデータに基づく),https://planetarium.jp/ryugu/,2026-11-04,01_shape_models/web_ready_planetarium/
+SRC004,onc_images,ONC較正画像バンドル v03c(l2a/l2b/l2c + l2dbpc緯度経度),JAXA/ISAS/DARTS,ISAS Data Policy / CC BY 4.0,Data: JAXA/ISAS/DARTS(はやぶさ2 ONCチーム),https://darts.isas.jaxa.jp/pub/hayabusa2/onc_bundle/,2026-11-04,02_onc_images/onc_bundle_v03c/
+SRC005,onc_images,公式ギャラリー画像783枚,JAXA,JAXAサイトポリシー(教育・個人は可/商用は許諾),(c) JAXA,https://www.hayabusa2.jaxa.jp/en/galleries/onc/,2026-11-04,02_onc_images/official_gallery_jaxa/
+SRC006,spice,SPICEカーネル一式(hyb2_spice_v001),JAXA/ISAS/DARTS,ISAS Data Policy / CC BY 4.0,Data: JAXA/ISAS/DARTS(DOI: 10.17597/isas.darts/hyb2-00600),https://darts.isas.jaxa.jp/datasets/hyb2_spice_v001,2026-11-04,03_spice/
+SRC007,map_products,全球ベースマップ・アルベド・熱慣性地図(v06),JAXA/ISAS/DARTS,ISAS Data Policy / CC BY 4.0,Data: JAXA/ISAS/DARTS(ONC・TIRチーム),https://darts.isas.jaxa.jp/,2026-11-04,04_science_data/map_products/
+SRC008,samples,リュウグウ試料キュレーションデータ(顕微鏡・FTIR・MicrOmega),JAXA/ISAS/DARTS,ISAS Data Policy / CC BY 4.0,Data: JAXA/ISAS/DARTS(地球外試料キュレーションセンター),https://darts.isas.jaxa.jp/datasets/curation-ryugu-samples,2026-11-04,04_science_data/ryugu_samples/
+SRC009,mascot,MASCOT搭載機器データ(MASCAM/MARA/MAG較正済み),DLR/CNES/JAXA,ISAS Data Policy / CC BY 4.0,Data: DLR CNES JAXA,https://darts.isas.jaxa.jp/,2026-11-04,05_mascot/
+SRC010,timeline,ミッション年表・探査機概要・リュウグウ解説,JAXA/ISAS,出典明記(非公式利用は明記),出典: JAXA/ISAS,https://www.hayabusa2.jaxa.jp/en/news/schedule/,2026-11-04,06_timeline_text/
+SRC011,nomenclature,リュウグウ地名(IAU承認13地形),USGS Astrogeology / IAU,パブリックドメイン(米国政府作品),Source: USGS Astrogeology,https://planetarynames.wr.usgs.gov/Page/Ryugu/target,2026-11-04,06_timeline_text/ryugu_gazetteer.md
+SRC012,pointclouds,SfM点群(157万点)・LiDAR点群(39.6万点),JAXA/ISAS/DARTS,ISAS Data Policy / CC BY 4.0,Data: JAXA/ISAS/DARTS(DOI: 10.17597/isas.darts/hyb2-00500),https://darts.isas.jaxa.jp/,2026-11-04,10_pointclouds/
+SRC013,spacecraft_model,はやぶさ2本体3Dモデル(GLB/OBJ/STL),socratesyama(JAXA公開資料に基づく非公式簡易モデル),MIT(リポジトリのライセンス),非公式モデル(JAXAの設計データではない),https://www.jaxa.jp/projects/sas/hayabusa2/,2026-11-04,11_spacecraft_model/
+SRC014,coordinates,TD1/TD2/SCI座標,Nakamura et al. 2022 / Arakawa et al. 2020,論文(CC BY)・出典明記,doi:10.2183/pjab.98.015 / doi:10.1126/science.aaz1701,https://doi.org/10.2183/pjab.98.015,2026-11-06,12_site_data/poi_master.json
+SRC015,coordinates,MASCOT着陸・バウンド経路の座標,Scholten et al. 2019 A&A 632 A67(CC BY 4.0),CC BY 4.0・出典明記,doi:10.1051/0004-6361/201936757,https://www.aanda.org/articles/aa/full_html/2019/12/aa36757-19/aa36757-19.html,2026-11-06,12_site_data/poi_master.json
+SRC016,coordinates,ターゲットマーカ投下地点座標,Yoshimitsu et al. 2021 Icarus 368 114592,論文・出典明記,doi:10.1016/j.icarus.2020.114592,https://www.sciencedirect.com/science/article/pii/S0019103520305509,2026-11-06,12_site_data/poi_master.json
+SRC017,event_times,タッチダウン・SCI起爆の時刻・精度,JAXA記者説明会資料・ISASトピックス,出典明記,出典: JAXA/ISAS,https://www.hayabusa2.jaxa.jp/en/enjoy/material/press/Hayabusa2_Press20190305_ver9_en.pdf,2026-11-06,12_site_data/poi_master.json
+SRC018,education,クイズ・ミッション・誤解訂正の元事実,Science/Nature Astronomy論文・JAXA・ISAS・DLR公開資料,出典明記,各JSON内に個別記載,https://curation.isas.jaxa.jp/research/hayabusa2/,2026-11-06,12_site_data/education/
+SRC019,generated,クアッドツリータイル(全球地図から生成),socratesyama(SRC001/SRC007から生成),元データのライセンスを継承(CC BY 4.0),元データの出典を表示,https://darts.isas.jaxa.jp/,2026-11-06,12_site_data/generated/tiles/
+SRC020,generated,リュウグウ標高マップ・法線マップ(SRC001から生成),socratesyama(SRC001から生成),元データのライセンスを継承(CC BY 4.0),元データの出典を表示,https://darts.isas.jaxa.jp/,2026-11-06,12_site_data/generated/
+SRC021,generated,LOD・当たり判定用簡易メッシュ(SRC001から生成),socratesyama(SRC001から生成),元データのライセンスを継承(CC BY 4.0),元データの出典を表示,https://darts.isas.jaxa.jp/,2026-11-06,12_site_data/generated/
