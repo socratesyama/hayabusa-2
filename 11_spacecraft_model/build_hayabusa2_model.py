@@ -39,58 +39,87 @@ def height_to_normal(h, strength=2.0):
     return ((n * 0.5 + 0.5) * 255).astype(np.uint8)
 
 def make_mli():
-    """金のMLI断熱材(鮮やかな山吹色のしわしわ金箔)"""
+    """金のMLI断熱材: ガウス平滑化した有機的なしわ+低コントラストのファセット+
+    ブランケット継ぎ目。文字状に見えるランダムムラを避ける"""
     S = 1024
+    # 大スケールの滑らかな凹凸(しわの下地) — 周期性のないバリューノイズ
     from scipy.spatial import Delaunay
-    pts = np.column_stack([np.random.uniform(0, S, 260), np.random.uniform(0, S, 260)])
+    from scipy.ndimage import gaussian_filter
+    base = np.random.uniform(0, 1, (24, 24))
+    big = np.asarray(Image.fromarray((base * 255).astype(np.uint8))
+                     .resize((S, S), Image.BICUBIC)).astype(np.float64) / 255
+    big = gaussian_filter(big, sigma=6)
+    # ファセット(低コントラスト)
+    pts = np.column_stack([np.random.uniform(0, S, 420), np.random.uniform(0, S, 420)])
     tri = Delaunay(pts)
-    img = Image.new('RGB', (S, S), (212, 168, 84))
+    img = Image.new('RGB', (S, S), (206, 164, 82))
     dr = ImageDraw.Draw(img)
     for t in tri.simplices:
         p = [tuple(pts[i]) for i in t]
-        v = int(np.random.uniform(-55, 55))
-        dr.polygon(p, fill=(212 + v, 168 + v, 84 + v // 2))
-    for _ in range(420):
+        v = int(np.random.uniform(-22, 22))
+        dr.polygon(p, fill=(206 + v, 164 + v, 82 + v // 2))
+    # 下地の陰影を重ねる
+    shade = (big - 0.5) * 36
+    arr = np.asarray(img).astype(np.float64)
+    arr = np.clip(arr + shade[..., None] * np.array([1.0, 0.9, 0.55])[None, None, :], 0, 255)
+    img = Image.fromarray(arr.astype(np.uint8))
+    dr = ImageDraw.Draw(img)
+    # ブランケット継ぎ目(縦の縫い目)
+    for x in range(256, S, 256):
+        dr.line([x, 0, x, S], fill=(150, 112, 52), width=2)
+    # ハイライトの筋(控えめに)
+    for _ in range(160):
         x0, y0 = np.random.uniform(0, S, 2)
-        ln = np.random.uniform(12, 90)
+        ln = np.random.uniform(15, 70)
         ang = np.random.uniform(0, np.pi)
-        c = int(np.random.uniform(200, 255))
+        c = int(np.random.uniform(205, 240))
         dr.line([x0, y0, x0 + ln * np.cos(ang), y0 + ln * np.sin(ang)],
-                fill=(c, int(c * 0.82), int(c * 0.5)), width=1)
-    base = np.asarray(img).astype(np.uint8)
-    hs = np.random.uniform(0, 1, (96, 96))
-    hs = np.asarray(Image.fromarray((hs * 255).astype(np.uint8))
-                    .resize((S, S), Image.BICUBIC)).astype(np.float64) / 255
-    h = 0.5 + (hs - 0.5) * 1.0
-    Image.fromarray(base).save('textures/mli.png')
-    Image.fromarray(height_to_normal(h, 4.0)).save('textures/mli_n.png')
+                fill=(c, int(c * 0.84), int(c * 0.55)), width=1)
+    img.save('textures/mli.png')
+    # 法線マップ: 滑らかなしわ+継ぎ目
+    h = big * 1.2
+    hs = np.zeros((S, S)); hs[:, 256::256] = -0.8
+    h = h + hs
+    Image.fromarray(height_to_normal(h, 3.2)).save('textures/mli_n.png')
 
 def make_solar():
-    """太陽電池パドル: 濃紺セル+白い細かい電極グリッド+銀フレーム(実物大モデルの見た目)"""
-    W, H = 1536, 512
-    img = Image.new('RGB', (W, H), (16, 22, 46))
+    """太陽電池パドル: 濃紺セル+細いフィンガー電極+バスバー(実物の電極パターンに準拠)
+    4xスーパーサンプリング描画→縮小でアンチエイリアス。セル明度ムラはごく僅かして文字状の
+    ノイズに見えないようにする"""
+    SS = 4
+    W, H = 1536 * SS, 512 * SS
+    img = Image.new('RGB', (W, H), (10, 14, 30))
     dr = ImageDraw.Draw(img)
-    cs = 32  # セルサイズ
+    cs = 96  # セルサイズ(4x解像度) = 最終24px ≈ 実機セル数cm台
+    # セルごと: ほぼ均一な濃紺+ごく僅かな明度差(±3)
     for y in range(0, H, cs):
         for x in range(0, W, cs):
-            v = np.random.uniform(-8, 8)
-            dr.rectangle([x + 2, y + 2, x + cs - 2, y + cs - 2],
-                         fill=tuple(int(max(0, c)) for c in (15 + v, 22 + v * 1.4, 50 + v * 2)))
-            # 白い電極線(細かい格子)
-            for i in range(1, 3):
-                xx = x + 2 + (cs - 4) * i // 3
-                dr.line([xx, y + 3, xx, y + cs - 3], fill=(200, 205, 218), width=1)
-            yy = y + 2 + (cs - 4) // 2
-            dr.line([x + 3, yy, x + cs - 3, yy], fill=(200, 205, 218), width=1)
-    # 銀フレーム
-    fr = 18
-    dr.rectangle([0, 0, W, fr], fill=(150, 154, 162))
-    dr.rectangle([0, H - fr, W, H], fill=(150, 154, 162))
-    dr.rectangle([0, 0, fr, H], fill=(150, 154, 162))
-    dr.rectangle([W - fr, 0, W, H], fill=(150, 154, 162))
+            v = int(np.random.uniform(-3, 3))
+            dr.rectangle([x + 3, y + 3, x + cs - 4, y + cs - 4],
+                         fill=(13 + v, 19 + v, 42 + v * 2))
+            # フィンガー電極(縦に細かく走る白線) — 実物のSi/GaAsセルの電極構造
+            for i in range(1, 12):
+                xx = x + 4 + (cs - 8) * i // 12
+                dr.line([xx, y + 5, xx, y + cs - 6], fill=(120, 126, 142), width=1)
+            # バスバー(横に走る太めの集電電極)
+            for j in range(1, 4):
+                yy = y + 4 + (cs - 8) * j // 4
+                dr.line([x + 5, yy, x + cs - 6, yy], fill=(168, 173, 184), width=3)
+    # セル間の暗いギャップ(既に背景色で表現)+銀フレーム
+    fr = 64
+    dr.rectangle([0, 0, W, fr], fill=(146, 150, 158))
+    dr.rectangle([0, H - fr, W, H], fill=(146, 150, 158))
+    dr.rectangle([0, 0, fr, H], fill=(146, 150, 158))
+    dr.rectangle([W - fr, 0, W, H], fill=(146, 150, 158))
+    # フレームに継ぎ目
+    for x in range(0, W, 512 * SS // 2):
+        dr.line([x, 0, x, fr], fill=(110, 114, 122), width=3)
+        dr.line([x, H - fr, x, H], fill=(110, 114, 122), width=3)
+    # 縮小(アンチエイリアス)
+    img = img.resize((W // SS, H // SS), Image.LANCZOS)
     img.save('textures/solar.png')
-    h = np.zeros((H, W))
-    h[fr:H - fr, fr:W - fr] = 1.0
+    h = np.zeros((H // SS, W // SS))
+    h[fr // SS:(H - fr) // SS, fr // SS:(W - fr) // SS] = 1.0
     Image.fromarray(height_to_normal(h, 1.2)).save('textures/solar_n.png')
 
 def make_hga():
@@ -195,49 +224,54 @@ M_NAVY   = trimesh.visual.material.PBRMaterial(
 
 # ================================================================ UVヘルパ
 def box_uv(mesh, scale=1.0):
+    """箱形状: 面ごとに、その面の2軸座標をメッシュ自身のバウンディングボックスで
+    [0,1]へ正規化する(平行移動に依存せず、常にテクスチャ全面を使用)"""
     v, f, n = mesh.vertices, mesh.faces, mesh.face_normals
+    lo, hi = v.min(axis=0), v.max(axis=0)
+    ext = np.maximum(hi - lo, 1e-9)
     uv = np.zeros((len(f), 3, 2))
     for i in range(len(f)):
-        axis = np.argmax(np.abs(n[i]))
+        axis = int(np.argmax(np.abs(n[i])))
         a, b = [k for k in range(3) if k != axis]
-        for j in range(3):
-            p = v[f[i, j]]
-            uv[i, j] = (p[a] * scale, p[b] * scale)
-    uv -= uv.min(axis=(0, 1), keepdims=True)
-    span = float(np.max(uv.max(axis=(0, 1)) - uv.min(axis=(0, 1))))
-    uv = (uv - uv.min(axis=(0, 1), keepdims=True)) / (span + 1e-9)
+        if ext[b] > ext[a]:
+            a, b = b, a  # 長い方の軸をuに(テクスチャの向きを安定させる)
+        uv[i, :, 0] = (v[f[i]][:, a] - lo[a]) / ext[a]
+        uv[i, :, 1] = (v[f[i]][:, b] - lo[b]) / ext[b]
     mesh.visual = trimesh.visual.TextureVisuals(uv=uv.reshape(-1, 2), material=mesh.visual.material)
 
 def cyl_uv(mesh, scale=1.0):
+    """円筒: 側面は円筒自身の中心軸まわりの角度、vは部品基準の高さ(平行移動不変)"""
     v, f, n = mesh.vertices, mesh.faces, mesh.face_normals
+    c = (v.max(axis=0) + v.min(axis=0)) / 2
+    z0 = v[:, 2].min()
     uv = np.zeros((len(f), 3, 2))
     for i in range(len(f)):
         vertical = np.abs(n[i, 2]) < 0.7
         for j in range(3):
             p = v[f[i, j]]
             if vertical:
-                uv[i, j, 0] = (np.arctan2(p[1], p[0]) / (2 * np.pi) + 0.5) * scale * 4
+                uv[i, j, 0] = (np.arctan2(p[1] - c[1], p[0] - c[0]) / (2 * np.pi) + 0.5) * scale * 4
             else:
-                uv[i, j, 0] = (p[0] + p[1]) * scale
-            uv[i, j, 1] = p[2] * scale * 4
+                uv[i, j, 0] = ((p[0] - c[0]) + (p[1] - c[1])) * scale
+            uv[i, j, 1] = (p[2] - z0) * scale * 4
     mesh.visual = trimesh.visual.TextureVisuals(uv=uv.reshape(-1, 2), material=mesh.visual.material)
 
 def disc_uv(mesh, scale=1.0):
-    """円盤(上面はX-Y平面投影)"""
+    """円盤(上面はX-Y平面投影、メッシュ自身のバウンディングボックスで正規化)"""
     v, f, n = mesh.vertices, mesh.faces, mesh.face_normals
+    lo, hi = v.min(axis=0), v.max(axis=0)
+    ext = np.maximum(hi - lo, 1e-9)
     uv = np.zeros((len(f), 3, 2))
     for i in range(len(f)):
         if abs(n[i, 2]) > 0.7:
             for j in range(3):
                 p = v[f[i, j]]
-                uv[i, j] = (p[0] * scale, p[1] * scale)
+                uv[i, j] = ((p[0] - lo[0]) / ext[0], (p[1] - lo[1]) / ext[1])
         else:
             for j in range(3):
                 p = v[f[i, j]]
-                uv[i, j] = ((p[0] + p[1]) * scale, p[2] * scale)
-    uv -= uv.min(axis=(0, 1), keepdims=True)
-    span = float(np.max(uv.max(axis=(0, 1)) - uv.min(axis=(0, 1))))
-    uv = (uv - uv.min(axis=(0, 1), keepdims=True)) / (span + 1e-9)
+                uv[i, j] = ((p[0] - lo[0] + p[1] - lo[1]) / (ext[0] + ext[1]),
+                            (p[2] - lo[2]) / ext[2])
     mesh.visual = trimesh.visual.TextureVisuals(uv=uv.reshape(-1, 2), material=mesh.visual.material)
 
 # ================================================================ パーツ構築
@@ -614,12 +648,17 @@ views = [(18, -55, 'isometric'), (35, -90, 'bottom (-Z) science deck'),
 light = np.array([0.4, 0.35, 0.85]); light /= np.linalg.norm(light)
 for k, (elev, azim, title) in enumerate(views):
     ax = fig.add_subplot(2, 3, k + 1, projection='3d')
+    # 視線方向(原点→カメラ)。azim=0で+X、azim=90で+Yから見る
+    er, ar = np.radians(elev), np.radians(azim)
+    camdir = np.array([np.cos(er) * np.cos(ar), np.cos(er) * np.sin(ar), np.sin(er)])
     for m, n, ne, d in parts:
-        tris = m.vertices[m.faces]
+        fn = m.face_normals
+        # 背面カリング(薄い箱の裏面が表に透けるアーティファクト防止)
+        vis = fn @ camdir > 0
+        tris = m.vertices[m.faces][vis]
         col = np.array(part_color(m))
         # 面法線で簡易ランバート陰影
-        fn = m.face_normals
-        lam = np.clip(fn @ light, 0, 1) * 0.75 + 0.25
+        lam = np.clip(fn[vis] @ light, 0, 1) * 0.75 + 0.25
         pc = Poly3DCollection(tris, facecolor=np.clip(col[None, :] * lam[:, None], 0, 1),
                               edgecolor='none')
         ax.add_collection3d(pc)
@@ -630,5 +669,10 @@ for k, (elev, azim, title) in enumerate(views):
     ax.axis('off')
     ax.set_facecolor('#0a0d12')
 plt.tight_layout()
-plt.savefig('preview.png', facecolor='#0a0d12', bbox_inches='tight')
-print('preview.png saved')
+plt.savefig('preview_2x.png', facecolor='#0a0d12', bbox_inches='tight', dpi=200)
+# 2x解像度で描画してから半分に縮小→輪郭をスムーズに
+img = Image.open('preview_2x.png')
+img = img.resize((img.width // 2, img.height // 2), Image.LANCZOS)
+img.save('preview.png')
+os.remove('preview_2x.png')
+print('preview.png saved (anti-aliased)')
