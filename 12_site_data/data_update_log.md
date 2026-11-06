@@ -41,3 +41,9 @@ DARTS・JAXA公式サイトの更新に追従するための管理方法と、�
 - `samples_metadata.json`: 試料総量5.424gとA+B+Cの和5.275gの差(約0.15g)について、数値を変更せず注記を追加(キャッチャ全体計量 vs 室別計量の差=「その他」分+不確かさ。JAXA記者説明会2021-12-06、Nakato et al. 2022 doi:10.2343/geochemj.GJ22017 を出典に追加)。
 - `11_spacecraft_model/LICENSE` を追加(MIT。source_registry.csv SRC013が参照)。ルートREADME.mdの探査機モデル記述を修正(80パーツ→136パーツ・88,288面、11_spacecraft_model/README.mdとparts_list.json=136と整合)。
 - `provenance/source_registry.csv`: SRC013のライセンス表記を実際のLICENSEファイル(11_spacecraft_model/LICENSE)に対応する形に修正。
+
+### 2026-11-06(TD1降下位置テーブル追加)
+
+- `td1_descent_positions.json`: 第1回タッチダウン(TD1)運用中のはやぶさ2位置テーブル(2,112行、2019-02-20 23:17〜2019-02-22 03:00 UTC、RYUGU_FIXED座標系)。hpk SPKがTD1期(2019-02-20 23:17:48〜2019-02-22 03:00 UTC)で欠損するため、SPC形状モデルチームの航法解(spc_pos v02、画像時刻の離散点24点)とJAXA公表資料(記者説明会2019-03-05: CAM-H高度・ドップラータイムライン、ISAS 2021: 降下開始遅延)のアンカーをPCHIP補間で接続して生成。行ごとにgrade(A:カーネル直接値/B:公表実測値/C:内挿/D:アンカー遠隔区間)とsrcで根拠を明示。
+- `conversion/build_td1_descent_table.py`: 上記の生成スクリプト。SPICEでのアンカー抽出、SPC 49k形状モデルへのレイキャストによる局所表面半径算出、CAM-H高度→中心位置オフセット(+1.0m)、PCHIP補間を含む。
+- 検証済み: spc_pos v01/v02は互いに整合(結節点で0.07〜0.15°)。sfm_posは22:06 UTC以降SPC解と最大86°の方位ずれを生じ、接地時刻に探査機が地表下(r≈444m)の解を返すため不使用(TD1期)。hpk再開点・昇降方向・CAM-H高度(49.6m@22:30:30 ↔ spc 565.8m中心高度↔表面506m)は相互整合。
