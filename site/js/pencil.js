@@ -147,7 +147,8 @@ export class Pencil {
     for(let i=0;i<R.length;i++)if(!(R[i]>0)||!Number.isFinite(R[i])){
       const value=ref && ref.length===R.length ? ref[i] : 0;
       if(value>0 && Number.isFinite(value))R[i]=value;
-      else throw new Error('SfM点群にも参照形状にも有効な外形値がありません');
+      // If both sources have a hole here, preserve it as unavailable instead
+      // of inventing a radius. Ray picking naturally skips that direction.
     }
     this.rgrid={R,W,H};
   }
