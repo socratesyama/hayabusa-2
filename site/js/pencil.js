@@ -69,14 +69,14 @@ float hash2(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
 float vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
   return mix(mix(hash2(i),hash2(i+vec2(1,0)),f.x), mix(hash2(i+vec2(0,1)),hash2(i+vec2(1,1)),f.x), f.y); }
 void main(){
-  if(vPlain > 0.5){ float r = length(gl_PointCoord-0.5)*2.; if(r>1.) discard; vec3 col = mix(vec3(mix(0.10,0.64,vTone)), vec3(0.08+0.74*vTone)*vec3(1.,0.985,0.95), vDark); o = vec4(col, vAlpha*smoothstep(1.,0.5,r)); return; }
+  if(vPlain > 0.5){ float r = length(gl_PointCoord-0.5)*2.; if(r>1.) discard; vec3 col = mix(vec3(mix(0.10,0.64,vTone)), vec3(0.08+0.74*vTone)*vec3(1.,0.985,0.95), vDark); o = vec4(col, vAlpha*(1.0 - smoothstep(0.5,1.0,r))); return; }
   float S = vLen + 4.*vWid/ max(vWid,0.001) * 1.;           // おおよその点の大きさ(px)
   vec2 q = (gl_PointCoord - 0.5) * vec2(1., -1.) * (vLen + 4.);
   float u = dot(q, vDir), v = dot(q, vec2(-vDir.y, vDir.x));
   float half_ = vLen * 0.5;
-  float along = smoothstep(half_, half_*0.55, abs(u) + vnoise(vec2(u*0.3, vSeed))*half_*0.25);
+  float along = 1.0 - smoothstep(half_*0.55, half_, abs(u) + vnoise(vec2(u*0.3, vSeed))*half_*0.25);
   float w = vWid * (0.55 + 0.45*vnoise(vec2(u*0.12, vSeed+3.)));
-  float across = smoothstep(w, w*0.2, abs(v));
+  float across = 1.0 - smoothstep(w*0.2, w, abs(v));
   float grain = 0.55 + 0.45*vnoise(gl_FragCoord.xy*0.9 + vSeed);   // 紙の目に引っかかるかすれ
   float a = along*across*grain*vAlpha;
   if(a < 0.01) discard;
@@ -89,7 +89,7 @@ void main(){ vec4 c = uVP*vec4(aS.xyz*1000.,1.); gl_Position = vec4(c.xy, c.w*0.
   gl_PointSize = (1.0 + aS.w*1.9)*uPx; vB = (0.3 + 0.7*aS.w)*(0.78 + 0.22*sin(uT*1.3 + aS.x*57.))*uA; }`;
 const SFS = `#version 300 es
 precision highp float; in float vB; out vec4 o;
-void main(){ float r = length(gl_PointCoord-0.5)*2.; if(r>1.) discard; o = vec4(0.88,0.92,1.0, vB*smoothstep(1.,0.2,r)); }`;
+void main(){ float r = length(gl_PointCoord-0.5)*2.; if(r>1.) discard; o = vec4(0.88,0.92,1.0, vB*(1.0 - smoothstep(0.2,1.0,r))); }`;
 const rotZ = (a) => { const c = Math.cos(a), s = Math.sin(a); return [c, s, 0, 0, -s, c, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]; };
 
 export class Pencil {
@@ -101,6 +101,7 @@ export class Pencil {
     const q = new Int16Array(ab.slice(16, 16 + n * 6)); const pos = new Float32Array(n * 3); for (let i = 0; i < pos.length; i++) pos[i] = q[i] / sc;
     const nrm = new Int8Array(ab.slice(16 + n * 6, 16 + n * 9)); const lum = new Uint8Array(ab.slice(16 + n * 9, 16 + n * 10));
     this.n = n; this.pos = pos; this.spacing = 2.72;
+    this._buildRadiusGrid();
     this.vao = gl.createVertexArray(); gl.bindVertexArray(this.vao);
     buffer(gl, pos); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
     buffer(gl, nrm); gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.BYTE, true, 0, 0);
@@ -114,6 +115,39 @@ export class Pencil {
     this.plain = false; this.ink = 1; this.target = 0.5; this.density = 1; this.reveal = 1;
     return n;
   }
+  _buildRadiusGrid() {
+    // Site markers and ray picking use the visible SfM point-cloud envelope.
+    const W=720,H=360,R=new Float32Array(W*H),P=this.pos;
+    for(let i=0;i<this.n;i++){
+      const x=P[i*3],y=P[i*3+1],z=P[i*3+2],r=Math.hypot(x,y,z);
+      if(!(r>0)||!Number.isFinite(r))continue;
+      let lon=Math.atan2(y,x);if(lon<0)lon+=2*Math.PI;
+      const lat=Math.asin(clamp(z/r,-1,1));
+      const u=Math.min(W-1,Math.floor(lon/(2*Math.PI)*W));
+      const v=Math.min(H-1,Math.floor((Math.PI/2-lat)/Math.PI*H));
+      if(r>R[v*W+u])R[v*W+u]=r;
+    }
+    // Fill holes from a snapshot each pass to avoid scan-order bias.
+    for(let it=0;it<8;it++){
+      const prev=R.slice();let filled=0;
+      for(let v=0;v<H;v++)for(let u=0;u<W;u++){
+        const at=v*W+u;if(prev[at]>0)continue;
+        let sum=0,count=0;
+        for(const [du,dv] of [[1,0],[-1,0],[0,1],[0,-1]]){
+          const uu=(u+du+W)%W,vv=Math.min(H-1,Math.max(0,v+dv)),value=prev[vv*W+uu];
+          if(value>0){sum+=value;count++;}
+        }
+        if(count){R[at]=sum/count;filled++;}
+      }
+      if(!filled)break;
+    }
+    const valid=R.filter(x=>x>0&&Number.isFinite(x));
+    if(!valid.length)throw new Error('SfM点群から外形グリッドを作れませんでした');
+    const fallback=valid.reduce((a,b)=>a+b,0)/valid.length;
+    for(let i=0;i<R.length;i++)if(!(R[i]>0)||!Number.isFinite(R[i]))R[i]=fallback;
+    this.rgrid={R,W,H};
+  }
+
   draw(st) {
     const sc = this.scene, gl = this.gl; sc.resize();
     const W = sc.canvas.width, H = sc.canvas.height; const { eye, target, up } = st.pose; const sun = st.sun;
