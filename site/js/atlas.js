@@ -95,7 +95,7 @@ function renderSite() {
       td1: { nick: 'タマテバコ(玉手箱)', date: jst(st.t) + '(日本時間)', pos: '緯度 4.30°、経度 206.47°', note: '直径6mの領域をねらって降り、弾丸を撃って表面の物質を採りました。試料はチャンバーAに入っています。', nav: 'nav20190221', navLabel: '第1回タッチダウンの前後に撮った画像' },
       td2: { nick: 'ウチデノコヅチ(打出の小槌)', date: jst(st.t) + '(日本時間)', pos: '緯度 10.13°、経度 300.60°', note: '人工クレーターの中心から北へ約20 mの場所に降り、地下の物質を採りました。試料はチャンバーCに入っています。', nav: 'nav20190710', navLabel: '第2回タッチダウンの前後に撮った画像', alt: '資料によっては北緯10.04°とも書かれています。' },
     }[k];
-    const d = el('div'); d.innerHTML = `<p class="td-title">${rows.nick}</p><dl class="facts"><dt>日時</dt><dd class="num">${rows.date} ${tag('obs', '実測')}</dd><dt>場所</dt><dd class="num">${rows.pos} ${tag('derived', '計算')}<small>公表された地点の座標です。${rows.alt || ''}3D上の位置は、SfM点群から作った方向別外形グリッドに投影しています。</small></dd><dt>記録</dt><dd>${rows.note}</dd></dl><p class="small">いまの光は、この日時の太陽の向きです。${tag('derived', '計算')}</p>`;
+    const d = el('div'); d.innerHTML = `<p class="td-title">${rows.nick}</p><dl class="facts"><dt>日時</dt><dd class="num">${rows.date} ${tag('obs', '実測')}</dd><dt>場所</dt><dd class="num">${rows.pos} ${tag('derived', '計算')}<small>公表された地点の座標です。${rows.alt || ''}3D上の位置はSfM点群の方向別外形に投影し、点群が不足する角度セルだけSPC参照形状で補っています。</small></dd><dt>記録</dt><dd>${rows.note}</dd></dl><p class="small">いまの光は、この日時の太陽の向きです。${tag('derived', '計算')}</p>`;
     b.append(d);
     nearestImages(rows.nav, 2, st.t).forEach((it) => b.append(photo(it, `${rows.navLabel}　${jst(it.t)}`)));
   } else if (S.sec === 'sci') {
