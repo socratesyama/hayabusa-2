@@ -108,10 +108,11 @@ a{color:var(--accent-hi)}
 #icons button:focus-visible{outline:2px solid var(--ring);outline-offset:2px;opacity:1}
 #icons svg{width:100%;height:100%;fill:none;stroke:var(--accent-hi);stroke-width:1.5;stroke-linecap:round}
 
-/* ---- フッター ---- */
-#foot{position:fixed;left:0;right:0;bottom:6px;text-align:center;font:10px var(--font-jp);color:var(--muted);z-index:4;
-  text-shadow:0 1px 3px rgba(0,0,0,.9)}
-#foot a{color:var(--fg-dim)}
+/* ---- フッター（チップ化: 明るい地表でも視認性を確保） ---- */
+#foot{position:fixed;left:50%;transform:translateX(-50%);bottom:6px;text-align:center;font:10px var(--font-jp);
+  color:var(--fg-dim);z-index:4;padding:3px 12px;background:rgba(11,11,16,.55);border:1px solid var(--border);
+  border-radius:var(--s1);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#foot a{color:var(--fg)}
 
 /* ---- 起動イントロ（ブートシーケンス） ---- */
 #intro{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;
@@ -147,7 +148,7 @@ a{color:var(--accent-hi)}
 #tslider .ts-fill{position:absolute;left:max(18px,env(safe-area-inset-left));top:18px;height:2px;
   background:linear-gradient(90deg,var(--accent),var(--accent-hi));pointer-events:none;
   box-shadow:0 0 8px rgba(59,130,246,.5)}
-#tslider .ts-handle{position:absolute;top:19px;width:3px;height:20px;transform:translate(-50%,-50%) translateY(-9px);
+#tslider .ts-handle{position:absolute;top:19px;width:3px;height:20px;transform:translate(-50%,-50%);
   background:var(--fg);border-radius:2px;pointer-events:none;
   box-shadow:0 0 0 3px rgba(59,130,246,.35),0 0 10px rgba(59,130,246,.6);
   animation:handlePulse 2.4s var(--ease) infinite}
@@ -155,6 +156,7 @@ a{color:var(--accent-hi)}
 #tslider .ts-label{position:absolute;transform:translateX(-50%);top:-4px;font:10px var(--font-hud);color:var(--accent-hi);
   white-space:nowrap;opacity:0;transition:opacity var(--t-fast) var(--ease);
   padding:2px 8px;background:rgba(11,11,16,.85);border:1px solid var(--border);border-radius:var(--s1)}
+#tslider .ts-label:empty{display:none;opacity:0}
 #tslider.drag .ts-label,#tslider:hover .ts-label{opacity:1}
 #tslider .ts-marks{position:absolute;left:max(18px,env(safe-area-inset-left));right:max(18px,env(safe-area-inset-right));top:15px;height:8px}
 #tslider .ts-mark{position:absolute;top:0;width:8px;height:8px;transform:translateX(-50%) rotate(45deg);
@@ -178,9 +180,15 @@ a{color:var(--accent-hi)}
   -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   transition:border-color var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
 #mmap-full .mm-bar button:hover{border-color:var(--accent);box-shadow:0 0 10px rgba(59,130,246,.35)}
+/* モーダル展開中は背後に沈んだHUD類を隠す（半透明オーバーレイ越しの薄い見え残りを防止） */
+body:has(#mmap-full[style*="block"]) #hud,
+body:has(#mmap-full[style*="block"]) #icons,
+body:has(#mmap-full[style*="block"]) #tslider,
+body:has(#mmap-full[style*="block"]) #foot,
+body:has(#mmap-full[style*="block"]) #hint{opacity:0;pointer-events:none}
 
-/* ---- P3-1 帰還ボタン（飛行中: 下部中央、ヒントの上） ---- */
-#qbtn{position:fixed;left:50%;transform:translateX(-50%);bottom:132px;z-index:6;
+/* ---- P3-1 帰還ボタン（飛行中: 下部中央、ヒント（最大2行）と重ならない高さに） ---- */
+#qbtn{position:fixed;left:50%;transform:translateX(-50%);bottom:152px;z-index:6;
   background:rgba(11,11,16,.78);border:1px solid var(--accent);color:var(--accent-hi);
   font:13px var(--font-hud);letter-spacing:.06em;padding:10px 20px;border-radius:var(--radius);cursor:pointer;
   -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
@@ -206,5 +214,5 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ring);outline-offse
 @media (pointer:coarse){
   #mmap-small{width:104px;height:104px}
   #tslider{bottom:38px;height:48px}
-  #qbtn{bottom:144px}
+  #qbtn{bottom:164px}
 }
