@@ -17,6 +17,15 @@ body.sky-white #hint{color:var(--ink)}
 #card .q button{display:block;width:100%;text-align:left;margin:.25em 0;padding:.3em 0;background:none;border:0;color:var(--paper);font:inherit;cursor:pointer}
 #card .q button.ok{color:var(--amber)}#card .q button.no{color:#777}
 #card a{color:var(--amber)}
+#card.lib{max-height:72vh;overflow-y:auto;scrollbar-width:thin}
+#card h3{margin:.9em 0 .25em;font:600 12px/1.5 "IBM Plex Mono",monospace;color:var(--amber);opacity:.85;letter-spacing:.08em}
+#card .lrow{display:flex;justify-content:space-between;gap:1em;width:100%;margin:.15em 0;padding:.25em .4em;background:rgba(232,163,61,.06);border:0;border-radius:3px;color:var(--paper);font:12px/1.5 "IBM Plex Mono",monospace;text-align:left;cursor:pointer}
+#card .lrow:hover{background:rgba(232,163,61,.18)}
+#card .lrow .n{opacity:.6;white-space:nowrap}
+#card .lnote{font:11px/1.6 "IBM Plex Mono",monospace;opacity:.6;margin:.15em 0}
+#card .ltab{font:12px/1.6 "IBM Plex Mono",monospace;border-collapse:collapse;margin:.3em 0}
+#card .ltab th,#card .ltab td{padding:.1em .8em;border:1px solid rgba(240,240,235,.15);text-align:right}
+#card .ltab th:first-child,#card .ltab td:first-child{text-align:left}
 #viewer{inset:0;background:rgba(0,0,0,.94);display:flex;flex-direction:column;align-items:center;justify-content:center}
 #viewer img{max-width:92vw;max-height:80vh;object-fit:contain;image-rendering:auto}
 #viewer .cap{margin-top:14px;font:12px/1.6 "IBM Plex Mono",monospace;text-align:center;max-width:90vw}
@@ -28,8 +37,8 @@ body.sky-white #hint{color:var(--ink)}
 #icons svg{width:100%;height:100%;fill:none;stroke:var(--amber);stroke-width:1.5;stroke-linecap:round}
 #icons button.active{opacity:1}
 body.sky-white #icons svg{stroke:#9a6417}
-#foot{position:fixed;left:0;right:0;bottom:8px;text-align:center;font-size:10px;opacity:.35;z-index:4;color:var(--paper)}
-body.sky-white #foot{color:var(--ink)}
+#foot{position:fixed;left:0;right:0;bottom:8px;text-align:center;font-size:10px;opacity:.55;z-index:4;color:var(--paper);text-shadow:0 1px 3px rgba(0,0,0,.9)}
+body.sky-white #foot{color:var(--ink);text-shadow:0 1px 4px rgba(240,240,235,.75)}
 #foot a{color:inherit}
 #intro{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#000;color:var(--paper);font:15px/2 "IBM Plex Mono",monospace;z-index:20;transition:opacity .6s var(--ease)}
 #intro.off{opacity:0;pointer-events:none}
