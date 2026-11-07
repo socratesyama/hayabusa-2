@@ -5,7 +5,7 @@ import { Rocks } from './rocks';
 import { Clock, Sun, utcToEt, fmtJST, jstDate, MISSION_T0, MISSION_T1, initialMissionMs } from './time';
 import { getJSON, loadGravity, loadSc, scAtG, GRADE_LABEL, GRADE_LABEL_EN, HeightMap, loadRegistry, url, Gravity, ScTable } from './data';
 import { sampleGravity } from './gravity';
-import { V3, v3, geoToBody, bodyToGeo, bodyToThree, fmtLat, fmtLon, R_MEAN, DEG, hash2 } from './geo';
+import { V3, v3, geoToBody, bodyToGeo, bodyToThree, fmtLat, fmtLon, R_MEAN, DEG, hash2, surfDist } from './geo';
 import { launch, advance, bodyOf, velBodyOf, isEscape, altitude, Orbit, OMEGA_763 } from './physics';
 import { skyFor, applySky, Layer, PAPER } from './sky';
 import { setRegistry, credit, mark } from './credits';
@@ -17,7 +17,7 @@ import { exportSession, Session } from './archive';
 import { MascotReplay, MascotData, SITE, T_SEP, T_END } from './mascot';
 import { Library } from './library';
 import { TimeSlider } from './timeslider';
-import { buildEvents, EventUi, nextEvent, fmtCountdown, REvent } from './events';
+import { buildEvents, EventUi, nextEvent, fmtCountdown, REvent, FOLDER_NOTE, SCI_MS } from './events';
 import { MiniMap } from './minimap';
 
 const $ = (id: string) => document.getElementById(id)!;
@@ -38,8 +38,9 @@ const keys = new Set<string>(); let lastInput = performance.now(); const used = 
 const session: Session = { callsign: '', start: new Date().toISOString(), track: [], inspected: new Set(), quiz: [] };
 let world: World; let G763!: Gravity, G340!: Gravity, G: Gravity; let sc!: ScTable; let sun!: Sun; let hm!: HeightMap; let terrain!: Terrain; let rocks!: Rocks; let mascot!: MascotReplay;
 let timeline: any; const clock = new Clock(initialMissionMs()); let ready = false; let rotation: any;
-let sunLight!: THREE.DirectionalLight; let burst!: THREE.Points; let scMesh: THREE.Object3D | null = null; let scDot!: THREE.Mesh; let starPts!: THREE.Points; let sunDot!: THREE.Mesh; let sunGlow!: THREE.Sprite; let shadow!: THREE.Mesh; let markers!: THREE.Group; let mascotMarker!: THREE.Mesh;
+let sunLight!: THREE.DirectionalLight; let burst!: THREE.Points; let scMesh: THREE.Object3D | null = null; let scDot!: THREE.Mesh; let starPts!: THREE.Points; let sunDot!: THREE.Mesh; let sunGlow!: THREE.Sprite; let shadow!: THREE.Mesh; let markers!: THREE.Group; let mascotMarker!: THREE.Mesh; let craterMark: THREE.Group | null = null;
 let earthDot!: THREE.Mesh; let earthHalo!: THREE.Mesh;
+let craterDir: V3 = [0, 0, 1]; let craterSnap: number | null = null;
 let nearHits: ReturnType<typeof nearby> = []; let mascotImg: HTMLImageElement | null = null; let mascotImgId = '';
 let events: REvent[] = []; let eventUi!: EventUi; let slider!: TimeSlider; let minimap!: MiniMap;
 let bgK = 1; let skyWhite = 1;            // P1-4: 空の白さ 0..1（1=白い空/歩行の昼, 0=星空）1.5秒で線形遷移
@@ -156,6 +157,19 @@ function buildExtras() {
     const line = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 6, 6), mat); const pos = tr(v3.mul(d, base + 3)); line.position.copy(pos); line.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), tr(d).normalize()); line.userData.poi = p.id; markers.add(line); }
   mascotMarker = new THREE.Mesh(new THREE.SphereGeometry(0.15, 10, 8), mat); mascotMarker.visible = false; scene.add(mascotMarker);
   const r = hm.radius(SITE.lat, SITE.lon); mascotMarker.position.copy(tr(geoToBody(SITE.lat, SITE.lon, r + 0.15)));
+  // SCI人工クレーターの印（演出E）: 地形モデルにクレーターは無いので、衝突(2019-04-05)以降は
+  // その位置に琥珀の円（直径14.5m相当）を表示して「この地下に人工クレーター」を伝える。
+  const sciP = world.pois.find((p: any) => p.id === 'sci_crater');
+  if (sciP?.lat != null && sciP.lon != null) {
+    craterDir = geoToBody(sciP.lat, sciP.lon, 1);
+    craterMark = new THREE.Group();
+    craterMark.add(new THREE.Mesh(new THREE.RingGeometry(6.4, 7.4, 64), new THREE.MeshBasicMaterial({ color: 0xE8A33D, transparent: true, opacity: 0.95, side: THREE.DoubleSide, depthWrite: false })));
+    craterMark.add(new THREE.Mesh(new THREE.CircleGeometry(6.6, 64), new THREE.MeshBasicMaterial({ color: 0x14110d, transparent: true, opacity: 0.5, side: THREE.DoubleSide, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 })));
+    craterMark.position.copy(tr(v3.mul(craterDir, hm.radius(sciP.lat, sciP.lon) + 0.06)));
+    craterMark.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), tr(craterDir).normalize());
+    craterMark.renderOrder = 1;
+    scene.add(craterMark);
+  }
   // mission markers (§4.10): the markers ARE the mission. First one appears at the player's feet once the callsign is assigned.
   const missions: any[] = (world as any).missions || []; if (missions[0]) for (const id of missions[0].route_pois) { const p = world.pois.find(x => x.id === id); if (p && p.lat != null) {
     const m2 = new THREE.Mesh(new THREE.SphereGeometry(0.4, 10, 8), mat); m2.position.copy(tr(geoToBody(p.lat, p.lon!, hm.radius(p.lat, p.lon!) + 0.4))); markers.add(m2); } }
@@ -185,8 +199,10 @@ function launchClamp(velB: V3): V3 {
   const disc = b * b - 4 * a * c; if (c > 0 || disc < 0) return [0, 0, 0];
   const k = Math.max(0, Math.min(1, (-b + Math.sqrt(disc)) / (2 * a))); return v3.mul(velB, k);
 }
+let flightStartMs = 0; let flightStartDir: V3 = [0, 0, 1];
 function startPhysics(velB: V3, why: string) {
   const g0 = groundAt(P.dir); const posB = v3.mul(P.dir, g0 + 0.02); const et = utcToEt(clock.ms);
+  flightStartMs = clock.ms; flightStartDir = v3.norm(P.dir);
   orbit = launch(posB, velB, et, G.meta.gm_effective_m3s2, 2 * Math.PI / (G.meta.period_h * 3600)); layer = 'ballistic'; used.add('phys'); P.hop = -1; farHinted = false;
   hud.announce(why);
   hint.show('飛行中 — Q: 地表に戻る / WASD: スラスタ（Space上・C下）/ 矢印キー: 向きを回す（無操作で自動的に時間圧縮・演出E）', false, 7000);
@@ -209,7 +225,7 @@ function stepWalk(dt: number) {
     if (rise > 0.4 || ns.slope >= 35) { /* wall / too steep: stop */ }
     else if (dashing && rise < -1.0) { // cliff edge while dashing -> physics layer with the real running speed (§4.2 b), clamped (P1-3)
       P.dir = nd; const fw = v3.norm(v3.sub(P.fwd, v3.mul(P.dir, v3.dot(P.fwd, P.dir)))); P.stand = ng; startPhysics(launchClamp(v3.mul(fw, DASH)), 'cliff'); return; }
-    else { P.dir = nd; P.fwd = v3.norm(v3.sub(P.fwd, v3.mul(P.dir, v3.dot(P.fwd, P.dir)))); if (Math.floor(performance.now() / 500) !== stepTick) { stepTick = Math.floor(performance.now() / 500); sound.step(300); } }
+    else { P.dir = nd; P.fwd = v3.norm(v3.sub(P.fwd, v3.mul(P.dir, v3.dot(P.fwd, P.dir)))); if (Math.floor(performance.now() / 500) !== stepTick) { stepTick = Math.floor(performance.now() / 500); sound.step(140 + Math.min(400, ns.slope * 22)); } }
   }
   // hop (演出): 0.8 m / 2 m / 0.6 s, completes inside the presentation layer
   if (P.hop >= 0) { P.hop += dt / HOP_T; if (P.hop >= 1) { P.hop = -1; P.dir = P.hopDir1; P.stand = P.hopTo; P.dip = 0.2; kickDust(v3.mul(P.dir, P.stand), v3.norm(P.dir), 0.1); } }
@@ -249,9 +265,22 @@ function stepFlight(et: number, dt: number, dtReal = dt) {
     const vB = velBodyOf(orbit); const spd = v3.len(vB);
     P.stand = groundAt(P.dir); orbit = null; layer = 'walk'; P.dip = 0.2;
     kickDust(v3.mul(P.dir, P.stand), v3.norm(P.dir), Math.max(0.08, Math.min(1.2, spd)));
+    landingReport();
   }
 }
 
+/** 着地報告（演出）: 低重力ジャンプの「時間の暴力」を物語に変える。
+ *  跳んでいる間にリュウグウが自転し、着地点が移動したことを1行で伝える。 */
+function landingReport() {
+  const durS = (clock.ms - flightStartMs) / 1000;
+  if (durS < 90) return;   // 短いホップでは出さない
+  const om = 2 * Math.PI / (G.meta.period_h * 3600);
+  const rotDeg = om * durS / DEG;
+  const g0 = bodyToGeo(flightStartDir), g1 = bodyToGeo(P.dir);
+  const dist = surfDist(g0.lat, g0.lon, g1.lat, g1.lon);
+  const h = Math.floor(durS / 3600), m = Math.round((durS % 3600) / 60);
+  hint.show(`着地 — 飛行時間 ${h ? h + '時間' : ''}${m}分。その間にリュウグウは約${rotDeg.toFixed(0)}°自転し、あなたは${dist.toFixed(0)}m先に降り立ちました（時間圧縮は演出E）`, false, 9000);
+}
 // ---------------- thruster jet (E, 演出): 噴射と逆向きに短命な粒子
 let jet!: THREE.Points; let jetT = -1; const JET_N = 40; let jetP: Float32Array; let jetV: Float32Array;
 function buildJet() {
@@ -315,21 +344,25 @@ function stepDust(dt: number) {
 // ---------------- frame
 let prev = performance.now(); let wheelAccum = 0; const bgColor = new THREE.Color(); const cBlack = new THREE.Color(0x000000); const cPaper = new THREE.Color(PAPER);
 function frame(now: number) {
-  requestAnimationFrame(frame); const dt = Math.min(0.1, (now - prev) / 1000); prev = now; if (!ready) return;
+  requestAnimationFrame(frame); const dtRaw = Math.min(5, (now - prev) / 1000); const dt = Math.min(0.1, dtRaw); prev = now; if (!ready) return;
   // P1-4: 弾道飛行中の無操作時間圧縮（演出E）。入力があれば実時間に戻る。
   const flying = layer === 'ballistic' || layer === 'orbit';
   const held = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyC', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].some(k => keys.has(k));
-  const idle = flying && !held && performance.now() - lastInput > 2500;
-  // 滑らかに ×1 → ×1500（約3.5秒）。操作したら素早く ×1 に戻る（演出E）
-  compress = idle ? Math.min(1500, Math.max(1, compress) * Math.pow(8, dt)) : Math.max(1, compress * Math.pow(0.004, dt)); if (compress < 1.02) compress = 1;
+  const idle = flying && !held && performance.now() - lastInput > 2000;
+  // 滑らかに ×1 → ×6000（約4.5秒）。操作したら素早く ×1 に戻る（演出E）
+  compress = idle ? Math.min(6000, Math.max(1, compress) * Math.pow(10, dt)) : Math.max(1, compress * Math.pow(0.004, dt)); if (compress < 1.02) compress = 1;
   const dtSim = dt * compress;
   // time: real time unless in MASCOT replay (flight follows the clock; compression above fast-forwards it)
-  if (layer !== 'mascot') clock.tick(dtSim);
+  // （時計はdtRaw: 低fps環境でも実時間どおりに進む。物理の積分はキャップ済みのdtSim）
+  if (layer !== 'mascot') clock.tick(dtRaw * compress);
   if (layer === 'td1') { if (clock.ms > TD1_B) { clock.set(TD1_B); clock.running = false; } else if (clock.ms < TD1_A) clock.set(TD1_A); }
   const S = sunNow();
   if (layer === 'walk') { stepWalk(dt); } else if (layer === 'ballistic' || layer === 'orbit') stepFlight(S.et, dtSim, dt);
   else if (layer === 'mascot') { mascotStep(dt); }
-  const gp = bodyToGeo(P.dir); terrain.updatePatch(gp.lat, gp.lon); rocks.update(gp.lat, gp.lon, (d, rb) => terrain.dispAt(d, rb)); rocks.setSun(S.dir);
+  const gp = bodyToGeo(P.dir);
+  // MASCOTリプレイ中は高解像度パッチをMASCOTサイトに張る（プレイヤー位置基準だと粗い全球メッシュが剥き出しになる）
+  const focus = layer === 'mascot' ? SITE : gp;
+  terrain.updatePatch(focus.lat, focus.lon); rocks.update(focus.lat, focus.lon, (d, rb) => terrain.dispAt(d, rb)); rocks.setSun(S.dir);
   // camera
   let eyeB: V3; const upV = layer === 'ballistic' || layer === 'orbit' || layer === 'walk' ? eyeUp(P.dir) : v3.norm(P.dir);
   if (layer === 'ballistic' || layer === 'orbit') { eyeB = orbit ? bodyOf(orbit) : v3.mul(P.dir, groundAt(P.dir) + EYE); }
@@ -364,11 +397,16 @@ function frame(now: number) {
   if (showShadow) { const gr = P.stand; const sd = v3.norm(v3.sub(S.dir, v3.mul(v3.norm(P.dir), v3.dot(S.dir, v3.norm(P.dir))))); const len = Math.min(25, 1.7 / Math.tan(Math.asin(Math.min(1, sElev)))); const c0 = v3.add(v3.mul(P.dir, gr + 0.05), v3.mul(sd, -len / 2));
     shadow.position.copy(tr(c0)); const nT = tr(v3.norm(P.dir)); shadow.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), nT); const away = tr(sd).negate(); const ang = Math.atan2(away.dot(new THREE.Vector3(0, 1, 0).cross(nT)), away.dot(new THREE.Vector3(1, 0, 0)));
     shadow.rotateZ(ang); shadow.scale.set(len / 1, 0.5 / 0.5, 1); }
+  if (craterMark) {   // 人工クレーターの印（衝突後のみ）。地形メッシュの実測地面に密着させる
+    craterMark.visible = clock.ms >= SCI_MS;
+    if (clock.ms >= SCI_MS && performance.now() - (craterSnap ?? 0) > 2000) { craterSnap = performance.now();
+      const gr = groundAt(craterDir); craterMark.position.copy(tr(v3.mul(craterDir, gr + 0.12))); }
+  }
   spacecraft(S.et, gp);
   sunLight.position.copy(tr(S.dir).multiplyScalar(100)); sunLight.target.position.copy(cp);
   stepDust(dt); stepJet(dt);
   if (layer === 'td1') { if (scInfo) camera.lookAt(tr(scInfo.p)); else { camera.lookAt(camera.position.clone().add(tr(v3.norm(P.dir)).multiplyScalar(10))); } }
-  td1Burst();
+  td1Burst(); td1Caption();
   nearHits = layer === 'walk' ? nearby(world, gp.lat, gp.lon, clock.ms) : [];
   hudUpdate(S, gp, upV, eB); hints(); renderer.render(scene, camera);
   updateLocator(); minimap.render(dt);   // P2-2: メイン描画後に追描画
@@ -376,7 +414,11 @@ function frame(now: number) {
   slider.sync(clock.ms); slider.setEnabled(layer === 'walk');
   $('qbtn').style.display = (layer === 'ballistic' || layer === 'orbit') ? 'block' : 'none';
   if (layer === 'walk' && now - lastTrack > 5000) { lastTrack = now; session.track.push({ t: new Date(clock.ms).toISOString(), lat: gp.lat, lon: gp.lon, layer }); try { localStorage.setItem('ryugu_t', String(clock.ms)); } catch { /* ignore */ } }
-  const m3 = mascot.active ? mascot.tempK() : null; if (sound.on) sound.field(layer === 'mascot' ? 20 : 10, m3);
+  const m3 = mascot.active ? mascot.tempK() : null;
+  // 磁場ドローン: MASCOTサイト近傍では実MAGデータの磁場強度、それ以外は背景値（E: 音響化）
+  const nearMascot = surfDist(gp.lat, gp.lon, SITE.lat, SITE.lon) < 200;
+  const bMag = nearMascot ? (mascot.magNow() ?? 10) : 10;
+  if (sound.on) sound.field(bMag, m3);
 }
 let lastTrack = 0;
 
@@ -384,12 +426,20 @@ function spacecraft(et: number, gp: { lat: number; lon: number }) {
   const r = layer === 'mascot' ? null : scAtG(sc, et); scDot.visible = false; if (scMesh) scMesh.visible = false; scInfo = null;
   if (!r) return; const p = r.p; const eyeP = (orbit && (layer === 'ballistic' || layer === 'orbit')) ? bodyOf(orbit) : v3.mul(P.dir, groundAt(P.dir) + EYE); const dist = v3.len(v3.sub(p, eyeP)); const pg = bodyToGeo(p);
   scInfo = { alt: v3.len(p) - hm.radius(pg.lat, pg.lon), dist, lat: pg.lat, lon: pg.lon, grade: r.grade, p };
-  if (scMesh && dist < 800) { scMesh.visible = true; scMesh.position.copy(tr(p)); scMesh.scale.setScalar(1);
-    // attitude: NO CK kernels -> approximation (D). Model -Z (sampler horn) points at the surface (down); model Y = panel axis.
-    const n = tr(v3.norm(p)); scMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), n); }
+  if (scMesh && dist < 2500) { scMesh.visible = true; scMesh.position.copy(tr(p)); scMesh.scale.setScalar(1);
+    // attitude: NO CK kernels -> approximation (D). Model -Z (sampler horn) points at the surface,
+    // model +Y (solar-panel axis) is rolled toward the Sun so the sunlit side faces the camera when possible.
+    const d = tr(v3.norm(p));                                  // 天体中心から探査機方向（=模型+Zの向き先）
+    const s3 = tr(sunNow().dir);                               // 太陽方向（body系→three系）
+    let y = s3.clone().addScaledVector(d, -s3.dot(d));         // 太陽方向を-Z軸(＝d)に垂直な平面へ射影
+    if (y.lengthSq() < 1e-6) y = new THREE.Vector3(0, 1, 0).addScaledVector(d, -d.y);   // 太陽が真下/真上の特別な場合
+    y.normalize();
+    const z = d.clone();
+    const x = new THREE.Vector3().crossVectors(y, z).normalize();
+    scMesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, y, z)); }
   else { scDot.visible = true; scDot.position.copy(tr(p)); scDot.scale.setScalar(Math.max(1, dist / 110)); }
 }
-const loc = (() => { const d = document.createElement('div'); d.id = 'hp-loc'; d.style.cssText = 'position:fixed;left:0;top:0;display:none;z-index:5;pointer-events:none;color:#E8A33D;font:600 12px "IBM Plex Mono","Noto Sans JP",monospace;text-shadow:0 1px 3px #000';
+const loc = (() => { const d = document.createElement('div'); d.id = 'hp-loc'; d.style.cssText = 'position:fixed;left:0;top:0;display:none;z-index:5;pointer-events:none;color:#E8A33D;font:600 12px "Share Tech Mono","Noto Sans JP",monospace;text-shadow:0 1px 3px #000';
   d.innerHTML = '<div id="hp-ring" style="position:absolute;left:-17px;top:-17px;width:34px;height:34px;border:2px solid #E8A33D;border-radius:50%"></div><div id="hp-arr" style="position:absolute;left:-12px;top:-14px;font-size:24px;display:none">➤</div><span id="hp-txt" style="position:absolute;left:24px;top:-9px;white-space:nowrap"></span>'; document.body.appendChild(d); return d; })();
 const locRing = loc.querySelector('#hp-ring') as HTMLElement, locArr = loc.querySelector('#hp-arr') as HTMLElement, locTxt = loc.querySelector('#hp-txt') as HTMLElement;
 /** 飛行中、はやぶさ2の方向を画面に示す: 視界内ならリング、視界外なら画面端の矢印（演出E。位置データは観測/SPICE由来） */
@@ -420,8 +470,8 @@ const arrowChar = (deg: number) => ARROWS[((Math.round(deg / 45) % 8) + 8) % 8];
 function hudUpdate(S: { et: number; dir: V3; au: number }, gp: { lat: number; lon: number; r: number }, up: V3, eB: { dir: V3; au: number }) {
   const T = t();
   if (layer === 'td1') {
-    const gl = scInfo ? (lang === 'ja' ? GRADE_LABEL : GRADE_LABEL_EN)[scInfo.grade] : ''; const atTd = Math.abs(clock.ms - TD1_MS) < 1500;
-    hud.set(0, fmtJST(clock.ms).replace(' JST', ':' + String(new Date(clock.ms).getUTCSeconds()).padStart(2, '0') + ' JST') + (atTd ? ' — 接地' : ''));
+    const gl = scInfo ? (lang === 'ja' ? GRADE_LABEL : GRADE_LABEL_EN)[scInfo.grade] : ''; const atTd = Math.abs(clock.ms - TD1_MS) < 30000;
+    hud.set(0, fmtJST(clock.ms).replace(' JST', ':' + String(new Date(clock.ms).getUTCSeconds()).padStart(2, '0') + ' JST') + (atTd ? ' — 接地・試料採取' : ''));
     hud.set(1, scInfo ? `はやぶさ2 高度 ${scInfo.alt >= 100 ? (scInfo.alt >= 1000 ? (scInfo.alt / 1000).toFixed(2) + 'km' : scInfo.alt.toFixed(0) + 'm') : scInfo.alt.toFixed(1) + 'm'}（中心）　${compass(gp, scInfo)}${gl ? '  [' + gl + ']' : ''}` : `はやぶさ2 ${T.no_data}`);
     hud.set(2, `姿勢は降下方向に合わせた近似${mark('D')}（CKカーネルなし）　ホイール: 10秒　Shift: 60秒　Space: 再生　E: 終了`); hud.set(3, ''); return; }
   if (layer === 'mascot') {
@@ -437,13 +487,16 @@ function hudUpdate(S: { et: number; dir: V3; au: number }, gp: { lat: number; lo
   else if (nx) l0 += ` — 次: ${nx.title}まで ${fmtCountdown(clock.ms, nx)}`;
   else l0 += ` — 滞在期間の最終日（${fmtJST(MISSION_T1).slice(0, 10)}出発）`;
   hud.set(0, l0);
-  const elev = (layer === 'walk' ? P.stand : gp.r) - R_MEAN; const ll = `${fmtLat(gp.lat)} ${fmtLon(gp.lon)}  ${T.elev} ${Math.round(elev)}m`; hud.set(1, ll);
+  // 標高: 歩行=足元の地面 / 飛行=実際の位置(重心からの距離)（gp.rは方向単位ベクトル長=1で-448mになるバグを修正）
+  const posR = layer === 'walk' ? P.stand : (orbit ? v3.len(bodyOf(orbit)) : hm.radius(gp.lat, gp.lon));
+  const elev = posR - R_MEAN; const ll = `${fmtLat(gp.lat)} ${fmtLon(gp.lon)}  ${T.elev} ${Math.round(elev)}m`; hud.set(1, ll);
   let l3: string; if ((layer === 'ballistic' || layer === 'orbit') && orbit) { const a = altitude(orbit, groundAt); const spd = v3.len(velBodyOf(orbit));
-    l3 = `${layer === 'orbit' ? T.esc_orbit : T.ballistic} ${a > 1000 ? (a / 1000).toFixed(1) + 'km' : a.toFixed(0) + 'm'} 速度 ${(spd * 100).toFixed(1)}cm/s（${T.pm}${mark('D')}）`;
+    const elS = Math.max(0, (clock.ms - flightStartMs) / 1000); const elTxt = elS >= 3600 ? `${Math.floor(elS / 3600)}時間${Math.round((elS % 3600) / 60)}分` : elS >= 60 ? `${Math.round(elS / 60)}分` : `${Math.round(elS)}秒`;
+    l3 = `${layer === 'orbit' ? T.esc_orbit : T.ballistic} ${a > 1000 ? (a / 1000).toFixed(1) + 'km' : a.toFixed(0) + 'm'} 速度 ${(spd * 100).toFixed(1)}cm/s 飛行${elTxt}（${T.pm}${mark('D')}）`;
     if (compress > 1.5) l3 += ` 時間圧縮×${Math.round(compress)}（演出E）`; }
   else { const gs = sampleGravity(G, gp.lat, gp.lon); l3 = `${T.gravity} ${(gs.gmag * 1000).toFixed(2)}mm/s²  ${T.escape} ${(gs.esc * 100).toFixed(0)}cm/s${G === G340 ? '  [3.40h]' : ''}`; }
   if (scInfo) { const gl = (lang === 'ja' ? GRADE_LABEL : GRADE_LABEL_EN)[scInfo.grade]; l3 += `  はやぶさ2 ${scInfo.alt > 1000 ? (scInfo.alt / 1000).toFixed(1) + 'km' : scInfo.alt.toFixed(0) + 'm'} ${arrowChar(relBearing(scInfo.p, up, P.fwd))}${gl ? ' [' + gl + ']' : ''}`; }
-  else if (clock.ms >= Date.UTC(2018, 5, 27) && clock.ms <= Date.UTC(2019, 10, 19)) l3 += `  はやぶさ2 ${T.no_data}`;
+  else if (clock.ms >= Date.UTC(2018, 5, 27) && clock.ms <= Date.UTC(2019, 10, 19)) l3 += `  はやぶさ2 ${T.no_data}（遠方観測・退避運用中）`;
   hud.set(2, l3);
   // P2-1: 地球の方位・仰角・距離（歩行層で常時。矢印は視線方向からの相対角度）
   if (layer === 'walk') {
@@ -456,7 +509,7 @@ function hudUpdate(S: { et: number; dir: V3; au: number }, gp: { lat: number; lo
 // ---------------- idle hints (§5.3.1): flight-control comms, only unused features, max 3 times each
 const HINT_ORDER: [string, number][] = [['time', 0], ['inspect', 1], ['hop', 2], ['phys', 3], ['dash', 4], ['misc', 5]];
 function hints() {
-  if (card.isOpen || viewer.isOpen || minimap?.open || mode < 0 || hintsOff) { return; }
+  if (card.isOpen || viewer.isOpen || minimap?.open || mode < 0) { return; }
   // P1-5: 視点リプレイ地点の近くでは発見性を補強
   if (layer === 'walk' && (nearHits.some(h => h.id === 'td1') || nearHits.some(h => h.id === 'mascot_landing')) && performance.now() - (hintShown['replay'] ?? 0) > 45000) {
     hintShown['replay'] = performance.now(); hint.show('E: この場所の視点を体験（TD1降下 / MASCOT リプレイ）'); lastInput = performance.now() - 15000; return;
@@ -465,7 +518,6 @@ function hints() {
   for (const [k, i] of HINT_ORDER) { if (used.has(k) || (hintShown[k] ?? 0) >= 3) continue; const text = (k === 'inspect' && !nearHits.length) ? null : t().idle[i]; if (!text) continue;
     hint.show(`${session.callsign} — ${text}`); hintShown[k] = (hintShown[k] ?? 0) + 1; lastInput = performance.now() - 15000; return; }
 }
-let hintsOff = false;
 function activity(kind?: string) { lastInput = performance.now(); hint.hide(); if (kind) used.add(kind); }
 
 // ---------------- interaction
@@ -475,20 +527,25 @@ function interact() {
   if (viewer.isOpen) { viewer.close(); return; }
   const h = nearHits[0]; if (!h) return; used.add('inspect');
   if (h.kind === 'poi') openPoi(h.ref as Poi);
-  else if (h.kind === 'gallery') { const g = world.gallery.filter(x => x.folder === h.ref.folder); viewer.open(g.map(x => ({ src: url(`assets/gallery/${x.folder}/${x.id}`), caption: `${x.event} ${x.date} ${x.id}`, kind: 'gallery' as const })), Math.max(0, g.findIndex(x => x.id === h.id))); session.inspected.add(h.id); }
+  else if (h.kind === 'gallery') { const g = world.gallery.filter(x => x.folder === h.ref.folder); viewer.open(g.map(x => ({ src: url(`assets/gallery/${x.folder}/${x.id}`), caption: `${FOLDER_NOTE[x.folder] ?? x.event}（${x.date}）`, kind: 'gallery' as const })), Math.max(0, g.findIndex(x => x.id === h.id))); session.inspected.add(h.id); }
   else if (h.kind === 'l2c') { const l = world.l2c.filter(x => x.lat != null); viewer.open(l.map(x => ({ src: url(x.jpg), caption: `ONC l2c ${x.id}`, kind: 'onc' as const })), Math.max(0, l.findIndex(x => x.id === h.id))); session.inspected.add(h.id); }
 }
 let mascotPoi = false;
 function openPoi(p: Poi) {
   session.inspected.add(p.id); const body = mode === 0 ? `${p.nickname ? `<p>${esc(p.nickname)}</p>` : ''}<p>${esc(p.education_hook ?? p.description)}</p>` : mode === 1 ? `<p>${esc(p.description)}</p>` : `<p>${esc(p.description)}</p><p>${esc(p.accuracy ?? '')}</p>`;
   const refs = (mode === 2 && p.sources) ? '<p>' + p.sources.map((s: any) => s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.label)}</a>` : esc(s.label)).join(' / ') + '</p>' : '';
-  const q = quizzesFor(world, p.id).filter(x => mode === 0 ? x.difficulty === 'elementary' : mode === 1 ? true : x.difficulty === 'advanced' || true)[0];
+  // モード別の難易度フィルタ（のんびり=elementary / じっくり=全問 / せんもん=advanced）。
+  // 正解済みの設問は次回スキップ（複数のクイズがあるPOIで全部出る）
+  const pool = quizzesFor(world, p.id).filter(x => mode === 0 ? x.difficulty === 'elementary' : mode === 1 ? true : x.difficulty === 'advanced');
+  const solved = new Set(session.quiz.filter(r => r.ok).map(r => r.id));
+  const q = pool.find(x => !solved.has(x.id)) ?? pool[0];
   mascotPoi = p.id === 'mascot_landing'; let extra = '';
   if (p.id === 'td1') extra = `<p><a href="#" id="td1go">${esc(t().td1_enter)}</a></p>`; if (mascotPoi) extra = `<p><a href="#" id="mgo">${esc(t().mascot_enter)}</a>　(E)</p>`;
   const chamber = p.id === 'td1' ? 'A' : 'C';
   const parts = (p.id === 'td1' || p.id === 'td2') ? (world.samples?.samples ?? []).filter((s: any) => s.chamber === chamber) : [];
   const samp = (p.id === 'td1' || p.id === 'td2') ? `<p>試料: チャンバー${chamber}（${esc((world.samples?.chambers ?? []).find((c: any) => c.chamber === chamber)?.note ?? '')}）</p>${parts.length ? `<p>配布粒子: ${parts.map((s: any) => `<a href="#" class="smp" data-id="${esc(s.id)}">${esc(s.id)}</a>`).join(' ')}</p>` : ''}` : '';
-  card.show(p.name_ja, body + refs + samp + extra + (q ? quizHtml(q) : ''), 'poi', p.sources?.[0]?.label);
+  // クイズを本文より先に置く（本文=答え合わせになる設計）
+  card.show(p.name_ja, (q ? quizHtml(q) : '') + body + refs + samp + extra, 'poi', p.sources?.[0]?.label);
   card.node.querySelectorAll('.q button').forEach(b => b.addEventListener('click', () => answer(q, +(b as HTMLElement).dataset.i!, b as HTMLElement)));
   document.getElementById('mgo')?.addEventListener('click', e => { e.preventDefault(); enterMascot(); }); document.getElementById('td1go')?.addEventListener('click', e => { e.preventDefault(); enterTd1(); });
   card.node.querySelectorAll('a.smp').forEach(a => a.addEventListener('click', e => { e.preventDefault(); library.showSample({ viewer, card, lat: () => bodyToGeo(P.dir).lat, localHour: () => libLocalHour(), subsolarLat: () => libSubsolarLat() }, (a as HTMLElement).dataset.id!); }));
@@ -501,11 +558,26 @@ function openLibrary() {
   used.add('misc'); library.open({ viewer, card, lat: () => bodyToGeo(P.dir).lat, localHour: libLocalHour, subsolarLat: libSubsolarLat, mode: () => mode, onMode: setMode });
 }
 card.onClose = () => { mascotPoi = false; library.close(); card.node.classList.remove('lib'); };
-const quizHtml = (q: any) => `<div class="q"><p>${esc(q.question)}</p>${q.choices.map((c: string, i: number) => `<button data-i="${i}">${i + 1}. ${esc(c)}</button>`).join('')}<p class="ex" style="opacity:.0"></p></div>`;
-function answer(q: any, i: number, el: HTMLElement) { const ok = i === q.answer_index; el.classList.add(ok ? 'ok' : 'no'); session.quiz.push({ id: q.id, ok });
-  if (ok) { const ex = card.node.querySelector('.ex') as HTMLElement; ex.style.opacity = '1'; ex.textContent = q.explanation; } }
+const quizHtml = (q: any) => `<div class="q"><h3>クイズ</h3><p>${esc(q.question)}</p>${q.choices.map((c: string, i: number) => `<button data-i="${i}">${i + 1}. ${esc(c)}</button>`).join('')}<p class="ex" style="opacity:.0"></p></div>`;
+function answer(q: any, i: number, el: HTMLElement) {
+  const ok = i === q.answer_index; session.quiz.push({ id: q.id, ok });
+  // 誤答にも反応する: 正解ボタンを示し、解説を「不正解」付きで表示（無反応は教育の逆）
+  const btns = Array.from(card.node.querySelectorAll('.q button')) as HTMLButtonElement[];
+  btns.forEach(b => b.disabled = true);
+  btns[q.answer_index]?.classList.add('ok');
+  el.classList.add(ok ? 'ok' : 'no');
+  if (!ok) el.classList.add('shake');
+  const ex = card.node.querySelector('.ex') as HTMLElement;
+  ex.style.opacity = '1';
+  ex.textContent = (ok ? '正解 — ' : `不正解（正解は ${q.answer_index + 1}） — `) + q.explanation;
+}
 
 // ---------------- P1-2: イベントへの時間・場所移動（演出E）
+const ARRIVE_NOTE: Record<string, string> = {
+  sci_impact: '銅弾が約2km/sで地表に叩き込まれた瞬間です。クレーターはこの地点にできました（琥珀の円）',
+  sci_crater_found: '人工クレーター(直径14.5m・深さ1.7m)の確認 — 琥珀の円がその位置。地下物質が掘り出されました',
+  td2: '人工クレーターの縁への着陸 — 世界初の「2回目の着陸」で地下の試料を採取',
+};
 function goToEvent(ev: REvent) {
   card.hide(); viewer.close(); minimap?.hideModal();
   if (layer === 'ballistic' || layer === 'orbit') returnToSurface();
@@ -517,7 +589,7 @@ function goToEvent(ev: REvent) {
     const up = v3.norm(P.dir); const sh = v3.sub(sunNow().dir, v3.mul(up, v3.dot(sunNow().dir, up)));
     if (v3.len(sh) > 1e-4) P.fwd = v3.norm(sh);   // 現地の昼側を向く
     P.pitch = 0.1;
-    hint.show(`${ev.title} — ${fmtJST(ev.ms)}（時刻・場所の移動は演出E）`, false, 6000);
+    hint.show(`${ev.title} — ${fmtJST(ev.ms)}${ARRIVE_NOTE[ev.id] ? '　' + ARRIVE_NOTE[ev.id] : ''}（時刻・場所の移動は演出E）`, false, 8000);
   } else hint.show(`${ev.title} — ${fmtJST(ev.ms)}（時刻移動は演出E）`, false, 6000);
   used.add('time'); activity();
 }
@@ -539,6 +611,20 @@ function enterTd1() {
   clock.running = false; clock.set(Date.UTC(2019, 1, 21, 22, 19, 0)); hint.show('ホイール: 時間（10秒刻み） / Space: 再生 / E: 終了　22:29:10 UTC（07:29:10 JST）が接地', false, 7000); used.add('time');
 }
 function exitTd1() { layer = 'walk'; clock.running = true; clock.set(Math.max(TD1_MS, Math.min(TD1_B, clock.ms))); burst.visible = false; P.stand = groundAt(P.dir); }
+/** P1演出: TD1リプレイの実況キャプション — カウントダウン→接触→離陸の各段階を1行で伝える。
+ *  データは公表値（接触 22:29:10 UTC、弾丸発射・試料採取、その後上昇）。表示は演出。 */
+const td1CapEl = (() => { const d = document.createElement('div'); d.id = 'td1cap'; document.body.appendChild(d); return d; })();
+let td1CapStage = -1;
+function td1Caption() {
+  if (layer !== 'td1') { if (td1CapStage >= 0) { td1CapEl.classList.remove('on'); td1CapStage = -1; } return; }
+  const dts = (clock.ms - TD1_MS) / 1000;
+  let stage = -1, html = '';
+  if (dts < -60) { stage = 0; }
+  else if (dts < 0) { stage = 1; html = `接地まで <b>${Math.max(1, Math.ceil(-dts))}</b> 秒 — 高度を下げています`; }
+  else if (dts < 8) { stage = 2; html = `<b>22:29:10 — 接触。</b>弾丸を発射、試料を採取`; }
+  else if (dts < 30) { stage = 3; html = `タッチダウン成功 — 探査機は上昇を開始`; }
+  if (stage !== td1CapStage) { td1CapStage = stage; if (html) { td1CapEl.innerHTML = html; td1CapEl.classList.add('on'); } else td1CapEl.classList.remove('on'); }
+}
 /** touchdown projectile burst (minimal particles, deterministic). t = seconds since 22:29:10 UTC. Effect only; not data. */
 function td1Burst() {
   const dts = (clock.ms - TD1_MS) / 1000; if (layer !== 'td1' || dts < 0 || dts > 8) { burst.visible = false; return; }
@@ -553,10 +639,22 @@ function mascotStep(dt: number) {
   const im = mascot.imageAt(); const id = im?.img.id ?? '';
   if (id !== mascotImgId) { mascotImgId = id; const old = document.getElementById('mascot-img'); old?.remove(); mascotImg = null;
     if (im) { const e = new Image(); e.id = 'mascot-img'; e.src = url(im.img.png); e.alt = `MASCAM ${im.img.id}`; e.style.cssText = 'position:fixed;inset:12% 18%;margin:auto;max-width:64vw;max-height:76vh;object-fit:contain;opacity:0;transition:opacity .5s;z-index:3;pointer-events:none'; document.body.appendChild(e); requestAnimationFrame(() => e.style.opacity = '1'); mascotImg = e;
-      mascotCap(`${im.img.id}${im.img.led ? ' / LED ' + im.img.led : ''}`, true); } else mascotCap('', false); }
-  if (mascot.finished && !mascotEnded) { mascotEnded = true; hint.show(t().mascot_end); }
+      const ph = im.img.phase === 'Descent' ? '降下中' : im.img.phase.startsWith('MP_') ? '着地後(' + im.img.phase + ')' : im.img.phase;
+      const ledTxt = im.img.led && im.img.led !== 'NONE' ? ' — 赤外LED照明で夜間撮影' : ' — 太陽光で撮影';
+      mascotCap(`MASCAM ${im.img.id}（${ph}）${ledTxt}`, true); } else mascotCap('', false); }
+  if (mascot.finished && !mascotEnded) { mascotEnded = true; mascotEndCard(); }
 }
 let mascotEnded = false;
+/** MASCOT運用終了のまとめ（演出ではなくデータの要約）: 17時間07分の成果を3行で遺す */
+function mascotEndCard() {
+  const nImg = mascot.d.imgs.length;
+  card.show('MASCOT — 17時間07分の運用を終了', `
+    <p>2018-10-04 04:04 JST、電池が尽き、10kgの着陸機は静かになった。リュウグウの夜を2回越えた17時間07分で、MASCOTが遺したもの:</p>
+    <p>• <b>磁場を測った</b> — 磁場はほぼ検出されず、リュウグウが磁場を持たない古い・原始的な天体である証拠となった（MAG）</p>
+    <p>• <b>温度を測り続けた</b> — 岩の表面温度を終夜記録。昼と夜では約120Kも変わる（MARA）</p>
+    <p>• <b>${nImg}枚の地表の写真</b> — 夜は赤外LED照明で撮影した（MASCAM）</p>
+    <p class="lnote">画像・温度・位置・磁場はすべて実データ（DLR/CNES/JAXA）。Eキーで地表に戻ります</p>`, 'mascam');
+}
 function mascotCap(text: string, on: boolean) { let c = document.getElementById('mascot-cap'); if (!c) { c = document.createElement('div'); c.id = 'mascot-cap'; c.style.cssText = 'position:fixed;left:0;right:0;bottom:40px;text-align:center;font:11px "Fira Code","Noto Sans JP",monospace;opacity:.85;z-index:4;color:#F8FAFC'; document.body.appendChild(c); } c.textContent = on ? `${text}　${credit('mascam')}` : ''; }
 
 // ---------------- input
@@ -638,7 +736,7 @@ function changeMode() { setMode(((mode + 1) % 3) as Mode); }
 function welcome() {
   card.show('2019年2月22日 07:29 JST — はやぶさ2、タッチダウンの10分前', `<p>いま、あなたはリュウグウの上空にいます。10分後、探査機がここに降りてきます。</p>
     <div class="eva" style="display:flex;flex-direction:column;gap:8px;margin:12px 0"><button id="w-td1" class="hot" style="min-height:48px;font-weight:600">▶ 探査機の視点でタッチダウンを見る</button><button id="w-walk" style="min-height:44px">地表を歩いてみる（カウントダウンは進みます）</button><button id="w-ev" style="min-height:44px">ほかのイベントへ行く（人工クレーター・MASCOT…）</button></div>
-    <p class="evn" style="opacity:.6;font-size:12px">時間は画面下のスライダー、場所は右上の地図で動かせます。</p>`, undefined);
+    <p class="evn" style="opacity:.6;font-size:12px">時間は画面下のスライダー、場所は右上の地図で動かせます。サイト名「38cm/s」はリュウグウの脱出速度 — この速度を超えると、もう地表へは戻れません。</p>`, undefined);
   $('w-td1').addEventListener('click', () => enterTd1()); $('w-walk').addEventListener('click', () => card.hide()); $('w-ev').addEventListener('click', () => { card.hide(); eventUi.openList(); });
 }
 function frameStart() { requestAnimationFrame(frame); }

@@ -47,6 +47,7 @@ export class MiniMap {
   private dragging = false; private last = [0, 0]; private dragDist = 0;
   private ray = new THREE.Raycaster();
   private frameCount = 0;
+  private plRadius: number | null = null;   // 現在地のメッシュ実測半径（キャッシュ）
   private modalEl: HTMLDivElement;
   private smallEl: HTMLDivElement;
 
@@ -97,7 +98,30 @@ export class MiniMap {
       g.deleteAttribute('normal'); g.computeVertexNormals(); g.computeBoundingSphere();
       this.mesh = new THREE.Mesh(g, this.mat);
       this.globe.add(this.mesh);
+      this.repositionMarkers();   // メッシュ実測半径に合わせてマーカーを再配置（浮き防止）
     } catch (e) { console.warn('minimap mesh', e); }
+  }
+
+  /** lod3メッシュ表面の実際の半径（動径方向にレイキャスト）。ヒットしなければheightmap値 */
+  private meshRadius(latDeg: number, lonDeg: number): number | null {
+    if (!this.mesh) return null;
+    const d = geoToBody(latDeg, lonDeg, 1);
+    const dir3 = new THREE.Vector3(d[0], d[2], -d[1]);
+    const far = 700;
+    this.ray.set(dir3.clone().multiplyScalar(far), dir3.clone().negate());
+    (this.ray as any).firstHitOnly = true;
+    const h = this.ray.intersectObject(this.mesh, false);
+    return h.length ? far - h[0].distance : null;
+  }
+  /** POIマーカー・現在地をメッシュ表面に密着させる */
+  private repositionMarkers() {
+    for (const m of this.markers.children as THREE.Object3D[]) {
+      const poi = this.pois.find(p => p.id === (m.userData as any).poi);
+      if (poi?.lat == null || poi.lon == null) continue;
+      const r = this.meshRadius(poi.lat, poi.lon) ?? this.hm.radius(poi.lat, poi.lon);
+      const d = geoToBody(poi.lat, poi.lon, r + 14);
+      m.position.set(d[0], d[2], -d[1]);
+    }
   }
 
   /** POIマーカー（ミッション地点 + IAU地形名） */
@@ -131,9 +155,10 @@ export class MiniMap {
     if (tex) this.mat.uniforms.map.value = tex;
     const sd = this.get.sunDir(); this.mat.uniforms.sunDir.value.set(sd[0], sd[1], sd[2]);
     this.scene.background = this.get.bg();   // メインと同じ空色（角の黒ズミ防止）
-    // 現在地・視界マーカー（body固定座標 = グローブと同空間）
+    // 現在地・視界マーカー（body固定座標 = グローブと同空間）。メッシュ実測半径に密着
     const lat = this.get.lat(), lon = this.get.lon();
-    const r = this.hm.radius(lat, lon);
+    const r = (this.frameCount % 30 === 0 ? this.meshRadius(lat, lon) : null) ?? this.plRadius ?? this.hm.radius(lat, lon);
+    if (this.frameCount % 30 === 0 && r) this.plRadius = r;
     const d = geoToBody(lat, lon, r + 16);
     this.playerDot.position.set(d[0], d[2], -d[1]);
     const fwd = this.get.fwd();
@@ -184,6 +209,6 @@ export class MiniMap {
     this.card.show(ja ? 'この地点へ移動しますか？' : 'Move here?', `
       <p>${ja ? `緯度 ${g.lat.toFixed(2)}° / 経度 ${g.lon.toFixed(1)}°E` : `lat ${g.lat.toFixed(2)}° / lon ${g.lon.toFixed(1)}°E`}</p>
       <p><a href="#" id="mmgo">${ja ? 'ここへ移動する' : 'Move here'}</a>　<span class="lnote">${ja ? '瞬間移動は演出E' : 'instant move is staging (E)'}</span></p>`);
-    document.getElementById('mmgo')?.addEventListener('click', ev => { ev.preventDefault(); this.hideModal(); this.act.teleport(g.lat, g.lon); });
+    document.getElementById('mmgo')?.addEventListener('click', ev => { ev.preventDefault(); this.hideModal(); this.card.hide(); this.act.teleport(g.lat, g.lon); });
   }
 }

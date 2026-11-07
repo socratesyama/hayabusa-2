@@ -36,4 +36,13 @@ export class MascotReplay {
   /** impact times from the MAG detection (A; candidates, see mag.json note) */
   impacts(): number[] { return (this.d.mag.impact_candidates ?? []).map((c: any) => Date.parse(c.utc)); }
   isNight(): boolean { const im = this.imageAt(); return !!im && im.img.led != null; }
+  /** MAG磁場強度（nT）: tに最も近い実測行の|B|。範囲外はnull（音響化・MASCOTサイト近傍用） */
+  magNow(): number | null {
+    const rows = this.d.mag.rows as number[][]; if (!rows?.length) return null;
+    let best: number[] | null = null, bd = 1e12;
+    for (const r of rows) { const d = Math.abs(this.t0() + r[0] * 1000 - this.t); if (d < bd) { bd = d; best = r; } }
+    if (!best || bd > 120e3) return null;
+    return Math.hypot(best[1], best[2], best[3]);
+  }
+  private t0() { return Date.parse(this.d.mag.t0_utc); }
 }

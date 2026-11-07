@@ -213,6 +213,66 @@
      "url": "https://planetarynames.wr.usgs.gov/Page/Ryugu/target"
     }
    ]
+  },
+  {
+   "id": "q11_escape_name",
+   "difficulty": "elementary",
+   "poi_id": "td1",
+   "question": "このサイトの名前「38cm/s」は、リュウグウの何を表す速度?",
+   "choices": [
+    "リュウグウの自転の速さ",
+    "リュウグウの脱出速度",
+    "はやぶさ2が飛ぶ速さ",
+    "リュウグウの公転の速さ"
+   ],
+   "answer_index": 1,
+   "explanation": "38cm/sはリュウグウ表面の脱出速度。これを超える速度で跳ぶと、もう地表へは戻れません。地球の脱出速度が約11.2km/s(11200cm/s)であることと比べると、いかに小さく弱い重力の世界かがわかる。",
+   "source": [
+    {
+     "label": "JAXA はやぶさ2プロジェクト",
+     "url": "https://www.hayabusa2.jaxa.jp/"
+    }
+   ]
+  },
+  {
+   "id": "q12_jump_physics",
+   "difficulty": "advanced",
+   "poi_id": "td1",
+   "question": "リュウグウの表面で垂直に跳び上がると、どうなる?",
+   "choices": [
+    "地球と同じように数秒で着地する",
+    "数時間浮かび続け、着く頃には小惑星の別の場所にいる",
+    "一瞬で宇宙に飛び出して戻れない",
+    "跳ぶことができない"
+   ],
+   "answer_index": 1,
+   "explanation": "表面重力は地球の約6万分の1(約0.1mm/s²)。跳び上がってもほとんど減速しないため、滞空は数時間におよぶ。しかもリュウグウは7.6時間で1回転するため、浮いている間に地面が動いてしまい、着地点は数百mずれる。このサイトでShift+Spaceを押すと実際に体験できる。",
+   "source": [
+    {
+     "label": "JAXA はやぶさ2プロジェクト",
+     "url": "https://www.hayabusa2.jaxa.jp/"
+    }
+   ]
+  },
+  {
+   "id": "q13_mascot_bounce",
+   "difficulty": "advanced",
+   "poi_id": "mascot_landing",
+   "question": "MASCOTは着陸時、なぜ何度もバウンドした?",
+   "choices": [
+    "パラシュートが開かなかったから",
+    "重力が弱すぎて、一度弾んだ勢いがなかなか収まらないから",
+    "着陸地点が硬い岩だったから",
+    "推進器が誤作動したから"
+   ],
+   "answer_index": 1,
+   "explanation": "落下速度はわずかでも、重力が弱いために衝撃を打ち消す力も弱い。MASCOT(10kg)は着地後も数回バウンドし、最終的に目標から約17m移動した場所で静止した。低重力では「着地」さえ難しい。",
+   "source": [
+    {
+     "label": "DLR: MASCOT着陸シーケンス",
+     "url": "https://www.dlr.de/en/research-and-transfer/projects-and-missions/hayabusa2/mascot-landing-on-ryugu-operational-sequence"
+    }
+   ]
   }
  ]
 }

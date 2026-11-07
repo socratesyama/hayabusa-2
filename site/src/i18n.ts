@@ -24,6 +24,8 @@ const D = {
     experts: 'For experts', loaded: 'data loaded',
   },
 };
-export let lang: Lang = (navigator.language || 'ja').startsWith('ja') ? 'ja' : 'en';
+// 言語は日本語に統一（§酷評対応: イベント・narrative等のデータが日本語のみのため、
+// 英語UIとの混在は魅力伝達を損なう。辞書は将来の完全二言語化に備えて残す）
+export let lang: Lang = 'ja';
 export const setLang = (l: Lang) => { lang = l; };
 export const t = () => D[lang];

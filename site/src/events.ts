@@ -14,9 +14,31 @@ export interface REvent {
   gallery: string[];
   poiIds: string[];
   replay?: 'td1' | 'mascot';
-  timeNote: 'exact' | 'noon' | 'date';   // 時刻精度
+  timeNote: 'exact' | 'impact' | 'noon' | 'date';   // 時刻精度
   inRange: boolean;           // 滞在期間内（スライダーで行ける）か
 }
+
+/** SCI衝突の公表時刻（2019-04-05 11:36 JST = 02:36 UTC） */
+export const SCI_MS = Date.UTC(2019, 3, 5, 2, 36, 0);
+
+/** ギャラリーフォルダごとの1行キャプション（画像の中身を説明する） */
+export const FOLDER_NOTE: Record<string, string> = {
+  nav20180731: '到着直前の遠方からの全域観測 — 回転するリュウグウ全体が見える',
+  nav20180805: '近距離観測 — 表面の地形と岩の分布が初めて詳しく撮られた',
+  nav20180911: '中距離観測 — 着陸候補地の選定のための精密撮影',
+  nav20181014: 'MASCOT着陸後の観測 — 着陸地点の姿を上空から確認',
+  nav20180920: 'MINERVA-II1(イブー・アウル)の分離運用 — ローバーがリュウグウへ降りる',
+  nav20181002: 'MASCOT分離 — 10時3分、着陸機が投下され17時間の運用が始まる',
+  nav20181024: 'TD1リハーサル3 — タッチダウンの最終確認と目標マーカーTM-Bの投下',
+  nav20190221: '第1回タッチダウン(TD1) — サンプラーホーンが地表に触れ、弾丸を撃って試料を採取',
+  nav20190307: 'TD1後の観測 — 採取跡の確認と、SCIの目標地点(S01)の検討',
+  nav20190404: 'SCI運用 — 探査機は降下後に退避し、銅弾がリュウグウに衝突した',
+  nav20190424: '人工クレーターの観測 — 掘り出された地下物質の近くで、新たなクレーターが確認された',
+  nav20190515: 'TD2リハーサル1 — 人工クレーター付近への着陸に向けた降下練習',
+  nav20190529: 'TD2リハーサル3 — 最終降下確認と目標マーカーTM-Aの投下',
+  nav20190612: 'TD2最終確認(P1) — 着陸の直前チェック',
+  nav20190710: '第2回タッチダウン(TD2) — 人工クレーターの縁に降り立ち、地下の試料を採取',
+};
 
 /** その日付・経度で最初の「現地太陽時12時」（太陽が南中する瞬間）を UTC ms で返す */
 function localNoon(dateStr: string, lonDeg: number, sun: Sun): number {
@@ -42,6 +64,7 @@ export function buildEvents(evJson: any, locmap: any, pois: any[], sun: Sun, td1
     if (lat == null) for (const f of e.gallery ?? []) { const m = evMap.get(f); if (m?.target_latitude_deg != null) { lat = m.target_latitude_deg; lon = m.target_longitude_deg; break; } }
     let ms: number, timeNote: REvent['timeNote'];
     if (e.id === 'td1') { ms = td1Ms; timeNote = 'exact'; }
+    else if (e.id === 'sci_impact') { ms = SCI_MS; timeNote = 'impact'; }
     else if (lat != null) { ms = localNoon(e.date, lon!, sun); timeNote = 'noon'; }
     else { ms = Date.parse(e.date + 'T03:00:00Z'); timeNote = 'date'; }   // 日付のみ: JST昼
     out.push({
@@ -79,6 +102,7 @@ export interface EventActions {
 
 const TIME_NOTE_JA: Record<REvent['timeNote'], string> = {
   exact: '時刻は公表値（接地 2019-02-22 07:29:10 JST）',
+  impact: '時刻は公表値（銅弾衝突 2019-04-05 11:36 JST）',
   noon: '時刻は日付精度 — その日の現地太陽時12時（南中）に設定',
   date: '時刻は日付精度 — その日の JST 昼に設定',
 };
@@ -100,7 +124,7 @@ export class EventUi {
     this.card.node.querySelectorAll('[data-ev]').forEach(b => b.addEventListener('click', () => this.detail(this.evs[+(b as HTMLElement).dataset.ev!].id)));
     this.card.node.querySelectorAll('[data-ex]').forEach(b => b.addEventListener('click', () => {
       const x = this.extras[+(b as HTMLElement).dataset.ex!];
-      const items = this.gallery.filter(g => g.folder === x.folder).map(g => ({ src: url(`assets/gallery/${x.folder}/${g.id}`), caption: `${x.label} ${x.date} ${g.id}`, kind: 'gallery' as const }));
+      const items = this.gallery.filter(g => g.folder === x.folder).map(g => ({ src: url(`assets/gallery/${x.folder}/${g.id}`), caption: `${FOLDER_NOTE[x.folder] ?? x.label}（${x.date}）`, kind: 'gallery' as const }));
       if (items.length) this.viewer.open(items, 0);
     }));
   }
@@ -128,7 +152,7 @@ export class EventUi {
   /** イベントのギャラリーフォルダを Viewer で開く（P1-6: ギャラリーはイベント経由） */
   openGalleryFolders(folders: string[], ev: REvent) {
     const items = folders.flatMap(f => this.gallery.filter(g => g.folder === f).map(g => ({
-      src: url(`assets/gallery/${g.folder}/${g.id}`), caption: `${ev.title} ${g.date} ${g.id}`, kind: 'gallery' as const })));
+      src: url(`assets/gallery/${g.folder}/${g.id}`), caption: `${FOLDER_NOTE[g.folder] ?? ev.title}（${g.date}）`, kind: 'gallery' as const })));
     if (items.length) this.viewer.open(items, 0);
     else this.card.show(ev.title, `<p class="lnote">${lang === 'ja' ? '関連画像はありません。' : 'No related images.'}</p>`);
   }

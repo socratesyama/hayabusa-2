@@ -30,7 +30,7 @@ a{color:var(--accent-hi)}
 /* ---- HUD（左上: 常時ダークガラスパネル → 空色に依存しない視認性） ---- */
 #hud{position:fixed;left:max(16px,env(safe-area-inset-left));top:max(16px,env(safe-area-inset-top));
   font:13px/1.9 var(--font-hud);font-variant-numeric:tabular-nums;letter-spacing:.02em;color:var(--fg);
-  pointer-events:none;white-space:pre;z-index:5;
+  pointer-events:none;white-space:pre-wrap;max-width:min(56em,calc(100vw - 200px));z-index:5;
   padding:10px 14px 8px 16px;background:rgba(11,11,16,.66);
   border:1px solid var(--border);border-left:2px solid var(--accent);border-radius:var(--radius);
   -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
@@ -42,7 +42,7 @@ a{color:var(--accent-hi)}
 
 /* ---- 操作ヒント（下部中央: チップ化） ---- */
 #hint{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);max-width:min(90vw,48em);
-  text-align:center;font:12px/1.7 var(--font-body);color:var(--fg-dim);
+  text-align:center;font:12px/1.7 var(--font-body);color:var(--fg-dim);word-break:keep-all;overflow-wrap:anywhere;
   opacity:0;transition:opacity var(--t-slow) var(--ease);pointer-events:none;z-index:5;
   padding:6px 14px;background:rgba(11,11,16,.66);border:1px solid var(--border);border-radius:var(--radius);
   -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
@@ -69,7 +69,22 @@ a{color:var(--accent-hi)}
   background:none;border:0;border-radius:var(--s1);color:var(--fg);font:inherit;cursor:pointer;
   transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
 #card .q button:hover{background:rgba(59,130,246,.14)}
-#card .q button.ok{color:var(--accent-hi)}#card .q button.no{color:var(--muted)}
+#card .q button:disabled{cursor:default;opacity:.85}
+#card .q button.ok{color:var(--accent-hi);background:rgba(59,130,246,.12)}
+#card .q button.no{color:var(--destructive);background:rgba(239,68,68,.08)}
+#card .q button.no.shake{animation:qshake .4s var(--ease)}
+@keyframes qshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+#card .q .ex{color:var(--fg-dim);transition:opacity var(--t-mid) var(--ease)}
+#card .q h3{margin:var(--s2) 0 var(--s1)}
+
+/* ---- TD1リプレイ実況キャプション（中央・大） ---- */
+#td1cap{position:fixed;left:50%;bottom:20%;transform:translateX(-50%);z-index:6;pointer-events:none;
+  font:15px/1.8 var(--font-hud);letter-spacing:.06em;color:var(--fg);text-align:center;
+  padding:10px 22px;background:rgba(11,11,16,.72);border:1px solid var(--border-hi);border-radius:var(--radius);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;transition:opacity var(--t-mid) var(--ease);
+  text-shadow:0 1px 4px rgba(0,0,0,.8);max-width:min(88vw,40em)}
+#td1cap.on{opacity:1}
+#td1cap b{color:var(--accent-hi);font-weight:600}
 #card a{color:var(--accent-hi);text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(96,165,250,.4)}
 #card a:hover{text-decoration-color:var(--accent-hi)}
 #card.lib{max-height:72vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent}
@@ -88,8 +103,8 @@ a{color:var(--accent-hi)}
 #card .evrow span:first-child{flex:1;text-align:left}
 #card .evrow .n{color:var(--muted);font-size:11px}
 
-/* ---- 画像ビューア ---- */
-#viewer{inset:0;background:rgba(5,5,9,.94);display:flex;flex-direction:column;align-items:center;justify-content:center}
+/* ---- 画像ビューア（カードより前面に。背後のカードが透けない） ---- */
+#viewer{inset:0;z-index:12;background:rgba(5,5,9,.97);display:flex;flex-direction:column;align-items:center;justify-content:center}
 #viewer img{max-width:92vw;max-height:78vh;object-fit:contain;image-rendering:auto;
   border:1px solid var(--border);border-radius:var(--radius)}
 #viewer .cap{margin-top:var(--s3);font:12px/1.7 var(--font-body);text-align:center;max-width:90vw;color:var(--fg-dim)}
@@ -127,15 +142,17 @@ a{color:var(--accent-hi)}
 /* ---- モバイル: バーチャルスティック / ホップ ---- */
 #stick,#hopbtn{display:none}
 @media (pointer:coarse){
-  #stick{display:block;position:fixed;left:max(24px,env(safe-area-inset-left));bottom:64px;width:110px;height:110px;
+  #stick{display:block;position:fixed;left:max(24px,env(safe-area-inset-left));bottom:118px;width:110px;height:110px;
     border:1px solid var(--border-hi);border-radius:50%;z-index:6;background:rgba(11,11,16,.3);
     -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
   #knob{position:absolute;left:35px;top:35px;width:40px;height:40px;border-radius:50%;
     background:rgba(59,130,246,.4);border:1px solid var(--accent)}
-  #hopbtn{display:block;position:fixed;right:max(24px,env(safe-area-inset-right));bottom:120px;width:56px;height:56px;
+  #hopbtn{display:block;position:fixed;right:max(24px,env(safe-area-inset-right));bottom:118px;width:56px;height:56px;
     border-radius:50%;border:1px solid var(--accent);background:rgba(11,11,16,.66);color:var(--accent-hi);font-size:20px;z-index:6;
     -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-  #hud{font-size:12px;padding:8px 12px 6px 14px}
+  #hud{font-size:11px;padding:8px 12px 6px 14px;max-width:calc(100vw - 140px)}   /* ミニマップ(104px)と重ならない */
+  #hint{bottom:auto;top:calc(max(16px,env(safe-area-inset-top)) + 176px)}        /* 下部の操作系と重ならない */
+  #foot{font-size:9px;max-width:calc(100vw - 24px);line-height:1.5}
 }
 
 /* ---- P1-1 時間スライダー（FUI: 細線 + グローハンドル） ---- */
@@ -213,6 +230,6 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ring);outline-offse
 }
 @media (pointer:coarse){
   #mmap-small{width:104px;height:104px}
-  #tslider{bottom:38px;height:48px}
-  #qbtn{bottom:164px}
+  #tslider{bottom:58px;height:48px}   /* フッター免責文(2行)と重ならない */
+  #qbtn{bottom:182px}
 }
