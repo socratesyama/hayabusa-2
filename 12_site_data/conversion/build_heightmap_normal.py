@@ -113,7 +113,8 @@ def main():
 
     lat, lon, r = to_latlon_radius(v)
     # ピクセル座標(float、経度0-360を左端-右端へ)
-    px = (lon / (2 * np.pi) + 0.5) * W
+    # lon は atan2 の -pi..pi。東経0°を左端にするため 0..2pi に折り返す(旧: +0.5 で西経180°が左端になっていた)
+    px = (np.mod(lon, 2 * np.pi) / (2 * np.pi)) * W
     py = (0.5 - lat / np.pi) * H
 
     buf, covered, skipped = rasterize(faces, px, py, r, H, W)

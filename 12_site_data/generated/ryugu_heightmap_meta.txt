@@ -8,6 +8,6 @@ heightmap: 0=radius_min, 65535=radius_max (16bit PNG)
 normal map: RGB = surface normal xyz in [-1,1] mapped to [0,255]
 method=triangle rasterization (barycentric, seam-wrap on lon 0/360) + vertex scatter + max-dilation fill
 normal map gradient: periodic in longitude (left/right edges connected)
-fill_stats: filled_px=8778, remaining_uncovered_px=0, max_dilation_step=2, fill_error_vs_nearest_vertex_m(median)=3.010, fill_error_vs_nearest_vertex_m(max)=9.293
+fill_stats: filled_px=8778, remaining_uncovered_px=0, max_dilation_step=2, fill_error_vs_nearest_vertex_m(median)=3.556, fill_error_vs_nearest_vertex_m(max)=9.293
 fill_error: |filled radius - nearest mesh vertex radius|; upper-bound estimate (filled pixels take the max of neighbors, so they tend to overestimate height)
 credit: JAXA/ISAS/DARTS (shape model SPC v20200323, Watanabe et al. 2019)
