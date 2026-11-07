@@ -1,7 +1,7 @@
 // P1-1 時間スライダー — 画面下部に常設。リュウグウ滞在期間（2018-06-27〜2019-11-13）を
 // ドラッグで移動する。input[type=range] は日数解像度で足りないため自前のポインターUI。
 // ホイールによる時間移動は廃止し、時刻調整はこのスライダーに一本化する。
-import { MISSION_T0, MISSION_T1 } from './time';
+import { MISSION_T0, MISSION_T1, fmtJST } from './time';
 
 export interface SliderMarker { id: string; ms: number; label: string; }
 
@@ -69,6 +69,10 @@ export class TimeSlider {
       const f = (this.ms - MISSION_T0) / (MISSION_T1 - MISSION_T0);
       this.handle.style.left = (f * 100) + '%';
       fill.style.width = (f * 100) + '%';
+      // 日付ラベルチップ（ドラッグ/ホバー時にCSSで表示）
+      const txt = fmtJST(this.ms).slice(0, 10);
+      if (this.label.textContent !== txt) this.label.textContent = txt;
+      this.label.style.left = (f * 100) + '%';
       this.el.setAttribute('aria-valuenow', String(this.ms));
     };
     const paintLoop = () => { paint(); requestAnimationFrame(paintLoop); };

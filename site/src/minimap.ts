@@ -124,6 +124,9 @@ export class MiniMap {
   /** 毎フレーム: メイン描画後に呼ぶ */
   render(dt: number) {
     this.frameCount++;
+    // 注: かつて frameCount%2 で描画を間引いていたが、メイン描画が毎フレーム
+    // 全画面をクリアするためスキップフレームでミニマップ領域が空になりチラつく。
+    // 5k面の低ポリグローブなので毎フレーム描画しても負荷は軽い。
     const tex = this.get.tex();
     if (tex) this.mat.uniforms.map.value = tex;
     const sd = this.get.sunDir(); this.mat.uniforms.sunDir.value.set(sd[0], sd[1], sd[2]);
@@ -143,7 +146,6 @@ export class MiniMap {
     this.smallAz += dt * 0.07;   // 常設図はゆっくり公転（約90秒/周）
     this.setCam();
     const w = this.renderer.domElement.clientWidth, h = this.renderer.domElement.clientHeight;
-    if (!this.open && this.frameCount % 2 === 0) return;   // 常設は低頻度更新（モバイル配慮）
     // three.js の setViewport/setScissor は CSS px 単位（内部で pixelRatio 倍される）
     this.renderer.setScissorTest(true);
     if (this.open) {

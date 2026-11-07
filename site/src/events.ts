@@ -2,7 +2,6 @@
 // event_asset_links.json（日付・narrative・ギャラリー・POI）+ image_location_map.json（座標）+
 // poi_master.json（POI座標）をマージし、イベント時刻（日付精度は現地太陽時12時、TD1のみ既知の接地時刻）を決定する。
 import { Card, Viewer, esc } from './ui';
-import { credit } from './credits';
 import { lang } from './i18n';
 import { utcToEt, Sun, fmtJST } from './time';
 import { url } from './data';
@@ -118,8 +117,8 @@ export class EventUi {
     const body = `<p>${esc(e.narrative)}</p>
       <p class="lnote">${esc(e.dateStr)}（UTC）— ${esc(fmtJST(e.ms))}　/ ${esc(TIME_NOTE_JA[e.timeNote])}</p>
       <p class="lnote">${ja ? '所属フェーズ' : 'Phase'}: ${esc(e.phase)}</p>
-      ${acts.join('')}
-      <div class="cr">${esc(credit('timeline'))}</div>`;
+      ${acts.join('')}`;
+    // 出典クレジットは card.show の creditKind 引数で1回だけ表示（二重表示防止）
     this.card.show(e.title, body, 'timeline');
     document.getElementById('evgo')?.addEventListener('click', ev => { ev.preventDefault(); this.act.goTo(e); });
     document.getElementById('evgal')?.addEventListener('click', ev => { ev.preventDefault(); this.act.openGallery(e.gallery, e); });
