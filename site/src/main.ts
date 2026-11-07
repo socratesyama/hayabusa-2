@@ -57,7 +57,7 @@ function upAt(dir: V3, lat: number, lon: number): V3 { const g = sampleGravity(G
 
 // ---------------- init
 async function boot() {
-  Intro.line('2018-03-01'); const dot = document.createElement('div'); dot.style.cssText = 'width:2px;height:2px;border-radius:50%;background:#F0F0EB;margin-top:18px;transition:all 1.2s cubic-bezier(.16,1,.3,1)'; $('intro').appendChild(dot);
+  Intro.line('2018-03-01'); const dot = document.createElement('div'); dot.style.cssText = 'width:2px;height:2px;border-radius:50%;background:#F8FAFC;margin-top:18px;transition:all 1.2s cubic-bezier(.16,1,.3,1)'; $('intro').appendChild(dot);
   const bump = (px: number) => { dot.style.width = dot.style.height = px + 'px'; dot.style.boxShadow = `0 0 ${px}px rgba(240,240,235,.5)`; };
   bump(4);
   const [reg, rot, sunT, hmap, g763, g340, scT, tl, poi, ev, locmap, samples, quizzes, mis, mis_c, gal, l2c, geo, mascam, mara, mag, mpos, sp] = await Promise.all([
@@ -533,7 +533,7 @@ function mascotStep(dt: number) {
   if (mascot.finished && !mascotEnded) { mascotEnded = true; hint.show(t().mascot_end); }
 }
 let mascotEnded = false;
-function mascotCap(text: string, on: boolean) { let c = document.getElementById('mascot-cap'); if (!c) { c = document.createElement('div'); c.id = 'mascot-cap'; c.style.cssText = 'position:fixed;left:0;right:0;bottom:40px;text-align:center;font:11px "IBM Plex Mono",monospace;opacity:.6;z-index:4;color:#F0F0EB'; document.body.appendChild(c); } c.textContent = on ? `${text}　${credit('mascam')}` : ''; }
+function mascotCap(text: string, on: boolean) { let c = document.getElementById('mascot-cap'); if (!c) { c = document.createElement('div'); c.id = 'mascot-cap'; c.style.cssText = 'position:fixed;left:0;right:0;bottom:40px;text-align:center;font:11px "Fira Code","Noto Sans JP",monospace;opacity:.85;z-index:4;color:#F8FAFC'; document.body.appendChild(c); } c.textContent = on ? `${text}　${credit('mascam')}` : ''; }
 
 // ---------------- input
 addEventListener('keydown', e => {

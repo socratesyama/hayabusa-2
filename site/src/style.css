@@ -1,83 +1,210 @@
-:root{--paper:#F0F0EB;--ink:#1C1B18;--amber:#E8A33D;--ease:cubic-bezier(0.16,1,0.3,1);--fg:rgba(240,240,235,.92)}
+/* ============================================================
+   RYUGU 38cm/s — Design System: HUD / Sci-Fi FUI
+   (ui-ux-pro-max: Immersive/Interactive Experience)
+   Dark-first, star white + launch blue, fine 1px lines, glow.
+   ============================================================ */
+:root{
+  /* color tokens */
+  --bg:#0B0B10; --fg:#F8FAFC; --fg-dim:#C7CDD6;
+  --card:#1E1E23; --card-glass:rgba(30,30,38,.86);
+  --muted:#94A3B8; --border:#1E293B; --border-hi:#334155;
+  --accent:#3B82F6; --accent-hi:#60A5FA; --accent-ink:#0B0B10;
+  --amber:#E8A33D; --amber-dim:#B98A2F;
+  --ring:#F8FAFC; --destructive:#EF4444;
+  /* type */
+  --font-hud:"Share Tech Mono","Noto Sans JP",ui-monospace,Menlo,monospace;
+  --font-body:"Fira Code","Noto Sans JP",ui-monospace,Menlo,monospace;
+  --font-jp:"Noto Sans JP",system-ui,sans-serif;
+  /* motion tokens (distance/complexity aware) */
+  --ease:cubic-bezier(0.16,1,0.3,1);
+  --t-fast:160ms; --t-mid:240ms; --t-slow:420ms;
+  /* 8px spacing rhythm */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px;
+  --radius:6px;
+}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:#000;color:var(--paper);overflow:hidden;font-family:"Noto Sans JP",system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none}
-#gl{position:fixed;inset:0;width:100%;height:100%;display:block;background:#000}
-#hud{position:fixed;left:max(24px,env(safe-area-inset-left));top:max(24px,env(safe-area-inset-top));font:13px/1.9 "IBM Plex Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;color:var(--fg);pointer-events:none;white-space:pre;z-index:5;transition:color .3s var(--ease);text-shadow:0 1px 4px rgba(0,0,0,.5)}
-body.sky-white #hud{color:rgba(28,27,24,.92);text-shadow:0 1px 4px rgba(240,240,235,.55)}
-#hint{position:fixed;bottom:24px;left:0;right:0;text-align:center;font:13px "IBM Plex Mono",ui-monospace,monospace;opacity:0;transition:opacity .4s var(--ease);color:var(--fg);pointer-events:none;z-index:5}
-body.sky-white #hint{color:var(--ink)}
-#hint.on{opacity:.35}#hint.first.on{opacity:.7}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);overflow:hidden;font-family:var(--font-jp);-webkit-user-select:none;user-select:none;touch-action:none}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;background:var(--bg)}
+a{color:var(--accent-hi)}
+
+/* ---- HUD（左上: 常時ダークガラスパネル → 空色に依存しない視認性） ---- */
+#hud{position:fixed;left:max(16px,env(safe-area-inset-left));top:max(16px,env(safe-area-inset-top));
+  font:13px/1.9 var(--font-hud);font-variant-numeric:tabular-nums;letter-spacing:.02em;color:var(--fg);
+  pointer-events:none;white-space:pre;z-index:5;
+  padding:10px 14px 8px 16px;background:rgba(11,11,16,.66);
+  border:1px solid var(--border);border-left:2px solid var(--accent);border-radius:var(--radius);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  text-shadow:0 1px 3px rgba(0,0,0,.6)}
+/* FUIコーナーブラケット */
+#hud::after{content:"";position:absolute;right:-1px;bottom:-1px;width:10px;height:10px;
+  border-right:1px solid var(--border-hi);border-bottom:1px solid var(--border-hi)}
+#hud .lbl{color:var(--muted)}
+
+/* ---- 操作ヒント（下部中央: チップ化） ---- */
+#hint{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);max-width:min(90vw,48em);
+  text-align:center;font:12px/1.7 var(--font-body);color:var(--fg-dim);
+  opacity:0;transition:opacity var(--t-slow) var(--ease);pointer-events:none;z-index:5;
+  padding:6px 14px;background:rgba(11,11,16,.66);border:1px solid var(--border);border-radius:var(--radius);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+#hint.on{opacity:.85}#hint.first.on{opacity:1;color:var(--fg)}
+
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-.overlay{position:fixed;opacity:0;pointer-events:none;transition:opacity .35s var(--ease);z-index:8}
+
+/* ---- オーバーレイ共通 ---- */
+.overlay{position:fixed;opacity:0;pointer-events:none;transition:opacity var(--t-mid) var(--ease);z-index:8}
 .overlay.on{opacity:1;pointer-events:auto}
-#card{left:50%;bottom:56px;transform:translateX(-50%);width:min(40em,calc(100vw - 48px));padding:20px 24px;background:rgba(0,0,0,.82);color:var(--paper);font-size:14px;line-height:1.7;letter-spacing:.01em}
-#card h2{margin:0 0 .4em;font:600 14px/1.5 "IBM Plex Mono",monospace;color:var(--amber)}
-#card p{margin:.3em 0}
-#card .cr{font:11px "IBM Plex Mono",monospace;opacity:.55;margin-top:.8em}
-#card .q button{display:block;width:100%;text-align:left;margin:.25em 0;padding:.3em 0;background:none;border:0;color:var(--paper);font:inherit;cursor:pointer}
-#card .q button.ok{color:var(--amber)}#card .q button.no{color:#777}
-#card a{color:var(--amber)}
-#card.lib{max-height:72vh;overflow-y:auto;scrollbar-width:thin}
-#card h3{margin:.9em 0 .25em;font:600 12px/1.5 "IBM Plex Mono",monospace;color:var(--amber);opacity:.85;letter-spacing:.08em}
-#card .lrow{display:flex;justify-content:space-between;gap:1em;width:100%;margin:.15em 0;padding:.25em .4em;background:rgba(232,163,61,.06);border:0;border-radius:3px;color:var(--paper);font:12px/1.5 "IBM Plex Mono",monospace;text-align:left;cursor:pointer}
-#card .lrow:hover{background:rgba(232,163,61,.18)}
-#card .lrow .n{opacity:.6;white-space:nowrap}
-#card .lnote{font:11px/1.6 "IBM Plex Mono",monospace;opacity:.6;margin:.15em 0}
-#card .ltab{font:12px/1.6 "IBM Plex Mono",monospace;border-collapse:collapse;margin:.3em 0}
-#card .ltab th,#card .ltab td{padding:.1em .8em;border:1px solid rgba(240,240,235,.15);text-align:right}
+
+/* ---- カード（イベント/POI/書庫） ---- */
+#card{left:50%;bottom:92px;transform:translateX(-50%);width:min(44em,calc(100vw - 32px));
+  padding:var(--s4) var(--s5);background:var(--card-glass);color:var(--fg);
+  font:13px/1.75 var(--font-body);letter-spacing:.01em;
+  border:1px solid var(--border);border-radius:var(--radius);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  box-shadow:0 12px 40px rgba(0,0,0,.5)}
+#card h2{margin:0 0 .5em;font:400 15px/1.5 var(--font-hud);color:var(--accent-hi);letter-spacing:.06em;
+  padding-bottom:.4em;border-bottom:1px solid var(--border)}
+#card p{margin:.35em 0}
+#card .cr{font:11px var(--font-body);color:var(--muted);margin-top:var(--s3)}
+#card .q button{display:block;width:100%;text-align:left;margin:.2em 0;padding:var(--s1) var(--s2);
+  background:none;border:0;border-radius:var(--s1);color:var(--fg);font:inherit;cursor:pointer;
+  transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
+#card .q button:hover{background:rgba(59,130,246,.14)}
+#card .q button.ok{color:var(--accent-hi)}#card .q button.no{color:var(--muted)}
+#card a{color:var(--accent-hi);text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(96,165,250,.4)}
+#card a:hover{text-decoration-color:var(--accent-hi)}
+#card.lib{max-height:72vh;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border-hi) transparent}
+#card h3{margin:var(--s4) 0 var(--s1);font:400 12px/1.5 var(--font-hud);color:var(--muted);letter-spacing:.14em;text-transform:uppercase}
+#card .lrow{display:flex;justify-content:space-between;align-items:center;gap:var(--s3);width:100%;margin:.12em 0;
+  padding:var(--s1) var(--s2);background:rgba(59,130,246,.05);border:1px solid transparent;border-radius:var(--s1);
+  color:var(--fg);font:12px/1.6 var(--font-body);text-align:left;cursor:pointer;
+  transition:background var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease)}
+#card .lrow:hover,#card .lrow:focus-visible{background:rgba(59,130,246,.16);border-color:rgba(59,130,246,.4)}
+#card .lrow .n{color:var(--muted);white-space:nowrap}
+#card .lnote{font:11px/1.6 var(--font-body);color:var(--muted);margin:.15em 0}
+#card .ltab{font:12px/1.6 var(--font-body);border-collapse:collapse;margin:var(--s2) 0}
+#card .ltab th,#card .ltab td{padding:.15em .8em;border:1px solid var(--border);text-align:right}
+#card .ltab th{color:var(--muted);font-weight:400}
 #card .ltab th:first-child,#card .ltab td:first-child{text-align:left}
-#viewer{inset:0;background:rgba(0,0,0,.94);display:flex;flex-direction:column;align-items:center;justify-content:center}
-#viewer img{max-width:92vw;max-height:80vh;object-fit:contain;image-rendering:auto}
-#viewer .cap{margin-top:14px;font:12px/1.6 "IBM Plex Mono",monospace;text-align:center;max-width:90vw}
-#viewer .cr{opacity:.55;font-size:11px}
-#icons{position:fixed;right:max(20px,env(safe-area-inset-right));bottom:44px;display:flex;gap:6px;z-index:6}
-#icons button{width:36px;height:36px;padding:7px;background:none;border:0;opacity:.4;cursor:pointer;transition:opacity .25s var(--ease)}
-#icons button:hover,#icons button:focus-visible{opacity:1}
-#icons button:focus-visible,#intro .opt:focus-visible,#card button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
-#icons svg{width:100%;height:100%;fill:none;stroke:var(--amber);stroke-width:1.5;stroke-linecap:round}
-#icons button.active{opacity:1}
-body.sky-white #icons svg{stroke:#9a6417}
-#foot{position:fixed;left:0;right:0;bottom:8px;text-align:center;font-size:10px;opacity:.55;z-index:4;color:var(--paper);text-shadow:0 1px 3px rgba(0,0,0,.9)}
-body.sky-white #foot{color:var(--ink);text-shadow:0 1px 4px rgba(240,240,235,.75)}
-#foot a{color:inherit}
-#intro{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#000;color:var(--paper);font:15px/2 "IBM Plex Mono",monospace;z-index:20;transition:opacity .6s var(--ease)}
+#card .evrow span:first-child{flex:1;text-align:left}
+#card .evrow .n{color:var(--muted);font-size:11px}
+
+/* ---- 画像ビューア ---- */
+#viewer{inset:0;background:rgba(5,5,9,.94);display:flex;flex-direction:column;align-items:center;justify-content:center}
+#viewer img{max-width:92vw;max-height:78vh;object-fit:contain;image-rendering:auto;
+  border:1px solid var(--border);border-radius:var(--radius)}
+#viewer .cap{margin-top:var(--s3);font:12px/1.7 var(--font-body);text-align:center;max-width:90vw;color:var(--fg-dim)}
+#viewer .cr{color:var(--muted);font-size:11px}
+
+/* ---- 右端アイコンボタン列（ミニマップとスライダーの間、縦中央） ---- */
+#icons{position:fixed;right:max(16px,env(safe-area-inset-right));top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:var(--s2);z-index:6}
+#icons button{width:44px;height:44px;padding:9px;background:rgba(11,11,16,.66);border:1px solid var(--border);
+  border-radius:var(--radius);opacity:.75;cursor:pointer;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  transition:opacity var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
+#icons button:hover{opacity:1;border-color:var(--accent);box-shadow:0 0 12px rgba(59,130,246,.35)}
+#icons button:active{transform:scale(.94)}
+#icons button.active{opacity:1;border-color:var(--accent);box-shadow:0 0 10px rgba(59,130,246,.3) inset}
+#icons button:focus-visible{outline:2px solid var(--ring);outline-offset:2px;opacity:1}
+#icons svg{width:100%;height:100%;fill:none;stroke:var(--accent-hi);stroke-width:1.5;stroke-linecap:round}
+
+/* ---- フッター ---- */
+#foot{position:fixed;left:0;right:0;bottom:6px;text-align:center;font:10px var(--font-jp);color:var(--muted);z-index:4;
+  text-shadow:0 1px 3px rgba(0,0,0,.9)}
+#foot a{color:var(--fg-dim)}
+
+/* ---- 起動イントロ（ブートシーケンス） ---- */
+#intro{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;
+  background:var(--bg);color:var(--fg);font:15px/2 var(--font-hud);letter-spacing:.04em;z-index:20;
+  transition:opacity var(--t-slow) var(--ease)}
+#intro::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(248,250,252,.012) 3px 4px)}
 #intro.off{opacity:0;pointer-events:none}
-#intro .opt{cursor:pointer;opacity:.6;padding:0 .5em}#intro .opt.sel,#intro .opt:hover{opacity:1;color:var(--amber)}
+#intro .opt{cursor:pointer;opacity:.6;padding:0 .5em;transition:color var(--t-fast) var(--ease),opacity var(--t-fast) var(--ease)}
+#intro .opt.sel,#intro .opt:hover{opacity:1;color:var(--accent-hi)}
+
+/* ---- モバイル: バーチャルスティック / ホップ ---- */
 #stick,#hopbtn{display:none}
 @media (pointer:coarse){
-  #stick{display:block;position:fixed;left:28px;bottom:48px;width:110px;height:110px;border:1px solid rgba(240,240,235,.25);border-radius:50%;z-index:6}
-  #knob{position:absolute;left:35px;top:35px;width:40px;height:40px;border-radius:50%;background:rgba(232,163,61,.35)}
-  #hopbtn{display:block;position:fixed;right:28px;bottom:104px;width:56px;height:56px;border-radius:50%;border:1px solid rgba(232,163,61,.6);background:none;color:var(--amber);font-size:20px;z-index:6}
-  #hud{font-size:12px}
-  #icons button{width:44px;height:44px}
+  #stick{display:block;position:fixed;left:max(24px,env(safe-area-inset-left));bottom:64px;width:110px;height:110px;
+    border:1px solid var(--border-hi);border-radius:50%;z-index:6;background:rgba(11,11,16,.3);
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  #knob{position:absolute;left:35px;top:35px;width:40px;height:40px;border-radius:50%;
+    background:rgba(59,130,246,.4);border:1px solid var(--accent)}
+  #hopbtn{display:block;position:fixed;right:max(24px,env(safe-area-inset-right));bottom:120px;width:56px;height:56px;
+    border-radius:50%;border:1px solid var(--accent);background:rgba(11,11,16,.66);color:var(--accent-hi);font-size:20px;z-index:6;
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  #hud{font-size:12px;padding:8px 12px 6px 14px}
 }
-@media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}
 
-/* ---- P1-1 時間スライダー（画面下部に常設） ---- */
-#tslider{position:fixed;left:0;right:0;bottom:34px;height:44px;z-index:7;padding:0 max(18px,env(safe-area-inset-left)) max(18px,env(safe-area-inset-right));cursor:pointer;touch-action:none;opacity:.92;transition:opacity .3s var(--ease)}
+/* ---- P1-1 時間スライダー（FUI: 細線 + グローハンドル） ---- */
+#tslider{position:fixed;left:0;right:0;bottom:34px;height:44px;z-index:7;
+  padding:0 max(18px,env(safe-area-inset-left)) max(18px,env(safe-area-inset-right));
+  cursor:pointer;touch-action:none;opacity:.94;transition:opacity var(--t-mid) var(--ease)}
 #tslider.off{opacity:.25;pointer-events:none;cursor:default}
-#tslider .ts-track{position:absolute;left:max(18px,env(safe-area-inset-left));right:max(18px,env(safe-area-inset-right));top:18px;height:4px;border-radius:2px;background:rgba(232,163,61,.35)}
-#tslider .ts-fill{position:absolute;left:max(18px,env(safe-area-inset-left));top:18px;height:4px;border-radius:2px;background:var(--amber);pointer-events:none}
-#tslider .ts-handle{position:absolute;top:20px;width:3px;height:18px;transform:translate(-50%,-50%) translateY(-9px);background:var(--paper);border-radius:2px;box-shadow:0 0 0 3px rgba(232,163,61,.35);pointer-events:none}
-body.sky-white #tslider .ts-handle{background:var(--ink)}
-#tslider .ts-label{position:absolute;transform:translateX(-50%);top:-2px;font:10px "IBM Plex Mono",monospace;color:var(--amber);white-space:nowrap;opacity:0;transition:opacity .2s}
+#tslider .ts-track{position:absolute;left:max(18px,env(safe-area-inset-left));right:max(18px,env(safe-area-inset-right));
+  top:18px;height:2px;background:var(--border-hi)}
+#tslider .ts-fill{position:absolute;left:max(18px,env(safe-area-inset-left));top:18px;height:2px;
+  background:linear-gradient(90deg,var(--accent),var(--accent-hi));pointer-events:none;
+  box-shadow:0 0 8px rgba(59,130,246,.5)}
+#tslider .ts-handle{position:absolute;top:19px;width:3px;height:20px;transform:translate(-50%,-50%) translateY(-9px);
+  background:var(--fg);border-radius:2px;pointer-events:none;
+  box-shadow:0 0 0 3px rgba(59,130,246,.35),0 0 10px rgba(59,130,246,.6);
+  animation:handlePulse 2.4s var(--ease) infinite}
+@keyframes handlePulse{0%,100%{box-shadow:0 0 0 3px rgba(59,130,246,.3),0 0 8px rgba(59,130,246,.45)}50%{box-shadow:0 0 0 3px rgba(59,130,246,.45),0 0 14px rgba(59,130,246,.8)}}
+#tslider .ts-label{position:absolute;transform:translateX(-50%);top:-4px;font:10px var(--font-hud);color:var(--accent-hi);
+  white-space:nowrap;opacity:0;transition:opacity var(--t-fast) var(--ease);
+  padding:2px 8px;background:rgba(11,11,16,.85);border:1px solid var(--border);border-radius:var(--s1)}
 #tslider.drag .ts-label,#tslider:hover .ts-label{opacity:1}
-#tslider .ts-marks{position:absolute;left:max(18px,env(safe-area-inset-left));right:max(18px,env(safe-area-inset-right));top:16px;height:8px}
-#tslider .ts-mark{position:absolute;top:0;width:8px;height:8px;transform:translateX(-50%);border-radius:50%;background:var(--amber);cursor:pointer;border:1px solid rgba(0,0,0,.5)}
-#tslider .ts-mark:hover{box-shadow:0 0 0 4px rgba(232,163,61,.3)}
-/* ---- P2-2 3Dミニマップ ---- */
-#mmap-small{position:fixed;right:max(16px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));width:148px;height:148px;border-radius:4px;border:1px solid rgba(232,163,61,.4);background:rgba(10,10,12,.08);cursor:pointer;z-index:6;overflow:hidden}
-#mmap-small:hover{border-color:rgba(232,163,61,.9)}
-#mmap-full{position:fixed;inset:0;z-index:7;background:transparent;cursor:grab;touch-action:none}
-#mmap-full .mm-bar{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:10px 18px;font:12px "IBM Plex Mono",monospace;color:var(--fg);pointer-events:none}
-#mmap-full .mm-bar button{pointer-events:auto;background:none;border:1px solid rgba(232,163,61,.5);color:var(--amber);font:14px "IBM Plex Mono",monospace;border-radius:4px;padding:2px 10px;cursor:pointer}
-/* ---- P3-1 帰還ボタン ---- */
-#qbtn{position:fixed;right:max(20px,env(safe-area-inset-right));top:max(176px,calc(env(safe-area-inset-top) + 176px));z-index:6;background:rgba(0,0,0,.55);border:1px solid rgba(232,163,61,.7);color:var(--amber);font:12px "IBM Plex Mono",monospace;padding:8px 14px;border-radius:5px;cursor:pointer}
-#qbtn:hover{background:rgba(232,163,61,.2)}
-/* ---- イベント行 ---- */
-#card .evrow span:first-child{flex:1;text-align:left}
-#card .evrow .n{opacity:.6;font-size:11px}
+#tslider .ts-marks{position:absolute;left:max(18px,env(safe-area-inset-left));right:max(18px,env(safe-area-inset-right));top:15px;height:8px}
+#tslider .ts-mark{position:absolute;top:0;width:8px;height:8px;transform:translateX(-50%) rotate(45deg);
+  background:var(--accent);cursor:pointer;border:1px solid rgba(0,0,0,.5);
+  transition:box-shadow var(--t-fast) var(--ease),background var(--t-fast) var(--ease)}
+#tslider .ts-mark:hover,#tslider .ts-mark:focus-visible{background:var(--accent-hi);box-shadow:0 0 0 4px rgba(59,130,246,.3),0 0 10px rgba(59,130,246,.6)}
+
+/* ---- P2-2 3Dミニマップ（コーナーブラケット付きフレーム） ---- */
+#mmap-small{position:fixed;right:max(16px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));
+  width:148px;height:148px;border-radius:var(--radius);border:1px solid var(--border-hi);
+  background:rgba(10,10,14,.1);cursor:pointer;z-index:6;overflow:hidden;
+  transition:border-color var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
+#mmap-small:hover,#mmap-small:focus-visible{border-color:var(--accent);box-shadow:0 0 14px rgba(59,130,246,.3)}
+#mmap-full{position:fixed;inset:0;z-index:7;background:rgba(5,5,9,.55);cursor:grab;touch-action:none;
+  -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+#mmap-full .mm-bar{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;
+  padding:var(--s3) var(--s5);font:12px var(--font-body);color:var(--fg-dim);pointer-events:none;
+  text-shadow:0 1px 3px rgba(0,0,0,.8)}
+#mmap-full .mm-bar button{pointer-events:auto;background:rgba(11,11,16,.66);border:1px solid var(--border-hi);
+  color:var(--accent-hi);font:14px var(--font-hud);border-radius:var(--s1);padding:2px 10px;cursor:pointer;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  transition:border-color var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
+#mmap-full .mm-bar button:hover{border-color:var(--accent);box-shadow:0 0 10px rgba(59,130,246,.35)}
+
+/* ---- P3-1 帰還ボタン（飛行中: 下部中央、ヒントの上） ---- */
+#qbtn{position:fixed;left:50%;transform:translateX(-50%);bottom:132px;z-index:6;
+  background:rgba(11,11,16,.78);border:1px solid var(--accent);color:var(--accent-hi);
+  font:13px var(--font-hud);letter-spacing:.06em;padding:10px 20px;border-radius:var(--radius);cursor:pointer;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  box-shadow:0 0 16px rgba(59,130,246,.3);
+  transition:background var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
+#qbtn:hover,#qbtn:focus-visible{background:rgba(59,130,246,.24);box-shadow:0 0 20px rgba(59,130,246,.55)}
+#qbtn:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+
+/* ---- キーボードフォーカス（共通） ---- */
+button:focus-visible,a:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+#card button:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+
+/* ---- 低い画面（横置き等）: アイコン列を横並びに ---- */
+@media (max-height:520px){
+  #icons{flex-direction:row;top:auto;bottom:92px;transform:none}
+}
+
+/* ---- リダクションモーション ---- */
+@media (prefers-reduced-motion:reduce){
+  *{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
+  #tslider .ts-handle{animation:none}
+}
 @media (pointer:coarse){
-  #mmap-small{width:104px;height:104px;border-radius:4px}
+  #mmap-small{width:104px;height:104px}
   #tslider{bottom:38px;height:48px}
+  #qbtn{bottom:144px}
 }

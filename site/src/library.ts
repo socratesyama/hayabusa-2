@@ -99,9 +99,9 @@ export class Library {
     const maraMin = Math.min(...mc.mara_K), maraMax = Math.max(...mc.mara_K);
     const hourLabels = [0, 6, 12, 18].map(h => `<text x="${X(h / 24 * (n - 1))}" y="${H - 6}" font-size="9" fill="#999" text-anchor="middle">${h}h</text>`).join('');
     el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:420px">
-      <polyline points="${pts}" fill="none" stroke="#E8A33D" stroke-width="1.6"/>
+      <polyline points="${pts}" fill="none" stroke="#60A5FA" stroke-width="1.6"/>
       <line x1="${pad}" y1="${Y(maraMax)}" x2="${W - pad}" y2="${Y(maraMax)}" stroke="#7FB4D9" stroke-dasharray="3 3"/><line x1="${pad}" y1="${Y(maraMin)}" x2="${W - pad}" y2="${Y(maraMin)}" stroke="#7FB4D9" stroke-dasharray="3 3"/>
-      <line x1="${nowX}" y1="${pad - 8}" x2="${nowX}" y2="${H - pad}" stroke="#F0F0EB" stroke-width="1" opacity=".6"/>
+      <line x1="${nowX}" y1="${pad - 8}" x2="${nowX}" y2="${H - pad}" stroke="#F8FAFC" stroke-width="1" opacity=".6"/>
       ${hourLabels}</svg>
       <p class="lnote">${lang === 'ja' ? `緯度${this.env.lat().toFixed(0)}°・TI 300・太陽赤緯${T.subsolar_lat_deg[decI]}°のモデル曲線（*D）。青破線=MARA実測レンジ(${maraMin.toFixed(0)}–${maraMax.toFixed(0)}K)、白線=現在の地方時。${esc(mc.note)}（MARA比較: モデル${mc.model_K_lat20_ti300.join('/')}K）` : `model curve at lat ${this.env.lat().toFixed(0)}°, TI 300 (*D). blue dashed = MARA measured ${maraMin.toFixed(0)}–${maraMax.toFixed(0)}K; white line = current local time. ${esc(mc.note)}`}</p>`;
   }
