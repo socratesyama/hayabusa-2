@@ -1,12 +1,14 @@
-import { t, lang } from './i18n';
+import { lang } from './i18n';
 import { credit, AssetKind } from './credits';
 const $ = (id: string) => document.getElementById(id)!;
 const esc = (s: string) => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
 export type Mode = 0 | 1 | 2; // のんびり / じっくり / せんもん
 
 export class Hud {
-  private l = [$('h1'), $('h2'), $('h3')]; private cache = ['', '', ''];
+  private l = [$('h1'), $('h2'), $('h3'), $('h4')]; private cache = ['', '', '', ''];
   set(i: number, s: string) { if (this.cache[i] !== s) { this.cache[i] = s; this.l[i].textContent = s; } }
+  /** HTML可（地球方向の回転矢印など）。内容が変わったときだけ再描画 */
+  setHtml(i: number, html: string) { if (this.cache[i] !== html) { this.cache[i] = html; this.l[i].innerHTML = html; } }
   announce(s: string) { $('live').textContent = s; }
 }
 export class Hint {
@@ -33,16 +35,7 @@ export class Viewer {
     const it = this.items[this.i];
     this.el.innerHTML = `<img alt="${esc(it.caption)}" src="${esc(it.src)}"><div class="cap">${esc(it.caption)}<div class="cr">${esc([credit(it.kind), it.credit2 ?? ''].filter(Boolean).join(' / '))}${this.items.length > 1 ? `　(${this.i + 1}/${this.items.length} ←→)` : ''}</div></div>`; }
 }
-export function pickMode(): Promise<Mode> {
-  return new Promise(res => {
-    const el = $('intro'); const lbl = t().modes; let sel = 1;
-    const render = () => { el.querySelectorAll('.opt').forEach((o, i) => o.classList.toggle('sel', i === sel)); };
-    el.innerHTML += `<div id="modes" role="listbox" aria-label="mode">${lbl.map((m, i) => `<div class="opt" role="option" tabindex="0" data-i="${i}">${m}</div>`).join('')}</div>`;
-    const done = (m: number) => { window.removeEventListener('keydown', kd); res(m as Mode); };
-    const kd = (e: KeyboardEvent) => { if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { sel = (sel + 1) % 3; render(); } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { sel = (sel + 2) % 3; render(); } else if (e.key === 'Enter' || e.key === ' ') done(sel); };
-    window.addEventListener('keydown', kd); el.querySelectorAll('.opt').forEach(o => o.addEventListener('click', () => done(+(o as HTMLElement).dataset.i!))); render();
-  });
-}
+/** P1-6: 起動時のモード選択は廃止。モードは M キー / 書庫内ボタンで切替（main.ts setMode）。 */
 export const Intro = {
   el: () => $('intro'),
   line(s: string) { const e = $('intro'); let l = e.querySelector('.line') as HTMLElement; if (!l) { l = document.createElement('div'); l.className = 'line'; e.prepend(l); } l.textContent = s; },

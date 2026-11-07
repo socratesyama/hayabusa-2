@@ -1,16 +1,14 @@
 // データ書庫 (§4.13) — every dataset shipped in the repo is reachable from here:
-// ONC gallery (783 imgs, 15 folders), ONC l2c terrain images, MASCAM 67 frames,
-// MARA thermal model curves (D) with the MARA comparison, sample particles,
-// gravity model parameters, and license/credit notices. Nothing is invented;
-// folders without coordinates are labeled as such.
+// ONC l2c terrain images, MASCAM 67 frames, MARA thermal model curves (D) with
+// the MARA comparison, sample particles, gravity model parameters, mode switch
+// and license/credit notices. P1-6: ONC ギャラリー（783枚）はイベントメニューの
+// 「関連画像」に統合し、書庫からの単独導線は廃止（データ自体は events.ts 経由で使用）。
 import { credit } from './credits';
 import { Viewer, Card, esc } from './ui';
 import { lang } from './i18n';
 import { getJSON, url } from './data';
 
 export interface LibData {
-  gallery: any[];            // world.gallery rows {id,folder,lat,lon,date,event}
-  locmap: any;               // image_location_map (event_level_map)
   l2c: any[];                // world.l2c rows
   mascam: any[];             // mascam_manifest.images
   samples: any;              // samples_metadata.json
@@ -22,6 +20,7 @@ export interface LibData {
 export interface LibEnv {
   viewer: Viewer; card: Card;
   lat: () => number; localHour: () => number; subsolarLat: () => number;
+  mode?: () => number; onMode?: (m: number) => void;
 }
 export class Library {
   private d!: LibData; private env!: LibEnv; open_ = false;
@@ -29,10 +28,10 @@ export class Library {
     const [temp, lic, g763, g340] = await Promise.all([
       getJSON('data/temperature_curves.json'), getJSON('data/license_registry.json'),
       getJSON('data/gravity_763.json'), getJSON('data/gravity_340.json')]);
-    this.d = { gallery: [], locmap: null, l2c: [], mascam: [], samples: null, temp, grav: { '763': g763, '340': g340 }, lic, surfacePoints: null };
+    this.d = { l2c: [], mascam: [], samples: null, temp, grav: { '763': g763, '340': g340 }, lic, surfacePoints: null };
   }
   /** called from main once world is built */
-  attach(gallery: any[], l2c: any[], mascam: any[], samples: any, sp: any, locmap: any) { this.d.gallery = gallery; this.d.l2c = l2c; this.d.mascam = mascam; this.d.samples = samples; this.d.surfacePoints = sp; this.d.locmap = locmap; }
+  attach(l2c: any[], mascam: any[], samples: any, sp: any) { this.d.l2c = l2c; this.d.mascam = mascam; this.d.samples = samples; this.d.surfacePoints = sp; }
   get isOpen() { return this.open_; }
   get data() { return this.d; }
   /** sample-particle detail card (also linked from the TD1/TD2 POI cards) */
@@ -44,15 +43,6 @@ export class Library {
   open(env: LibEnv) {
     this.env = env; this.open_ = true; env.card.node.classList.add('lib');
     const d = this.d;
-    const folders: { f: string; date: string; event: string; note?: string }[] = [];
-    const evMap = new Map<string, any>(d.locmap.event_level_map.map((e: any) => [e.gallery_folder, e]));
-    const counts = new Map<string, number>(); for (const g of d.gallery) counts.set(g.folder, (counts.get(g.folder) ?? 0) + 1);
-    for (const f of [...counts.keys()].sort()) {
-      const e = evMap.get(f);
-      folders.push(e ? { f, date: e.date_utc ?? '', event: e.event ?? '', note: e.target_latitude_deg == null ? e.location_note : undefined }
-        : { f, date: `${f.slice(3, 7)}-${f.slice(7, 9)}-${f.slice(9, 11)}`, event: lang === 'ja' ? '全体観測運用（位置情報なし）' : 'global observation ops (no location data)', note: lang === 'ja' ? '画像の撮影位置データなし（到着・初期観測期の運用画像）' : 'no per-image location (arrival / early ops)' });
-    }
-    const galRows = folders.map(x => `<button class="lrow" data-gal="${esc(x.f)}"><span>${esc(x.date)}　${esc(x.event)}</span><span class="n">${counts.get(x.f)}${lang === 'ja' ? '枚' : ' imgs'}</span></button>${x.note ? `<p class="lnote">${esc(x.note)}</p>` : ''}`).join('');
     const l2cRows = d.l2c.map((x: any, i: number) => `<button class="lrow" data-l2c="${i}"><span>ONC l2c ${esc(x.id)}</span><span class="n">${x.lat != null ? `${x.lat.toFixed(1)}°,${(x.lon ?? 0).toFixed(1)}°` : '—'}</span></button>`).join('');
     const masRows = `<button class="lrow" data-mascam="1"><span>MASCAM 67枚（MASCOT 17時間）</span><span class="n">67 imgs</span></button>`;
     const g763 = d.grav['763'], g340 = d.grav['340'];
@@ -64,8 +54,11 @@ export class Library {
       <p class="lnote">${lang === 'ja' ? '多面体(49,152板)重力モデル。3.40hは減速前の高速自転を再現する過去モード(P)。' : 'polyhedron (49,152-plate) gravity; 3.40h = pre-YORP past mode (P)'}</p>`;
     const licRows = d.lic.rules.map((r: any) => `<p class="lnote"><b>${esc(r.id)}</b> ${esc(r.provider)} — ${esc(r.license)}${r.policy_url ? ` <a href="${esc(r.policy_url)}" target="_blank" rel="noopener">policy</a>` : ''}</p>`).join('')
       + d.lic.mandatory_site_notices.map((n: string) => `<p class="lnote">• ${esc(n)}</p>`).join('');
+    const modeNames = lang === 'ja' ? ['のんびり', 'じっくり', 'せんもん'] : ['Relaxed', 'Thorough', 'Expert'];
+    const cur = this.env.mode?.() ?? 1;
+    const modeRows = modeNames.map((m, i) => `<button class="lrow" data-mode="${i}"><span>${esc(m)}</span><span class="n">${i === cur ? '●' : ''}</span></button>`).join('');
     const body = `
-      <h3>${lang === 'ja' ? 'ONC運用画像ギャラリー' : 'ONC gallery'}</h3>${galRows}
+      <h3>${lang === 'ja' ? 'モード（Mキーでも切替）' : 'Mode (also M key)'}</h3>${modeRows}
       <h3>ONC l2c ${lang === 'ja' ? '地形画像' : 'terrain images'}</h3>${l2cRows}
       <h3>MASCAM</h3>${masRows}
       <h3>${lang === 'ja' ? `表面温度モデル（MARA比較）${'*'}` : `Surface temp model (vs MARA)${'*'}`}</h3><div id="tempchart"></div>
@@ -75,22 +68,13 @@ export class Library {
       <div class="cr">${esc(credit('gallery'))} / ${esc(credit('onc'))} / ${esc(credit('mascam'))}</div>`;
     this.env.card.show(lang === 'ja' ? 'データ書庫' : 'Data archive', body);
     this.renderTemp(); this.renderSamples();
-    this.env.card.node.querySelectorAll('[data-gal]').forEach(b => b.addEventListener('click', () => this.openGal((b as HTMLElement).dataset.gal!)));
     this.env.card.node.querySelectorAll('[data-l2c]').forEach(b => b.addEventListener('click', () => this.env.viewer.open(
       this.d.l2c.map((x: any) => ({ src: url(x.jpg), caption: `ONC l2c ${x.id}${x.lat != null ? ` ${x.lat.toFixed(1)}° ${(x.lon ?? 0).toFixed(1)}°` : ''}`, kind: 'onc' as const })), +(b as HTMLElement).dataset.l2c!)));
     this.env.card.node.querySelector('[data-mascam]')?.addEventListener('click', () => this.env.viewer.open(
       this.d.mascam.map((x: any) => ({ src: url(x.png), caption: `MASCAM ${x.id} ${x.phase}${x.led && x.led !== 'NONE' ? ' / LED' : ''} ${x.utc.slice(11, 19)}Z`, kind: 'mascam' as const, certainty: x.certainty })), 0));
+    this.env.card.node.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => { this.env.onMode?.(+(b as HTMLElement).dataset.mode!); b.parentElement!.querySelectorAll('[data-mode] .n').forEach((n) => n.textContent = ''); (b.querySelector('.n') as HTMLElement).textContent = '●'; }));
   }
   close() { this.open_ = false; this.env?.card.node.classList.remove('lib'); }
-  /** open one gallery folder (all images, date-ordered) in the viewer */
-  private openGal(f: string) {
-    const evMap = new Map<string, any>(this.d.locmap.event_level_map.map((e: any) => [e.gallery_folder, e]));
-    const e = evMap.get(f);
-    const date = e?.date_utc ?? `${f.slice(3, 7)}-${f.slice(7, 9)}-${f.slice(9, 11)}`;
-    const g = this.d.gallery.filter(x => x.folder === f);
-    const cap = (x: any) => `${e?.event ?? (lang === 'ja' ? '全体観測運用' : 'global observation ops')} ${date} ${x.id}`;
-    this.env.viewer.open(g.map(x => ({ src: url(`assets/gallery/${x.folder}/${x.id}`), caption: cap(x), kind: 'gallery' as const })), 0);
-  }
   private renderSamples() {
     const el = this.env.card.node.querySelector('#libsamples') as HTMLElement; if (!el) return;
     const s = this.d.samples; const short = (x: string, n: number) => x.length > n ? x.slice(0, n) + '…' : x;

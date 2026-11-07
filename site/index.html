@@ -9,18 +9,21 @@
 </head>
 <body>
 <canvas id="gl" aria-label="リュウグウ表面の3D表示"></canvas>
-<div id="hud" aria-live="off"><div id="h1"></div><div id="h2"></div><div id="h3"></div></div>
+<div id="hud" aria-live="off"><div id="h1"></div><div id="h2"></div><div id="h3"></div><div id="h4"></div></div>
 <div id="live" class="sr" aria-live="polite"></div>
 <div id="hint"></div>
 <div id="card" class="overlay"></div>
 <div id="viewer" class="overlay"></div>
 <div id="intro"></div>
 <div id="icons">
+  <button id="b-ev" aria-label="イベント (V)" title="イベント (V)"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/><circle cx="12" cy="15" r="1.6"/></svg></button>
+  <button id="b-launch" aria-label="離陸モード (L)" title="離陸モード (L)"><svg viewBox="0 0 24 24"><path d="M12 2c3 2 4 6 4 9l4 3v2l-5-2v3l2 2v1l-3-1-3 1v-1l2-2v-3l-5 2v-2l4-3c0-3 1-7 4-9z"/></svg></button>
   <button id="b-sound" aria-label="音 (S)" title="音 (S)"><svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg></button>
   <button id="b-rec" aria-label="記録 (R)" title="記録 (R)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg></button>
   <button id="b-mode" aria-label="モード (M)" title="モード (M)"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
   <button id="b-lib" aria-label="データ書庫 (G)" title="データ書庫 (G)"><svg viewBox="0 0 24 24"><path d="M4 4h6v16H4zM14 4h6v16h-6z"/><path d="M7 8h.01M17 8h.01"/></svg></button>
 </div>
+<button id="qbtn" aria-label="地表に戻る (Q)" title="地表に戻る (Q)" style="display:none">Q　地表に戻る</button>
 <div id="stick" aria-hidden="true"><div id="knob"></div></div>
 <button id="hopbtn" aria-label="ホップ" aria-hidden="true">↑</button>
 <footer id="foot">本サイトはJAXA/ISAS非公式のファンサイトです。データはDARTS等の公開アーカイブに基づく　<a href="./experts.html">専門家の皆さんへ</a></footer>

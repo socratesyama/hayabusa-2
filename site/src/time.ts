@@ -8,6 +8,14 @@ export function utcToEt(ms: number): number {
 }
 export const T_MIN = Date.UTC(2014, 11, 3);
 export const T_MAX_TABLE = Date.UTC(2027, 11, 31);
+/** リュウグウ滞在期間（P1-1）: 到着 2018-06-27 〜 出発 2019-11-13。サイトの時間範囲はこれに限定する。 */
+export const MISSION_T0 = Date.UTC(2018, 5, 27);
+export const MISSION_T1 = Date.UTC(2019, 10, 13);
+/** 起動時の既定時刻: 最後に訪れた時刻（localStorage）なければ到着日 */
+export function initialMissionMs(): number {
+  try { const v = +(localStorage.getItem('ryugu_t') ?? ''); if (v >= MISSION_T0 && v <= MISSION_T1) return v; } catch { /* ignore */ }
+  return MISSION_T0;
+}
 export const fmtJST = (ms: number) => { const d = new Date(ms + 9 * 3600e3); const p = (n: number, l = 2) => String(n).padStart(l, '0'); return `${d.getUTCFullYear()}-${p(d.getUTCMonth() + 1)}-${p(d.getUTCDate())} ${p(d.getUTCHours())}:${p(d.getUTCMinutes())} JST`; };
 export const jstDate = (ms: number) => new Date(ms + 9 * 3600e3).toISOString().slice(0, 10);
 export const jstMs = (s: string) => Date.parse(s.replace(' ', 'T') + '+09:00');

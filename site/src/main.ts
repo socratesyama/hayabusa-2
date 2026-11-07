@@ -2,20 +2,23 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Terrain } from './terrain';
 import { Rocks } from './rocks';
-import { Clock, Sun, utcToEt, fmtJST, jstDate, jstMs, T_MIN } from './time';
+import { Clock, Sun, utcToEt, fmtJST, jstDate, MISSION_T0, MISSION_T1, initialMissionMs } from './time';
 import { getJSON, loadGravity, loadSc, scAtG, GRADE_LABEL, GRADE_LABEL_EN, HeightMap, loadRegistry, url, Gravity, ScTable } from './data';
 import { sampleGravity } from './gravity';
-import { V3, v3, geoToBody, bodyToGeo, bodyToThree, fmtLat, fmtLon, R_MEAN, DEG, hash2, surfDist } from './geo';
+import { V3, v3, geoToBody, bodyToGeo, bodyToThree, fmtLat, fmtLon, R_MEAN, DEG, hash2 } from './geo';
 import { launch, advance, bodyOf, velBodyOf, isEscape, altitude, Orbit, OMEGA_763 } from './physics';
 import { skyFor, applySky, Layer, PAPER } from './sky';
 import { setRegistry, credit, mark } from './credits';
 import { t, lang } from './i18n';
-import { Hud, Hint, Card, Viewer, Intro, pickMode, tierText, Mode, esc } from './ui';
+import { Hud, Hint, Card, Viewer, Intro, tierText, Mode, esc } from './ui';
 import { nearby, quizzesFor, World, Poi } from './search';
 import { Sound } from './audio';
 import { exportSession, Session } from './archive';
 import { MascotReplay, MascotData, SITE, T_SEP, T_END } from './mascot';
 import { Library } from './library';
+import { TimeSlider } from './timeslider';
+import { buildEvents, EventUi, nextEvent, fmtCountdown, REvent } from './events';
+import { MiniMap } from './minimap';
 
 const $ = (id: string) => document.getElementById(id)!;
 const canvas = $('gl') as HTMLCanvasElement;
@@ -28,15 +31,19 @@ addEventListener('resize', resize); resize();
 
 // ---------------- state
 let layer: Layer = 'walk'; let mode: Mode = 1;
-const EYE = 1.5, WALK = 1.4, DASH = 5.0, HOP_H = 0.8, HOP_D = 2.0, HOP_T = 0.6, JUMP_V = 0.30;
+const EYE = 1.5, WALK = 2.6, DASH = 9.0, HOP_H = 0.8, HOP_D = 2.0, HOP_T = 0.6, JUMP_V = 0.30;   // P1-3: 歩行2.6 / ダッシュ9.0 m/s
 const P = { dir: geoToBody(4.3, 206.47, 1) as V3, fwd: [0, 0, 1] as V3, pitch: 0, stand: 0, hop: -1, hopFrom: 0, hopTo: 0, hopDir0: [0, 0, 0] as V3, hopDir1: [0, 0, 0] as V3, dip: 0 };
 let orbit: Orbit | null = null; let pastMode = false;
 const keys = new Set<string>(); let lastInput = performance.now(); const used = new Set<string>(); const hintShown: Record<string, number> = {};
 const session: Session = { callsign: '', start: new Date().toISOString(), track: [], inspected: new Set(), quiz: [] };
 let world: World; let G763!: Gravity, G340!: Gravity, G: Gravity; let sc!: ScTable; let sun!: Sun; let hm!: HeightMap; let terrain!: Terrain; let rocks!: Rocks; let mascot!: MascotReplay;
-let timeline: any; const clock = new Clock(Date.now()); let lastDay = ''; let dayEvent = ''; let ready = false; let rotation: any;
+let timeline: any; const clock = new Clock(initialMissionMs()); let ready = false; let rotation: any;
 let sunLight!: THREE.DirectionalLight; let burst!: THREE.Points; let scMesh: THREE.Object3D | null = null; let scDot!: THREE.Mesh; let starPts!: THREE.Points; let sunDot!: THREE.Mesh; let sunGlow!: THREE.Sprite; let shadow!: THREE.Mesh; let markers!: THREE.Group; let mascotMarker!: THREE.Mesh;
+let earthDot!: THREE.Mesh; let earthHalo!: THREE.Mesh;
 let nearHits: ReturnType<typeof nearby> = []; let mascotImg: HTMLImageElement | null = null; let mascotImgId = '';
+let events: REvent[] = []; let eventUi!: EventUi; let slider!: TimeSlider; let minimap!: MiniMap;
+let skyWhite = 1;            // P1-4: 空の白さ 0..1（1=白い空/歩行の昼, 0=星空）1.5秒で線形遷移
+let compress = 1;            // P1-4: 弾道飛行の無操作時間圧縮（演出E）
 
 function tr(p: V3) { const q = bodyToThree(p); return new THREE.Vector3(q[0], q[1], q[2]); }
 function lookAt(from: V3, fwd: V3, up: V3, pitch: number) {
@@ -61,6 +68,7 @@ async function boot() {
     getJSON('data/mara.json'), getJSON('data/mag.json'), getJSON('data/mascot_position.json'), getJSON('data/ryugu_surface_points.json')]);
   bump(10);
   setRegistry(reg); rotation = rot; sun = new Sun(sunT, rot); hm = hmap; G763 = g763; G340 = g340; G = G763; sc = scT; timeline = tl;
+  clock.tMax = MISSION_T1; clock.set(initialMissionMs());   // P1-1: 滞在期間に限定し、最後に訪れた時刻（なければ到着日）から再開
   const evMap = new Map<string, any>(); for (const e of locmap.event_level_map) evMap.set(e.gallery_folder, e);
   const gl = gal.images.map((g: any) => { const e = evMap.get(g.folder); return { id: g.id, folder: g.folder, lat: e?.target_latitude_deg ?? null, lon: e?.target_longitude_deg ?? null, date: e?.date_utc ?? '', event: e?.event ?? '' }; });
   const geoMap = new Map<string, any>(geo.images.map((x: any) => [x.file, x])); const l2cs = l2c.images.map((x: any) => { const g = geoMap.get(x.id); return { ...x, lat: g?.center_lat, lon: g?.center_lon }; });
@@ -75,10 +83,35 @@ async function boot() {
   terrain = new Terrain(renderer); await terrain.init(hm); scene.add(terrain.group);
   rocks = new Rocks(hm); scene.add(rocks.group);
   mascot = new MascotReplay({ pos: mpos, imgs: mascam.images, mara, mag } as MascotData);
-  library.init().then(() => library.attach(gl, l2cs, mascam.images, samples, sp, locmap)).catch(e => console.warn('library', e));
+  library.init().then(() => library.attach(l2cs, mascam.images, samples, sp)).catch(e => console.warn('library', e));
   buildExtras(); buildDust(); bump(30);
   const loader = new GLTFLoader(); try { const gl2 = await loader.loadAsync(url('assets/hayabusa2_spacecraft.glb')); scMesh = gl2.scene; scMesh.visible = false; scene.add(scMesh); } catch (e) { console.warn('glb', e); }
-  clock.tMax = Date.now(); ready = true; $('intro').querySelectorAll('.line').forEach(() => 0);
+  // P1-2: イベント（時刻は現地太陽時12時、TD1は公表接地時刻）
+  events = buildEvents(ev, locmap, world.pois, sun, TD1_MS, MISSION_T0, MISSION_T1);
+  eventUi = new EventUi(card, viewer, events, gl, {
+    goTo: goToEvent,
+    openGallery: (folders, e2) => eventUi.openGalleryFolders(folders, e2),
+    enterTd1: () => enterTd1(), enterMascot: () => enterMascot(),
+  });
+  slider = new TimeSlider();
+  slider.onSet = ms => { clock.set(ms); clock.running = true; used.add('time'); activity(); };
+  slider.onMarkerClick = id => { eventUi.detail(id); };
+  slider.setMarkers(events.filter(e => e.inRange).map(e => ({ id: e.id, ms: e.ms, label: e.title })));
+  // イベントに紐付かない観測運用フォルダ（データを使い切る: P1-6）
+  const evFolders = new Set(events.flatMap(e => e.gallery));
+  const otherMap: Record<string, string> = ev.other_gallery_mappings ?? {};
+  const allFolders: string[] = [...new Set(gl.map((g: any) => String(g.folder)))] as string[];
+  eventUi.extras = allFolders.filter((f: string) => !evFolders.has(f)).sort().map((f: string) => {
+    const m = evMap.get(f);
+    return { folder: f, date: m?.date_utc ?? `${f.slice(3, 7)}-${f.slice(7, 9)}-${f.slice(9, 11)}`, label: m?.event ?? otherMap[f] ?? (lang === 'ja' ? '観測運用' : 'observation ops') };
+  });
+  // P2-2: 3Dミニマップ
+  minimap = new MiniMap(renderer, card, hm, world.pois, {
+    teleport: (lat, lon) => teleport(lat, lon),
+    openEventFor: (poiId) => { const e = events.find(x => x.poiIds.includes(poiId)); if (e) eventUi.detail(e.id); else { const p = world.pois.find(x => x.id === poiId); if (p) openPoi(p as Poi); } },
+    openPoi: (poiId) => { const p = world.pois.find(x => x.id === poiId); if (p) openPoi(p as Poi); },
+  }, { lat: () => bodyToGeo(P.dir).lat, lon: () => bodyToGeo(P.dir).lon, fwd: () => P.fwd, sunDir: () => sunNow().dir, tex: () => (terrain.mat?.uniforms?.map?.value as THREE.Texture) ?? undefined, bg: () => bgColor });
+  ready = true; $('intro').querySelectorAll('.line').forEach(() => 0);
 }
 
 function buildExtras() {
@@ -95,11 +128,11 @@ function buildExtras() {
   }
   sg.setAttribute('position', new THREE.BufferAttribute(a, 3)); sg.setAttribute('size', new THREE.BufferAttribute(sz, 1)); sg.setAttribute('bri', new THREE.BufferAttribute(br, 1)); sg.setAttribute('tint', new THREE.BufferAttribute(cl, 3));
   starPts = new THREE.Points(sg, new THREE.ShaderMaterial({
-    uniforms: { uPr: { value: Math.min(devicePixelRatio, 2) } },
+    uniforms: { uPr: { value: Math.min(devicePixelRatio, 2) }, uFade: { value: 0 } },
     vertexShader: `attribute float size; attribute float bri; attribute vec3 tint; uniform float uPr; varying float vB; varying vec3 vT;
       void main(){ vB=bri; vT=tint; gl_PointSize=size*uPr; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
-    fragmentShader: `precision highp float; varying float vB; varying vec3 vT;
-      void main(){ float d=length(gl_PointCoord-0.5); float al=smoothstep(0.5,0.12,d)*vB; gl_FragColor=vec4(vT*al,al); }`,
+    fragmentShader: `precision highp float; varying float vB; varying vec3 vT; uniform float uFade;
+      void main(){ float d=length(gl_PointCoord-0.5); float al=smoothstep(0.5,0.12,d)*vB*uFade; gl_FragColor=vec4(vT*al,al); }`,
     transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false
   })); scene.add(starPts);
   sunDot = new THREE.Mesh(new THREE.SphereGeometry(14, 12, 8), new THREE.MeshBasicMaterial({ color: 0xFFF6E8 })); scene.add(sunDot);
@@ -109,6 +142,9 @@ function buildExtras() {
   grd.addColorStop(0, 'rgba(255,250,240,1)'); grd.addColorStop(0.12, 'rgba(255,246,228,0.55)'); grd.addColorStop(0.35, 'rgba(255,240,210,0.16)'); grd.addColorStop(1, 'rgba(255,240,210,0)');
   g2.fillStyle = grd; g2.fillRect(0, 0, 256, 256);
   sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(gc), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })); sunGlow.scale.set(900, 900, 1); scene.add(sunGlow);
+  // P2-1: 地球の点（黒い空で実際の方向に。輝度は演出E）
+  earthDot = new THREE.Mesh(new THREE.SphereGeometry(5, 10, 8), new THREE.MeshBasicMaterial({ color: 0xBFD8F0 })); earthDot.visible = false; scene.add(earthDot);
+  earthHalo = new THREE.Mesh(new THREE.SphereGeometry(13, 10, 8), new THREE.MeshBasicMaterial({ color: 0x9FC7E8, transparent: true, opacity: 0.28 })); earthHalo.visible = false; scene.add(earthHalo);
   shadow = new THREE.Mesh(new THREE.CircleGeometry(0.5, 24), new THREE.MeshBasicMaterial({ color: 0, transparent: true, opacity: 0.7, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, depthWrite: false })); scene.add(shadow);
   scDot = new THREE.Mesh(new THREE.SphereGeometry(1.2, 6, 4), new THREE.MeshBasicMaterial({ color: 0xE8A33D })); scDot.visible = false; scene.add(scDot);
   sunLight = new THREE.DirectionalLight(0xffffff, 3.2); scene.add(sunLight);   // spacecraft only (terrain/rocks use their own N.L shader; no ambient anywhere)
@@ -123,6 +159,7 @@ function buildExtras() {
   // mission markers (§4.10): the markers ARE the mission. First one appears at the player's feet once the callsign is assigned.
   const missions: any[] = (world as any).missions || []; if (missions[0]) for (const id of missions[0].route_pois) { const p = world.pois.find(x => x.id === id); if (p && p.lat != null) {
     const m2 = new THREE.Mesh(new THREE.SphereGeometry(0.4, 10, 8), mat); m2.position.copy(tr(geoToBody(p.lat, p.lon!, hm.radius(p.lat, p.lon!) + 0.4))); markers.add(m2); } }
+  buildJet();
 }
 
 // ---------------- sim step
@@ -138,11 +175,17 @@ function slopeFactor(deg: number) { return deg >= 35 ? 0 : deg <= 0 ? 1 : deg <=
 
 let dashing = false; let flightTarget = 0;
 let farHinted = false;
+/** P1-3: 発射速度を局所脱出速度の75%にクランプ（どこから跳んでも脱出軌道に入らない） */
+function launchClamp(velB: V3): V3 {
+  const g = bodyToGeo(P.dir); const esc = sampleGravity(G, g.lat, g.lon).esc;
+  const cap = 0.75 * esc; const sp = v3.len(velB);
+  return sp > cap ? v3.mul(velB, cap / sp) : velB;
+}
 function startPhysics(velB: V3, why: string) {
   const g0 = groundAt(P.dir); const posB = v3.mul(P.dir, g0 + 0.02); const et = utcToEt(clock.ms);
   orbit = launch(posB, velB, et, G.meta.gm_effective_m3s2, 2 * Math.PI / (G.meta.period_h * 3600)); layer = 'ballistic'; used.add('phys'); P.hop = -1; farHinted = false;
   hud.announce(why);
-  hint.show('飛行中 — Q: 地表に戻る / ホイール: 時間の早送り（弾道は実時間で進みます）', false, 7000);
+  hint.show('飛行中 — Q: 地表に戻る / WASD: 微推力 / 矢印キー: 姿勢制御（無操作5秒で時間圧縮・演出E）', false, 7000);
 }
 /** return to the surface from ballistic flight / orbit (presentation shortcut; the sub-player point) */
 function returnToSurface() {
@@ -160,8 +203,8 @@ function stepWalk(dt: number) {
     f /= Math.max(1, len); s /= Math.max(1, len); used.add('walk'); const spd = (dashing ? DASH : WALK) * slopeFactor(gs.slope); const nd = moveOnSurface(f * spd * dt, s * spd * dt);
     const ng = groundAt(nd), cur = P.stand; const rise = ng - cur; const ns = sampleGravity(G, bodyToGeo(nd).lat, bodyToGeo(nd).lon);
     if (rise > 0.4 || ns.slope >= 35) { /* wall / too steep: stop */ }
-    else if (dashing && rise < -1.0) { // cliff edge while dashing -> physics layer with the real running speed (§4.2 b)
-      P.dir = nd; const fw = v3.norm(v3.sub(P.fwd, v3.mul(P.dir, v3.dot(P.fwd, P.dir)))); P.stand = ng; startPhysics(v3.mul(fw, DASH), 'cliff'); return; }
+    else if (dashing && rise < -1.0) { // cliff edge while dashing -> physics layer with the real running speed (§4.2 b), clamped (P1-3)
+      P.dir = nd; const fw = v3.norm(v3.sub(P.fwd, v3.mul(P.dir, v3.dot(P.fwd, P.dir)))); P.stand = ng; startPhysics(launchClamp(v3.mul(fw, DASH)), 'cliff'); return; }
     else { P.dir = nd; P.fwd = v3.norm(v3.sub(P.fwd, v3.mul(P.dir, v3.dot(P.fwd, P.dir)))); if (Math.floor(performance.now() / 500) !== stepTick) { stepTick = Math.floor(performance.now() / 500); sound.step(300); } }
   }
   // hop (演出): 0.8 m / 2 m / 0.6 s, completes inside the presentation layer
@@ -172,22 +215,62 @@ function stepWalk(dt: number) {
 let stepTick = 0;
 function doHop() { if (P.hop >= 0 || layer !== 'walk') return; used.add('hop'); P.hopDir0 = P.dir; const nd = moveOnSurface(HOP_D, 0); P.hopDir1 = nd; P.hopFrom = P.stand; P.hopTo = groundAt(nd); P.hop = 0; }
 function doPhysJump() { if (layer !== 'walk') return; const up = v3.norm(P.dir); const mov = keys.has('KeyW') || keys.has('ArrowUp') || (joy.active && joy.y < -0.3); const fw = v3.norm(v3.sub(P.fwd, v3.mul(up, v3.dot(P.fwd, up))));
-  startPhysics(mov ? v3.add(v3.mul(fw, DASH), v3.mul(up, JUMP_V)) : v3.mul(up, JUMP_V), mov ? 'dash-jump' : 'jump'); }
+  startPhysics(launchClamp(mov ? v3.add(v3.mul(fw, DASH), v3.mul(up, JUMP_V)) : v3.mul(up, JUMP_V)), mov ? 'dash-jump' : 'jump'); }
+
+/** P3-1: 宇宙空間の自由飛行 — 矢印キーでヨー・ピッチ（WASDは微推力のまま） */
+function steerFlight(dt: number) {
+  const up = v3.norm(P.dir);
+  const yaw = (keys.has('ArrowLeft') ? 1 : 0) - (keys.has('ArrowRight') ? 1 : 0);
+  if (yaw) { const a = -yaw * 0.9 * dt; const f = v3.norm(v3.sub(P.fwd, v3.mul(up, v3.dot(P.fwd, up)))); const r = v3.cross(up, f); P.fwd = v3.norm(v3.add(v3.mul(f, Math.cos(a)), v3.mul(r, Math.sin(a)))); }
+  if (keys.has('ArrowUp')) P.pitch = Math.min(1.4, P.pitch + 0.7 * dt);
+  if (keys.has('ArrowDown')) P.pitch = Math.max(-1.4, P.pitch - 0.7 * dt);
+}
 
 function stepFlight(et: number, dt: number) {
   if (!orbit) return; const surf = (b: V3) => groundAt(b);
-  if (!(isEscape(orbit)) || true) { // thrust: WASD as micro-acceleration (E)
+  { // thrust: WASD as micro-acceleration (E)
     const th = 0.004; let tx = 0, ty = 0; if (keys.has('KeyW')) ty += 1; if (keys.has('KeyS')) ty -= 1; if (keys.has('KeyD')) tx += 1; if (keys.has('KeyA')) tx -= 1;
     if (tx || ty) { const b = bodyOf(orbit); const up = v3.norm(b); const fw = v3.norm(v3.sub(P.fwd, v3.mul(up, v3.dot(P.fwd, up)))); const rt = v3.cross(fw, up);
-      const ab = v3.add(v3.mul(fw, ty * th), v3.mul(rt, tx * th)); const a = -orbit.omega * (orbit.t - orbit.t0), c = Math.cos(-a), s = Math.sin(-a); const ai: V3 = [c * ab[0] - s * ab[1], s * ab[0] + c * ab[1], ab[2]]; orbit.v = v3.add(orbit.v, v3.mul(ai, dt)); } }
-  const hit = advance(orbit, et, surf); const b = bodyOf(orbit); P.dir = v3.norm(b);
+      const ab = v3.add(v3.mul(fw, ty * th), v3.mul(rt, tx * th)); const a = -orbit.omega * (orbit.t - orbit.t0), c = Math.cos(-a), s = Math.sin(-a); const ai: V3 = [c * ab[0] - s * ab[1], s * ab[0] + c * ab[1], ab[2]]; orbit.v = v3.add(orbit.v, v3.mul(ai, dt));
+      jetFX(ai); if (sound.on) sound.thrust(); }
+  }
+  steerFlight(dt);
+  // 時計が T1 で止まっていても実時間では進める（P1-1 の端処理）
+  const etT = Math.max(et, orbit.t + dt);
+  const hit = advance(orbit, etT, surf); const b = bodyOf(orbit); P.dir = v3.norm(b);
   layer = isEscape(orbit) ? 'orbit' : 'ballistic';
-  if (!farHinted && v3.len(b) - groundAt(v3.norm(b)) > 1500) { farHinted = true; hint.show('高度が上がっています — Q: 地表に戻る / ホイール: 時間の早送り', false, 6000); }
+  if (!farHinted && v3.len(b) - groundAt(v3.norm(b)) > 1500) { farHinted = true; hint.show('高度が上がっています — Q: 地表に戻る', false, 6000); }
   if (hit && orbit.landed) {
     const vB = velBodyOf(orbit); const spd = v3.len(vB);
     P.stand = groundAt(P.dir); orbit = null; layer = 'walk'; P.dip = 0.2;
     kickDust(v3.mul(P.dir, P.stand), v3.norm(P.dir), Math.max(0.08, Math.min(1.2, spd)));
   }
+}
+
+// ---------------- thruster jet (E, 演出): 噴射と逆向きに短命な粒子
+let jet!: THREE.Points; let jetT = -1; const JET_N = 40; let jetP: Float32Array; let jetV: Float32Array;
+function buildJet() {
+  const g = new THREE.BufferGeometry(); jetP = new Float32Array(JET_N * 3); jetV = new Float32Array(JET_N * 3);
+  g.setAttribute('position', new THREE.BufferAttribute(jetP, 3));
+  jet = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xF0F0EB, size: 2.5, sizeAttenuation: false, transparent: true, opacity: 0, depthWrite: false }));
+  jet.frustumCulled = false; jet.visible = false; scene.add(jet);
+}
+function jetFX(accBody: V3) {
+  if (!jet) return;
+  const eye = camera.position; const ad = tr(v3.norm(v3.mul(accBody, -1)));   // 噴射は加速と逆方向
+  for (let i = 0; i < JET_N; i++) {
+    jetP[i * 3] = eye.x + (hash2(i, 1, 55) - 0.5) * 0.6; jetP[i * 3 + 1] = eye.y + (hash2(i, 2, 55) - 0.5) * 0.6; jetP[i * 3 + 2] = eye.z + (hash2(i, 3, 55) - 0.5) * 0.6;
+    const sp = 0.6 + hash2(i, 4, 55) * 1.2;
+    jetV[i * 3] = ad.x * sp; jetV[i * 3 + 1] = ad.y * sp; jetV[i * 3 + 2] = ad.z * sp;
+  }
+  jetT = 0; jet.visible = true;
+}
+function stepJet(dt: number) {
+  if (jetT < 0 || !jet) return; jetT += dt;
+  for (let i = 0; i < JET_N * 3; i++) jetP[i] += jetV[i] * dt;
+  (jet.geometry.getAttribute('position') as THREE.BufferAttribute).needsUpdate = true;
+  (jet.material as THREE.PointsMaterial).opacity = Math.max(0, 0.7 * (1 - jetT / 0.9));
+  if (jetT > 0.9) { jetT = -1; jet.visible = false; }
 }
 
 // ---------------- landing dust (E, 演出): low-gravity ballistic puffs — on Ryugu, kicked regolith flies for metres
@@ -225,14 +308,18 @@ function stepDust(dt: number) {
 }
 
 // ---------------- frame
-let prev = performance.now(); let wheelAccum = 0; const bgColor = new THREE.Color();
+let prev = performance.now(); let wheelAccum = 0; const bgColor = new THREE.Color(); const cBlack = new THREE.Color(0x000000); const cPaper = new THREE.Color(PAPER);
 function frame(now: number) {
   requestAnimationFrame(frame); const dt = Math.min(0.1, (now - prev) / 1000); prev = now; if (!ready) return;
-  // time: real time unless in MASCOT replay. Flight is real-time by design (§4.4) — use the wheel to fast-forward.
-  if (layer !== 'mascot') clock.tick(dt);
+  // P1-4: 弾道飛行中の無操作時間圧縮（演出E）。入力があれば実時間に戻る。
+  const idle = layer === 'ballistic' && performance.now() - lastInput > 5000;
+  compress = idle ? Math.min(1500, Math.max(100, compress * Math.pow(2, dt))) : 1;
+  const dtSim = dt * compress;
+  // time: real time unless in MASCOT replay (flight follows the clock; compression above fast-forwards it)
+  if (layer !== 'mascot') clock.tick(dtSim);
   if (layer === 'td1') { if (clock.ms > TD1_B) { clock.set(TD1_B); clock.running = false; } else if (clock.ms < TD1_A) clock.set(TD1_A); }
   const S = sunNow();
-  if (layer === 'walk') { stepWalk(dt); } else if (layer === 'ballistic' || layer === 'orbit') stepFlight(S.et, dt);
+  if (layer === 'walk') { stepWalk(dt); } else if (layer === 'ballistic' || layer === 'orbit') stepFlight(S.et, dtSim);
   else if (layer === 'mascot') { mascotStep(dt); }
   const gp = bodyToGeo(P.dir); terrain.updatePatch(gp.lat, gp.lon); rocks.update(gp.lat, gp.lon, (d, rb) => terrain.dispAt(d, rb)); rocks.setSun(S.dir);
   // camera
@@ -241,12 +328,25 @@ function frame(now: number) {
   else if (layer === 'mascot') { const r = hm.radius(SITE.lat, SITE.lon); eyeB = v3.mul(geoToBody(SITE.lat, SITE.lon, 1), r + 0.1); }
   else { let h = P.stand + EYE - P.dip; if (P.hop >= 0) { const u = P.hop; const base = P.hopFrom + (P.hopTo - P.hopFrom) * u; const arcH = 4 * HOP_H * u * (1 - u); h = base + EYE + arcH; const d = v3.norm(v3.add(v3.mul(P.hopDir0, 1 - u), v3.mul(P.hopDir1, u))); eyeB = v3.mul(d, h); } else eyeB = v3.mul(P.dir, h); }
   lookAt(eyeB!, P.fwd, upV, P.pitch); const cp = camera.position.clone();
-  // sky (single source of truth)
+  // sky (single source of truth) — P1-4: 白⇔黒を1.5秒で線形フェード（星・太陽グロー・地球の点も連動）
   const sElev = v3.dot(S.dir, upV); const mascotDay = layer === 'mascot' && !mascot.isNight();
-  const sky = skyFor(layer, sElev, mascotDay); applySky(sky);
-  scene.background = sky.white ? bgColor.setHex(PAPER) : bgColor.setHex(0x000000); starPts.visible = !sky.white; starPts.position.copy(cp);
-  const sunVis = !sky.white && sElev > 0.02; sunDot.visible = sunVis; sunGlow.visible = sunVis;   // §4.6: no sun in the white sky; hidden below the horizon
+  const sky = skyFor(layer, sElev, mascotDay);
+  const target = sky.white ? 1 : 0;
+  if (skyWhite < target) skyWhite = Math.min(target, skyWhite + dt / 1.5);
+  else if (skyWhite > target) skyWhite = Math.max(target, skyWhite - dt / 1.5);
+  applySky({ white: skyWhite > 0.5 });
+  scene.background = bgColor.lerpColors(cBlack, cPaper, skyWhite);
+  (starPts.material as THREE.ShaderMaterial).uniforms.uFade.value = 1 - skyWhite;
+  starPts.visible = skyWhite < 0.995; starPts.position.copy(cp);
+  const dark = skyWhite < 0.5;
+  const sunVis = dark && sElev > 0.02; sunDot.visible = sunVis; sunGlow.visible = sunVis;
+  (sunGlow.material as THREE.SpriteMaterial).opacity = 1 - skyWhite;
   sunDot.position.copy(cp).addScaledVector(tr(S.dir), 3500); sunGlow.position.copy(sunDot.position);
+  // P2-1: 地球の点（黒い空で実際の方向・距離に）
+  const eB = sun.earthBody(S.et);
+  const eVis = dark && layer !== 'mascot';
+  earthDot.visible = eVis; earthHalo.visible = eVis;
+  if (eVis) { const ep = cp.clone().addScaledVector(tr(eB.dir), 4000); earthDot.position.copy(ep); earthHalo.position.copy(ep); }
   terrain.setSun(S.dir, cp);
   // player shadow (E): along the sun direction from the player's feet
   const showShadow = layer === 'walk' && sElev > 0.03; shadow.visible = showShadow;
@@ -255,12 +355,16 @@ function frame(now: number) {
     shadow.rotateZ(ang); shadow.scale.set(len / 1, 0.5 / 0.5, 1); }
   spacecraft(S.et, gp);
   sunLight.position.copy(tr(S.dir).multiplyScalar(100)); sunLight.target.position.copy(cp);
-  stepDust(dt);
+  stepDust(dt); stepJet(dt);
   if (layer === 'td1') { if (scInfo) camera.lookAt(tr(scInfo.p)); else { camera.lookAt(camera.position.clone().add(tr(v3.norm(P.dir)).multiplyScalar(10))); } }
   td1Burst();
   nearHits = layer === 'walk' ? nearby(world, gp.lat, gp.lon, clock.ms) : [];
-  hudUpdate(S, gp, upV); hints(); renderer.render(scene, camera);
-  if (layer === 'walk' && now - lastTrack > 5000) { lastTrack = now; session.track.push({ t: new Date(clock.ms).toISOString(), lat: gp.lat, lon: gp.lon, layer }); }
+  hudUpdate(S, gp, upV, eB); hints(); renderer.render(scene, camera);
+  minimap.render(dt);   // P2-2: メイン描画後に追描画
+  // P1-1: スライダー同期・飛行中は無効化
+  slider.sync(clock.ms); slider.setEnabled(layer === 'walk');
+  $('qbtn').style.display = (layer === 'ballistic' || layer === 'orbit') ? 'block' : 'none';
+  if (layer === 'walk' && now - lastTrack > 5000) { lastTrack = now; session.track.push({ t: new Date(clock.ms).toISOString(), lat: gp.lat, lon: gp.lon, layer }); try { localStorage.setItem('ryugu_t', String(clock.ms)); } catch { /* ignore */ } }
   const m3 = mascot.active ? mascot.tempK() : null; if (sound.on) sound.field(layer === 'mascot' ? 20 : 10, m3);
 }
 let lastTrack = 0;
@@ -276,34 +380,64 @@ function spacecraft(et: number, gp: { lat: number; lon: number }) {
 }
 let scInfo: { alt: number; dist: number; lat: number; lon: number; grade: number; p: V3 } | null = null;
 const compass = (from: { lat: number; lon: number }, to: { lat: number; lon: number }) => { const y = Math.sin((to.lon - from.lon) * DEG) * Math.cos(to.lat * DEG), x = Math.cos(from.lat * DEG) * Math.sin(to.lat * DEG) - Math.sin(from.lat * DEG) * Math.cos(to.lat * DEG) * Math.cos((to.lon - from.lon) * DEG); const b = (Math.atan2(y, x) / DEG + 360) % 360; return ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][Math.round(b / 45) % 8]; };
+/** 視線方向に対する相対方位（度。0=正面, 90=右）— 地球・はやぶさ2方向矢印用 */
+function relBearing(dirBody: V3, up: V3, fwd: V3): number {
+  let north = v3.norm(v3.sub([0, 0, 1], v3.mul(up, up[2])));
+  if (v3.len(north) < 1e-6) north = v3.norm(v3.sub(fwd, v3.mul(up, v3.dot(fwd, up))));
+  const east = v3.cross(north, up);
+  const azD = Math.atan2(v3.dot(dirBody, east), v3.dot(dirBody, north));
+  const fh = v3.norm(v3.sub(fwd, v3.mul(up, v3.dot(fwd, up))));
+  const azF = Math.atan2(v3.dot(fh, east), v3.dot(fh, north));
+  return (azD - azF) / DEG;
+}
+const ARROWS = ['↑', '↗', '→', '↘', '↓', '↙', '←', '↖'];
+const arrowChar = (deg: number) => ARROWS[((Math.round(deg / 45) % 8) + 8) % 8];
 
-function hudUpdate(S: { et: number; dir: V3; au: number }, gp: { lat: number; lon: number; r: number }, up: V3) {
-  const T = t(); const d = jstDate(clock.ms); if (d !== lastDay) { lastDay = d; const ev = findEvents(d); dayEvent = ev ? ` — ${ev}` : ''; }
+function hudUpdate(S: { et: number; dir: V3; au: number }, gp: { lat: number; lon: number; r: number }, up: V3, eB: { dir: V3; au: number }) {
+  const T = t();
   if (layer === 'td1') {
     const gl = scInfo ? (lang === 'ja' ? GRADE_LABEL : GRADE_LABEL_EN)[scInfo.grade] : ''; const atTd = Math.abs(clock.ms - TD1_MS) < 1500;
     hud.set(0, fmtJST(clock.ms).replace(' JST', ':' + String(new Date(clock.ms).getUTCSeconds()).padStart(2, '0') + ' JST') + (atTd ? ' — 接地' : ''));
     hud.set(1, scInfo ? `はやぶさ2 高度 ${scInfo.alt >= 100 ? (scInfo.alt >= 1000 ? (scInfo.alt / 1000).toFixed(2) + 'km' : scInfo.alt.toFixed(0) + 'm') : scInfo.alt.toFixed(1) + 'm'}（中心）　${compass(gp, scInfo)}${gl ? '  [' + gl + ']' : ''}` : `はやぶさ2 ${T.no_data}`);
-    hud.set(2, `姿勢は降下方向に合わせた近似${mark('D')}（CKカーネルなし）　ホイール: 10秒　Shift: 60秒　Space: 再生　E: 終了`); return; }
+    hud.set(2, `姿勢は降下方向に合わせた近似${mark('D')}（CKカーネルなし）　ホイール: 10秒　Shift: 60秒　Space: 再生　E: 終了`); hud.set(3, ''); return; }
   if (layer === 'mascot') {
     const jst = fmtJST(mascot.t) + ''; hud.set(0, jst.replace(' JST', ':' + String(new Date(mascot.t).getUTCSeconds()).padStart(2, '0') + ' JST')); hud.set(1, mascot.position());
     const mc = library.data?.temp?.mara_comparison; const diffs = mc ? mc.model_K_lat20_ti300.map((m: number, i: number) => m - mc.mara_K[i]) : [];
     const cmp = diffs.length ? `　1D熱伝導モデル${mark('D')}は+${Math.min(...diffs).toFixed(0)}〜+${Math.max(...diffs).toFixed(0)}K高い` : '';
-    const pos = mascot.posTopo(); const tk = mascot.tempK(); if (mascot.phase() === 'end') hud.set(2, T.mascot_end); else if (pos && mascot.phase() !== 'surface') { hud.set(2, `高度 ${pos[2].toFixed(1)}m`); } else hud.set(2, tk != null ? `岩温度 ${tk.toFixed(1)}K（MARA BP8-12）${cmp}` : ''); return; }
-  hud.set(0, fmtJST(clock.ms) + dayEvent);
+    const pos = mascot.posTopo(); const tk = mascot.tempK(); if (mascot.phase() === 'end') hud.set(2, T.mascot_end); else if (pos && mascot.phase() !== 'surface') { hud.set(2, `高度 ${pos[2].toFixed(1)}m`); } else hud.set(2, tk != null ? `岩温度 ${tk.toFixed(1)}K（MARA BP8-12）${cmp}` : ''); hud.set(3, ''); return; }
+  // P1-2: 日時 + 次イベントまでのカウントダウン
+  let l0 = fmtJST(clock.ms);
+  const todayEv = events.find(e => jstDate(e.ms) === jstDate(clock.ms));
+  const nx = nextEvent(events, clock.ms);
+  if (todayEv) l0 += ` — 本日: ${todayEv.title}`;
+  else if (nx) l0 += ` — 次: ${nx.title}まで ${fmtCountdown(clock.ms, nx)}`;
+  else l0 += ` — 滞在期間の最終日（${fmtJST(MISSION_T1).slice(0, 10)}出発）`;
+  hud.set(0, l0);
   const elev = (layer === 'walk' ? P.stand : gp.r) - R_MEAN; const ll = `${fmtLat(gp.lat)} ${fmtLon(gp.lon)}  ${T.elev} ${Math.round(elev)}m`; hud.set(1, ll);
-  let l3: string; if ((layer === 'ballistic' || layer === 'orbit') && orbit) { const a = altitude(orbit, groundAt); const spd = v3.len(velBodyOf(orbit)); l3 = `${layer === 'orbit' ? T.esc_orbit : T.ballistic} ${a > 1000 ? (a / 1000).toFixed(1) + 'km' : a.toFixed(0) + 'm'} 速度 ${(spd * 100).toFixed(1)}cm/s（${T.pm}${mark('D')}）`; }
+  let l3: string; if ((layer === 'ballistic' || layer === 'orbit') && orbit) { const a = altitude(orbit, groundAt); const spd = v3.len(velBodyOf(orbit));
+    l3 = `${layer === 'orbit' ? T.esc_orbit : T.ballistic} ${a > 1000 ? (a / 1000).toFixed(1) + 'km' : a.toFixed(0) + 'm'} 速度 ${(spd * 100).toFixed(1)}cm/s（${T.pm}${mark('D')}）`;
+    if (compress > 1.5) l3 += ` 時間圧縮×${Math.round(compress)}（演出E）`; }
   else { const gs = sampleGravity(G, gp.lat, gp.lon); l3 = `${T.gravity} ${(gs.gmag * 1000).toFixed(2)}mm/s²  ${T.escape} ${(gs.esc * 100).toFixed(0)}cm/s${G === G340 ? '  [3.40h]' : ''}`; }
-  if (scInfo) { const gl = (lang === 'ja' ? GRADE_LABEL : GRADE_LABEL_EN)[scInfo.grade]; l3 += `  はやぶさ2 ${scInfo.alt > 1000 ? (scInfo.alt / 1000).toFixed(1) + 'km' : scInfo.alt.toFixed(0) + 'm'} ${compass(gp, scInfo)}${gl ? ' [' + gl + ']' : ''}`; }
+  if (scInfo) { const gl = (lang === 'ja' ? GRADE_LABEL : GRADE_LABEL_EN)[scInfo.grade]; l3 += `  はやぶさ2 ${scInfo.alt > 1000 ? (scInfo.alt / 1000).toFixed(1) + 'km' : scInfo.alt.toFixed(0) + 'm'} ${arrowChar(relBearing(scInfo.p, up, P.fwd))}${gl ? ' [' + gl + ']' : ''}`; }
   else if (clock.ms >= Date.UTC(2018, 5, 27) && clock.ms <= Date.UTC(2019, 10, 19)) l3 += `  はやぶさ2 ${T.no_data}`;
   hud.set(2, l3);
+  // P2-1: 地球の方位・仰角・距離（歩行層で常時。矢印は視線方向からの相対角度）
+  if (layer === 'walk') {
+    const eElev = Math.asin(Math.max(-1, Math.min(1, v3.dot(eB.dir, up)))) / DEG;
+    const km = eB.au * 149597870.7;
+    hud.setHtml(3, `地球 ${arrowChar(relBearing(eB.dir, up, P.fwd))} 仰角${eElev.toFixed(0)}°  ${eB.au.toFixed(2)}AU（${(km / 1e4).toFixed(0)}万km）`);
+  } else hud.set(3, '');
 }
-function findEvents(d: string): string {
-  const out: string[] = []; for (const ph of timeline.phases) for (const e of ph.events) if (e.date === d) out.push(e.event); return out[0] ? out[0].slice(0, 28) : ''; }
 
 // ---------------- idle hints (§5.3.1): flight-control comms, only unused features, max 3 times each
 const HINT_ORDER: [string, number][] = [['time', 0], ['inspect', 1], ['hop', 2], ['phys', 3], ['dash', 4], ['misc', 5]];
 function hints() {
-  if (performance.now() - lastInput < 25000 || card.isOpen || viewer.isOpen || layer !== 'walk' || mode < 0 || hintsOff) { return; }
+  if (card.isOpen || viewer.isOpen || minimap?.open || mode < 0 || hintsOff) { return; }
+  // P1-5: 視点リプレイ地点の近くでは発見性を補強
+  if (layer === 'walk' && (nearHits.some(h => h.id === 'td1') || nearHits.some(h => h.id === 'mascot_landing')) && performance.now() - (hintShown['replay'] ?? 0) > 45000) {
+    hintShown['replay'] = performance.now(); hint.show('E: この場所の視点を体験（TD1降下 / MASCOT リプレイ）'); lastInput = performance.now() - 15000; return;
+  }
+  if (performance.now() - lastInput < 25000 || layer !== 'walk') { return; }
   for (const [k, i] of HINT_ORDER) { if (used.has(k) || (hintShown[k] ?? 0) >= 3) continue; const text = (k === 'inspect' && !nearHits.length) ? null : t().idle[i]; if (!text) continue;
     hint.show(`${session.callsign} — ${text}`); hintShown[k] = (hintShown[k] ?? 0) + 1; lastInput = performance.now() - 15000; return; }
 }
@@ -340,12 +474,38 @@ function libLocalHour() { const S = sunNow(); return sun.localTime(S.et, bodyToG
 function libSubsolarLat() { const S = sunNow(); return Math.asin(Math.max(-1, Math.min(1, S.dir[2]))) / DEG; }
 function openLibrary() {
   if (!library.data) { hint.show('データ書庫を読み込み中…', false, 2000); return; }
-  used.add('misc'); library.open({ viewer, card, lat: () => bodyToGeo(P.dir).lat, localHour: libLocalHour, subsolarLat: libSubsolarLat });
+  used.add('misc'); library.open({ viewer, card, lat: () => bodyToGeo(P.dir).lat, localHour: libLocalHour, subsolarLat: libSubsolarLat, mode: () => mode, onMode: setMode });
 }
-card.onClose = () => { mascotPoi = false; library.close(); };
+card.onClose = () => { mascotPoi = false; library.close(); card.node.classList.remove('lib'); };
 const quizHtml = (q: any) => `<div class="q"><p>${esc(q.question)}</p>${q.choices.map((c: string, i: number) => `<button data-i="${i}">${i + 1}. ${esc(c)}</button>`).join('')}<p class="ex" style="opacity:.0"></p></div>`;
 function answer(q: any, i: number, el: HTMLElement) { const ok = i === q.answer_index; el.classList.add(ok ? 'ok' : 'no'); session.quiz.push({ id: q.id, ok });
   if (ok) { const ex = card.node.querySelector('.ex') as HTMLElement; ex.style.opacity = '1'; ex.textContent = q.explanation; } }
+
+// ---------------- P1-2: イベントへの時間・場所移動（演出E）
+function goToEvent(ev: REvent) {
+  card.hide(); viewer.close(); minimap?.hideModal();
+  if (layer === 'ballistic' || layer === 'orbit') returnToSurface();
+  if (layer === 'mascot') exitMascot();
+  if (layer === 'td1') exitTd1();
+  clock.running = true; clock.set(ev.ms);
+  if (ev.lat != null) {
+    P.dir = geoToBody(ev.lat, ev.lon!, 1); P.stand = groundAt(P.dir); P.hop = -1; orbit = null; layer = 'walk'; P.dip = 0.2;
+    const up = v3.norm(P.dir); const sh = v3.sub(sunNow().dir, v3.mul(up, v3.dot(sunNow().dir, up)));
+    if (v3.len(sh) > 1e-4) P.fwd = v3.norm(sh);   // 現地の昼側を向く
+    P.pitch = 0.1;
+    hint.show(`${ev.title} — ${fmtJST(ev.ms)}（時刻・場所の移動は演出E）`, false, 6000);
+  } else hint.show(`${ev.title} — ${fmtJST(ev.ms)}（時刻移動は演出E）`, false, 6000);
+  used.add('time'); activity();
+}
+/** P2-2: ミニマップからの瞬間移動（演出E） */
+function teleport(lat: number, lon: number) {
+  if (layer === 'ballistic' || layer === 'orbit') returnToSurface();
+  if (layer === 'mascot') exitMascot();
+  if (layer === 'td1') exitTd1();
+  P.dir = geoToBody(lat, lon, 1); P.stand = groundAt(P.dir); P.hop = -1; orbit = null; layer = 'walk'; P.dip = 0.2;
+  hint.show(`${fmtLat(lat)} ${fmtLon(lon)} へ移動しました（演出E）`, false, 4000);
+  activity();
+}
 
 function enterMascot() { card.hide(); layer = 'mascot'; mascot.enter(); clock.running = false; P.pitch = -0.38; hint.show('ホイール: MASCOTの時間を進める / E: 終了', false, 5000); }
 const TD1_MS = Date.UTC(2019, 1, 21, 22, 29, 10), TD1_A = Date.UTC(2019, 1, 20, 23, 17, 48), TD1_B = Date.UTC(2019, 1, 22, 3, 0, 0);
@@ -354,7 +514,7 @@ function enterTd1() {
   card.hide(); layer = 'td1'; orbit = null; P.dir = geoToBody(TD1_SITE.lat, TD1_SITE.lon, 1); P.stand = groundAt(P.dir); P.hop = -1;
   clock.running = false; clock.set(Date.UTC(2019, 1, 21, 22, 19, 0)); hint.show('ホイール: 時間（10秒刻み）/ Space: 再生 / E: 終了　22:29:10 UTC（07:29:10 JST）が接地', false, 7000); used.add('time');
 }
-function exitTd1() { layer = 'walk'; clock.running = true; clock.set(Date.now()); burst.visible = false; P.stand = groundAt(P.dir); }
+function exitTd1() { layer = 'walk'; clock.running = true; clock.set(Math.max(TD1_MS, Math.min(TD1_B, clock.ms))); burst.visible = false; P.stand = groundAt(P.dir); }
 /** touchdown projectile burst (minimal particles, deterministic). t = seconds since 22:29:10 UTC. Effect only; not data. */
 function td1Burst() {
   const dts = (clock.ms - TD1_MS) / 1000; if (layer !== 'td1' || dts < 0 || dts > 8) { burst.visible = false; return; }
@@ -364,7 +524,7 @@ function td1Burst() {
     const q = v3.add(base, v3.add(v3.mul(v3.add(v3.mul(e1, Math.cos(az)), v3.mul(e2, Math.sin(az))), sp * dts), v3.mul(up, vu * dts - 0.5 * 0.0002 * dts * dts))); const th = bodyToThree(q); pa.setXYZ(i, th[0], th[1], th[2]); }
   pa.needsUpdate = true; burst.visible = true; (burst.material as THREE.PointsMaterial).opacity = Math.max(0, 0.9 * (1 - dts / 8));
 }
-function exitMascot() { mascot.exit(); layer = 'walk'; clock.running = true; clock.set(Date.now()); P.dir = geoToBody(SITE.lat, SITE.lon, 1); P.stand = groundAt(P.dir); P.pitch = 0; mascotMarker.visible = true; (document.getElementById('mascot-img'))?.remove(); mascotImg = null; mascotImgId = ''; }
+function exitMascot() { mascot.exit(); layer = 'walk'; clock.running = true; clock.set(Math.max(T_SEP, Math.min(T_END, mascot.t))); P.dir = geoToBody(SITE.lat, SITE.lon, 1); P.stand = groundAt(P.dir); P.pitch = 0; mascotMarker.visible = true; (document.getElementById('mascot-img'))?.remove(); mascotImg = null; mascotImgId = ''; }
 function mascotStep(dt: number) {
   const im = mascot.imageAt(); const id = im?.img.id ?? '';
   if (id !== mascotImgId) { mascotImgId = id; const old = document.getElementById('mascot-img'); old?.remove(); mascotImg = null;
@@ -377,7 +537,8 @@ function mascotCap(text: string, on: boolean) { let c = document.getElementById(
 
 // ---------------- input
 addEventListener('keydown', e => {
-  if (!ready) return; activity(); if (viewer.isOpen) { if (e.key === 'ArrowRight') viewer.step(1); else if (e.key === 'ArrowLeft') viewer.step(-1); else if (e.key === 'Escape' || e.code === 'KeyE') viewer.close(); return; }
+  if (!ready) return; activity(); if (minimap?.open && (e.key === 'Escape' || e.code === 'KeyE')) { minimap.hideModal(); return; }
+  if (viewer.isOpen) { if (e.key === 'ArrowRight') viewer.step(1); else if (e.key === 'ArrowLeft') viewer.step(-1); else if (e.key === 'Escape' || e.code === 'KeyE') viewer.close(); return; }
   if (card.isOpen && /^[1-4]$/.test(e.key)) { (card.node.querySelectorAll('.q button')[+e.key - 1] as HTMLElement)?.click(); return; }
   keys.add(e.code);
   if (e.code === 'KeyE') { if (layer === 'mascot') { exitMascot(); } else if (layer === 'td1') { exitTd1(); } else interact(); }
@@ -386,6 +547,8 @@ addEventListener('keydown', e => {
   if (e.code === 'KeyQ') returnToSurface();
   if (e.code === 'KeyP') { G = G === G340 ? G763 : G340; hint.show(G === G340 ? '過去モード: 自転周期 3.40h（重力表 3.40h）' : '現在: 自転周期 7.63h', false, 3000); }
   if (e.code === 'KeyR') recordNow(); if (e.code === 'KeyS') toggleSound(); if (e.code === 'KeyM') changeMode(); if (e.code === 'KeyG') openLibrary();
+  if (e.code === 'KeyV') eventUi.openList();   // イベントメニュー（Vキー）
+  if (e.code === 'KeyL') launchMode();         // P3-1: 離陸モード（演出E）
   if (e.shiftKey && e.code === 'KeyW') used.add('dash');
 });
 addEventListener('keyup', e => keys.delete(e.code)); addEventListener('blur', () => keys.clear());
@@ -394,17 +557,16 @@ canvas.addEventListener('mousedown', e => { drag = true; lx = e.clientX; ly = e.
 addEventListener('mouseup', () => drag = false);
 addEventListener('mousemove', e => { if (!drag) return; look(e.clientX - lx, e.clientY - ly); lx = e.clientX; ly = e.clientY; });
 function look(dx: number, dy: number) { const up = v3.norm(P.dir); const a = -dx * 0.004; const f = v3.norm(v3.sub(P.fwd, v3.mul(up, v3.dot(P.fwd, up)))); const r = v3.cross(up, f); P.fwd = v3.norm(v3.add(v3.mul(f, Math.cos(a)), v3.mul(r, Math.sin(a)))); P.pitch = Math.max(-1.4, Math.min(1.4, P.pitch - dy * 0.004)); }
-let wheelHinted = false;
-canvas.addEventListener('wheel', e => { e.preventDefault(); activity('time'); const dir = Math.sign(e.deltaY) * -1; // wheel up = forward in time
-  if (!wheelHinted) { wheelHinted = true; hint.show(t().wheel_note, false, 3000); }
-  if (layer === 'mascot') { mascot.scrub(dir * (e.shiftKey ? 3600e3 : 120e3)); return; }
-  if (layer === 'td1') { clock.running = false; clock.jump(dir * (e.shiftKey ? 60e3 : 10e3)); clock.set(Math.max(TD1_A, Math.min(TD1_B, clock.ms))); return; }
-  clock.running = false; const step = e.shiftKey ? 86400e3 : 3600e3; clock.jump(dir * step); clock.running = true; if (layer === 'ballistic' || layer === 'orbit') { /* flight integrates forward on following frames */ } }, { passive: false });
+// ホイール: 時間移動は廃止（P1-1）。MASCOT スクラブと TD1 リプレイのみ残す。
+canvas.addEventListener('wheel', e => { e.preventDefault(); activity();
+  if (layer === 'mascot') { mascot.scrub(Math.sign(e.deltaY) * -1 * (e.shiftKey ? 3600e3 : 120e3)); return; }
+  if (layer === 'td1') { clock.running = false; clock.jump(Math.sign(e.deltaY) * -1 * (e.shiftKey ? 60e3 : 10e3)); clock.set(Math.max(TD1_A, Math.min(TD1_B, clock.ms))); return; }
+}, { passive: false });
 // touch (passive:false so we can preventDefault — skill: threejs touch events)
-const stick = $('stick'), knob = $('knob'); let touchLook = -1, tlx = 0, tly = 0, dateSwipe = -1, dsx = 0;
-canvas.addEventListener('touchstart', e => { e.preventDefault(); activity(); for (const tt of Array.from(e.changedTouches)) { if (tt.clientX > innerWidth / 2 && touchLook < 0) { touchLook = tt.identifier; tlx = tt.clientX; tly = tt.clientY; } else if (tt.clientY < 90 && tt.clientX < innerWidth * 0.6) { dateSwipe = tt.identifier; dsx = tt.clientX; } } }, { passive: false });
-canvas.addEventListener('touchmove', e => { e.preventDefault(); for (const tt of Array.from(e.changedTouches)) { if (tt.identifier === touchLook) { look(tt.clientX - tlx, tt.clientY - tly); tlx = tt.clientX; tly = tt.clientY; } else if (tt.identifier === dateSwipe) { const dx = tt.clientX - dsx; if (Math.abs(dx) > 16) { clock.jump(Math.sign(dx) * 3600e3); dsx = tt.clientX; used.add('time'); } } } }, { passive: false });
-canvas.addEventListener('touchend', e => { for (const tt of Array.from(e.changedTouches)) { if (tt.identifier === touchLook) touchLook = -1; if (tt.identifier === dateSwipe) dateSwipe = -1; } if (!e.touches.length) { /* tap = inspect */ } });
+const stick = $('stick'), knob = $('knob'); let touchLook = -1, tlx = 0, tly = 0;
+canvas.addEventListener('touchstart', e => { e.preventDefault(); activity(); for (const tt of Array.from(e.changedTouches)) { if (tt.clientX > innerWidth / 2 && touchLook < 0) { touchLook = tt.identifier; tlx = tt.clientX; tly = tt.clientY; } } }, { passive: false });
+canvas.addEventListener('touchmove', e => { e.preventDefault(); for (const tt of Array.from(e.changedTouches)) { if (tt.identifier === touchLook) { look(tt.clientX - tlx, tt.clientY - tly); tlx = tt.clientX; tly = tt.clientY; } } }, { passive: false });
+canvas.addEventListener('touchend', e => { for (const tt of Array.from(e.changedTouches)) { if (tt.identifier === touchLook) touchLook = -1; } if (!e.touches.length) { /* tap = inspect */ } });
 canvas.addEventListener('click', e => { if ((e as any).pointerType === 'touch' || matchMedia('(pointer:coarse)').matches) { if (nearHits.length || card.isOpen || viewer.isOpen) interact(); } });
 stick.addEventListener('touchstart', e => { e.preventDefault(); joy.active = true; moveJoy(e.touches[0]); }, { passive: false });
 stick.addEventListener('touchmove', e => { e.preventDefault(); moveJoy(e.touches[0]); }, { passive: false });
@@ -413,17 +575,34 @@ function moveJoy(t0: Touch) { const r = stick.getBoundingClientRect(); const cx 
 const hopbtn = $('hopbtn'); let hopTimer = 0;
 hopbtn.addEventListener('touchstart', e => { e.preventDefault(); if (layer === 'ballistic' || layer === 'orbit') { returnToSurface(); return; } hopTimer = window.setTimeout(() => { hopTimer = -1; doPhysJump(); }, 600); }, { passive: false });
 hopbtn.addEventListener('touchend', e => { e.preventDefault(); if (hopTimer > 0) { clearTimeout(hopTimer); doHop(); } hopTimer = 0; }, { passive: false });
+$('qbtn').addEventListener('click', returnToSurface);
 $('viewer').addEventListener('click', () => viewer.close());
 $('b-sound').addEventListener('click', toggleSound); $('b-rec').addEventListener('click', recordNow); $('b-mode').addEventListener('click', changeMode); $('b-lib').addEventListener('click', openLibrary);
+$('b-ev').addEventListener('click', () => { activity(); eventUi.openList(); });
+$('b-launch').addEventListener('click', launchMode);
 function toggleSound() { const on = sound.toggle(); $('b-sound').classList.toggle('active', on); if (on) hint.show(t().sound_on, false, 4000); }
 function recordNow() { exportSession(session); hint.show(t().rec_saved, false, 2500); }
-async function changeMode() { $('intro').style.display = 'flex'; $('intro').classList.remove('off'); $('intro').querySelector('#modes')?.remove(); mode = await pickMode(); Intro.off(); hintsOff = false; }
+/** P3-1: 離陸モード — 明示的に脱出速度で射出され宇宙空間へ（演出E）。Qでいつでも帰還。 */
+function launchMode() {
+  if (layer !== 'walk') return;
+  const g = bodyToGeo(P.dir); const esc = sampleGravity(G, g.lat, g.lon).esc;
+  used.add('launch'); activity();
+  startPhysics(v3.mul(v3.norm(P.dir), esc * 1.06), '離陸モード');
+  hint.show('離陸モード（演出E）— 脱出速度で射出されました。矢印キー: 姿勢 / WASD: 微推力 / Q: 地表に戻る', false, 8000);
+}
+/** P1-6: モード切替（起動時の選択は廃止。最終値を記憶） */
+function setMode(m: number) {
+  mode = Math.max(0, Math.min(2, Math.round(m))) as Mode; try { localStorage.setItem('ryugu_mode', String(mode)); } catch { /* ignore */ }
+  hint.show(`モード: ${t().modes[m]}`, false, 2500);
+}
+function changeMode() { setMode(((mode + 1) % 3) as Mode); }
 
 // ---------------- start-up
 (async function main() {
   frameStart();
   try { await boot(); } catch (e) { Intro.line('データの読み込みに失敗しました: ' + String(e) + '（npm run precompute を実行しましたか？）'); return; }
-  mode = await pickMode(); document.getElementById('modes')?.remove();
+  try { mode = Math.max(0, Math.min(2, +(localStorage.getItem('ryugu_mode') ?? 1))) as Mode; } catch { mode = 1; }
+  document.getElementById('modes')?.remove();
   // callsign + landing
   let n = 0; try { n = +(localStorage.getItem('ryugu_cs') ?? (Math.floor(hash2(Date.now() % 100000, 1, 5) * 9000) + 1000)); localStorage.setItem('ryugu_cs', String(n)); } catch { n = 4242; }
   session.callsign = `HYB2-WALK-${String(n).padStart(4, '0')}`; const T = t(); const g0 = bodyToGeo(P.dir); const up0 = eyeUp(P.dir);
@@ -433,4 +612,4 @@ async function changeMode() { $('intro').style.display = 'flex'; $('intro').clas
 })();
 function frameStart() { requestAnimationFrame(frame); }
 // debugging / acceptance hooks (read-only state)
-(window as any).__ryugu = { get layer() { return layer; }, get orbit() { return orbit; }, get pois() { return world.pois.map((p: any) => p.id); }, get near() { return nearHits.map((h: any) => h.kind + ':' + h.id); }, get sunDir() { return terrain.mat?.uniforms?.sunDir?.value?.toArray?.() ?? null; }, get camPos() { return camera.position.toArray(); }, get camDir() { const t = new THREE.Vector3(); camera.getWorldDirection(t); return t.toArray(); }, setPast(on: boolean) { G = on ? G340 : G763; }, get past() { return G === G340; }, get patch() { return { half: terrain.patchHalf, lat: terrain.pLat, lon: terrain.pLon }; }, get mat() { const pm = (terrain as any).patchMat; return { useD: terrain.mat?.uniforms?.useD?.value, dmap: terrain.mat?.uniforms?.dmap?.value?.uuid ?? null, dmapImg: terrain.mat?.uniforms?.dmap?.value?.image?.width + 'x' + terrain.mat?.uniforms?.dmap?.value?.image?.height, useDpatch: pm?.uniforms?.useD?.value, dmapPatch: pm?.uniforms?.dmap?.value?.uuid ?? null, dmapPatchSame: pm?.uniforms?.dmap?.value === terrain.mat?.uniforms?.dmap?.value, patchVisible: terrain.patch?.visible, patchVerts: terrain.patch?.geometry?.getAttribute('position')?.count }; }, setD(on: boolean) { terrain.mat.uniforms.useD.value = on ? 1 : 0; (terrain as any).patchMat.uniforms.useD.value = on ? 1 : 0; }, setPatch(v: boolean) { terrain.patch.visible = v; }, setMesh(v: boolean) { terrain.mesh.visible = v; } };
+(window as any).__ryugu = { get layer() { return layer; }, get orbit() { return orbit; }, get pois() { return world.pois.map((p: any) => p.id); }, get near() { return nearHits.map((h: any) => h.kind + ':' + h.id); }, get sunDir() { return terrain.mat?.uniforms?.sunDir?.value?.toArray?.() ?? null; }, get camPos() { return camera.position.toArray(); }, get camDir() { const t = new THREE.Vector3(); camera.getWorldDirection(t); return t.toArray(); }, setPast(on: boolean) { G = on ? G340 : G763; }, get past() { return G === G340; }, get patch() { return { half: terrain.patchHalf, lat: terrain.pLat, lon: terrain.pLon }; }, get mat() { const pm = (terrain as any).patchMat; return { useD: terrain.mat?.uniforms?.useD?.value, dmap: terrain.mat?.uniforms?.dmap?.value?.uuid ?? null, dmapImg: terrain.mat?.uniforms?.dmap?.value?.image?.width + 'x' + terrain.mat?.uniforms?.dmap?.value?.image?.height, useDpatch: pm?.uniforms?.useD?.value, dmapPatch: pm?.uniforms?.dmap?.value?.uuid ?? null, dmapPatchSame: pm?.uniforms?.dmap?.value === terrain.mat?.uniforms?.dmap?.value, patchVisible: terrain.patch?.visible, patchVerts: terrain.patch?.geometry?.getAttribute('position')?.count }; }, setD(on: boolean) { terrain.mat.uniforms.useD.value = on ? 1 : 0; (terrain as any).patchMat.uniforms.useD.value = on ? 1 : 0; }, setPatch(v: boolean) { terrain.patch.visible = v; }, setMesh(v: boolean) { terrain.mesh.visible = v; }, get events() { return events.map(e => e.id); }, get clockMs() { return clock.ms; }, get minimap() { const mm: any = minimap; return { open: mm?.open, mesh: !!mm?.mesh, tex: !!mm?.mat?.uniforms?.map?.value, cam: mm ? mm.camera.position.toArray() : null, fc: mm?.frameCount, canvas: mm ? [renderer.domElement.clientWidth, renderer.domElement.clientHeight, renderer.domElement.width, renderer.domElement.height] : null, meshPos: mm?.mesh ? mm.mesh.position.toArray() : null, meshScale: mm?.mesh ? mm.mesh.scale.toArray() : null, bs: mm?.mesh ? (mm.mesh.geometry.boundingSphere ? [mm.mesh.geometry.boundingSphere.center.toArray(), mm.mesh.geometry.boundingSphere.radius] : null) : null, inScene: mm ? !!mm.scene : false, nKids: mm ? mm.scene.children.length : 0 }; } };

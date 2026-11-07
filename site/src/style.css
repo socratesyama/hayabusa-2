@@ -2,8 +2,8 @@
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:#000;color:var(--paper);overflow:hidden;font-family:"Noto Sans JP",system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none}
 #gl{position:fixed;inset:0;width:100%;height:100%;display:block;background:#000}
-#hud{position:fixed;left:max(24px,env(safe-area-inset-left));top:max(24px,env(safe-area-inset-top));font:13px/1.9 "IBM Plex Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;color:var(--fg);pointer-events:none;white-space:pre;z-index:5;transition:color .3s var(--ease)}
-body.sky-white #hud{color:rgba(28,27,24,.92)}
+#hud{position:fixed;left:max(24px,env(safe-area-inset-left));top:max(24px,env(safe-area-inset-top));font:13px/1.9 "IBM Plex Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;color:var(--fg);pointer-events:none;white-space:pre;z-index:5;transition:color .3s var(--ease);text-shadow:0 1px 4px rgba(0,0,0,.5)}
+body.sky-white #hud{color:rgba(28,27,24,.92);text-shadow:0 1px 4px rgba(240,240,235,.55)}
 #hint{position:fixed;bottom:24px;left:0;right:0;text-align:center;font:13px "IBM Plex Mono",ui-monospace,monospace;opacity:0;transition:opacity .4s var(--ease);color:var(--fg);pointer-events:none;z-index:5}
 body.sky-white #hint{color:var(--ink)}
 #hint.on{opacity:.35}#hint.first.on{opacity:.7}
@@ -52,3 +52,32 @@ body.sky-white #foot{color:var(--ink);text-shadow:0 1px 4px rgba(240,240,235,.75
   #icons button{width:44px;height:44px}
 }
 @media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}
+
+/* ---- P1-1 時間スライダー（画面下部に常設） ---- */
+#tslider{position:fixed;left:0;right:0;bottom:34px;height:44px;z-index:7;padding:0 max(18px,env(safe-area-inset-left)) max(18px,env(safe-area-inset-right));cursor:pointer;touch-action:none;opacity:.92;transition:opacity .3s var(--ease)}
+#tslider.off{opacity:.25;pointer-events:none;cursor:default}
+#tslider .ts-track{position:absolute;left:max(18px,env(safe-area-inset-left));right:max(18px,env(safe-area-inset-right));top:18px;height:4px;border-radius:2px;background:rgba(232,163,61,.35)}
+#tslider .ts-fill{position:absolute;left:max(18px,env(safe-area-inset-left));top:18px;height:4px;border-radius:2px;background:var(--amber);pointer-events:none}
+#tslider .ts-handle{position:absolute;top:20px;width:3px;height:18px;transform:translate(-50%,-50%) translateY(-9px);background:var(--paper);border-radius:2px;box-shadow:0 0 0 3px rgba(232,163,61,.35);pointer-events:none}
+body.sky-white #tslider .ts-handle{background:var(--ink)}
+#tslider .ts-label{position:absolute;transform:translateX(-50%);top:-2px;font:10px "IBM Plex Mono",monospace;color:var(--amber);white-space:nowrap;opacity:0;transition:opacity .2s}
+#tslider.drag .ts-label,#tslider:hover .ts-label{opacity:1}
+#tslider .ts-marks{position:absolute;left:max(18px,env(safe-area-inset-left));right:max(18px,env(safe-area-inset-right));top:16px;height:8px}
+#tslider .ts-mark{position:absolute;top:0;width:8px;height:8px;transform:translateX(-50%);border-radius:50%;background:var(--amber);cursor:pointer;border:1px solid rgba(0,0,0,.5)}
+#tslider .ts-mark:hover{box-shadow:0 0 0 4px rgba(232,163,61,.3)}
+/* ---- P2-2 3Dミニマップ ---- */
+#mmap-small{position:fixed;right:max(16px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));width:148px;height:148px;border-radius:4px;border:1px solid rgba(232,163,61,.4);background:rgba(10,10,12,.08);cursor:pointer;z-index:6;overflow:hidden}
+#mmap-small:hover{border-color:rgba(232,163,61,.9)}
+#mmap-full{position:fixed;inset:0;z-index:7;background:transparent;cursor:grab;touch-action:none}
+#mmap-full .mm-bar{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:10px 18px;font:12px "IBM Plex Mono",monospace;color:var(--fg);pointer-events:none}
+#mmap-full .mm-bar button{pointer-events:auto;background:none;border:1px solid rgba(232,163,61,.5);color:var(--amber);font:14px "IBM Plex Mono",monospace;border-radius:4px;padding:2px 10px;cursor:pointer}
+/* ---- P3-1 帰還ボタン ---- */
+#qbtn{position:fixed;right:max(20px,env(safe-area-inset-right));top:max(176px,calc(env(safe-area-inset-top) + 176px));z-index:6;background:rgba(0,0,0,.55);border:1px solid rgba(232,163,61,.7);color:var(--amber);font:12px "IBM Plex Mono",monospace;padding:8px 14px;border-radius:5px;cursor:pointer}
+#qbtn:hover{background:rgba(232,163,61,.2)}
+/* ---- イベント行 ---- */
+#card .evrow span:first-child{flex:1;text-align:left}
+#card .evrow .n{opacity:.6;font-size:11px}
+@media (pointer:coarse){
+  #mmap-small{width:104px;height:104px;border-radius:4px}
+  #tslider{bottom:38px;height:48px}
+}

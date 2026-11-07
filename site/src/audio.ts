@@ -15,4 +15,9 @@ export class Sound {
     if (!this.on || !this.ctx) return; const c = this.ctx, o = c.createOscillator(), g = c.createGain(); o.type = 'triangle';
     o.frequency.value = 90 + Math.min(400, ti) * 0.6; g.gain.setValueAtTime(0.05, c.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.12); o.connect(g).connect(c.destination); o.start(); o.stop(c.currentTime + 0.14);
   }
+  /** P3-1 スラスター噴射音（E: 演出）。微推力入力中に短いノイズ的パルス */
+  thrust() {
+    if (!this.on || !this.ctx) return; const c = this.ctx, o = c.createOscillator(), g = c.createGain(); o.type = 'sawtooth';
+    o.frequency.value = 65 + Math.random() * 25; g.gain.setValueAtTime(0.018, c.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.16); o.connect(g).connect(c.destination); o.start(); o.stop(c.currentTime + 0.17);
+  }
 }
