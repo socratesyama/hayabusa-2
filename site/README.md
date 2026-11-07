@@ -9,6 +9,10 @@ cd site && npm install && npm run build   # dev: npm run dev
 ```
 `site/public/data` と `site/public/assets` は生成物（.gitignore）。`.github/workflows/pages.yml` が CI でビルドして Pages に配備する。
 
+## Cloudflare Pages（1ファイル25MiB制限）
+- Build command: `bash scripts/build_site.sh`　/　Build output directory: `site/dist`　/　Root directory: リポジトリのルート
+- **リポジトリのルートや `site/public` 以外を公開しない**（ルートには100MiB級の `.tgz`/`.tif` がある）。スクリプトは dist 内の25MiB超ファイルを検出すると失敗する。
+
 ## 実装済み / 未実装 / 未検証
 - 実装: 事前計算（太陽方向・自転・重力表・探査機位置・MASCOT・ONC・温度モデル）、歩行層、物理層（RK4・点質量）、岩の散布、MASCOT 再生、逆視点 TD1（等級表示つき）、検索、出典、アーカイブ出力、専門家ページ。
 - **未検証**: この環境はネットワークが無く three/vite を導入できなかったため、`npm run build` とブラウザ実行は一度も行っていない。型チェックは three をスタブにして通しただけ。
