@@ -9,7 +9,30 @@ const TILE_DIR = 'assets/generated/tiles/01_ONC_v-band_Basemap1';
 const vert = `varying vec3 vP; varying vec3 vN; void main(){ vP=position; vN=normal; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
 const frag = `
 precision highp float; varying vec3 vP; varying vec3 vN;
-uniform sampler2D map; uniform sampler2D nmap; uniform sampler2D dmap; uniform vec3 sunDir; uniform vec3 camPos; uniform float shadowOn; uniform float useNmap; uniform float useD;
+uniform sampler2D map; uniform sampler2D nmap; uniform sampler2D dmap; uniform vec3 sunDir; uniform vec3 camPos; uniform float shadowOn; uniform float useNmap; uniform float useD; uniform float dLevels;
+// --- MASCAM-derived cm-scale detail (§4.6 stage 4, D): 7-level contrast-preserving atlas ---
+// Each level keeps the base grain std; the shader picks the level by screen-space texel density
+// (fwidth of the surface uv), so the grain reads as unresolved regolith speckle at any distance.
+float dTex(vec2 uv, float level){
+  float n = clamp(floor(level), 0.0, dLevels - 1.0);
+  // level k occupies x in [k/dLevels, (k+1)/dLevels); uv is world-derived and unbounded —
+  // RepeatWrapping tiles each level block, so no clamp (a clamp would freeze the grain to one point)
+  vec2 a = vec2((n + uv.x) / dLevels, uv.y);
+  // smooth blend between adjacent levels to avoid visible level bands
+  float f = clamp(level - n, 0.0, 1.0);
+  float n2 = min(n + 1.0, dLevels - 1.0);
+  vec2 b = vec2((n2 + uv.x) / dLevels, uv.y);
+  return mix(texture2D(dmap, a).r, texture2D(dmap, b).r, f);
+}
+float dTexG(vec2 uv, float level){
+  float n = clamp(floor(level), 0.0, dLevels - 1.0);
+  float f = clamp(level - n, 0.0, 1.0);
+  float n2 = min(n + 1.0, dLevels - 1.0);
+  vec2 a = vec2((n + uv.x) / dLevels, uv.y);
+  vec2 b = vec2((n2 + uv.x) / dLevels, uv.y);
+  return mix(texture2D(dmap, a).g, texture2D(dmap, b).g, f);
+}
+
 const float PI=3.14159265;
 vec2 uvOf(vec3 b){ float lon=atan(b.y,b.x); if(lon<0.0) lon+=2.0*PI; float lat=asin(clamp(b.z/length(b),-1.0,1.0)); return vec2(lon/(2.0*PI), 0.5+lat/PI); }
 // --- procedural regolith (deterministic value noise; Class E presentation of surface texture) ---
@@ -20,9 +43,9 @@ float vnoise(vec3 p){ vec3 i=floor(p); vec3 f=fract(p); f=f*f*(3.0-2.0*f);
 float fbm3(vec3 p){ float s=0.0,a=0.5; for(int i=0;i<3;i++){ s+=a*vnoise(p); p=p*2.13+vec3(19.1,7.7,3.3); a*=0.5; } return s; }
 float fbm2(vec3 p){ float s=0.0,a=0.5; for(int i=0;i<2;i++){ s+=a*vnoise(p); p=p*2.13+vec3(19.1,7.7,3.3); a*=0.5; } return s; }
 // --- MASCAM-derived cm-scale detail (§4.6 stage 4, D): tangent-plane projected, mirrored-repeat, 2 scales ---
-float dmapH(vec2 uv){
-  float h1 = texture2D(dmap, uv).r;                                   // ~2.5 m scale (resolved pebble grain at 2-15 m)
-  float h2 = texture2D(dmap, uv * 0.24 + vec2(0.37, 0.71)).r;          // ~10 m scale undulation
+float dmapH(vec2 uv, float level){
+  float h1 = dTex(uv, level);                                   // base level: resolved grain
+  float h2 = dTex(uv * 0.24 + vec2(0.37, 0.71), min(level, dLevels-1.0));  // ~10 m scale undulation
   return h1 + 0.5 * h2;
 }
 void main(){
@@ -34,7 +57,7 @@ void main(){
   if(useNmap>0.5){ vec3 nb = texture2D(nmap, uv).xyz*2.0-1.0; vec3 nt = vec3(nb.x, nb.z, -nb.y); if(length(nb)>0.5) n = normalize(mix(n, normalize(nt), 0.85*(1.0-0.8*det))); }   // near the camera the geometric (patch) normals win
   // near-field regolith detail: albedo mottling + bump, fades out with distance (no far-field aliasing)
   float n0 = 0.5;
-  vec2 duvD = vec2(0.0); float haveD = 0.0; float detD = 0.0;
+  vec2 duvD = vec2(0.0); float haveD = 0.0; float detD = 0.0; float dLvl = 0.0;
   if(det > 0.002){
     vec3 q = vP * 1.7;                            // ~0.6 m base grain
     n0 = fbm3(q);
@@ -54,10 +77,14 @@ void main(){
       duvD = vec2(dot(vP, t1), dot(vP, t2)) / 2.5;
       haveD = 1.0;
       detD = 1.0 - smoothstep(10.0, 45.0, dist);        // pebble-scale grain: visible 2-15 m, gone by ~45 m
+      // level choice: 2.5 m tile -> 256 texels; a texel spans 2.5/256 m on the ground.
+      // Choose the level whose block size (~2^level * 2 texels) stays >= ~2 screen px.
+      float texels = fwidth(duvD.x) * 256.0;            // texels per screen pixel (approx, x only)
+      dLvl = clamp(log2(max(texels, 1.0)) - 1.0, 0.0, dLevels - 1.0);
       float e = 1.0 / 256.0;                            // one texel
-      float h0 = dmapH(duvD);
+      float h0 = dmapH(duvD, dLvl);
       float A = 0.03 * det * detD;                      // relief amplitude (m) — dm-scale microtopography
-      vec3 g = ((dmapH(duvD + vec2(e, 0.0)) - h0) * t1 + (dmapH(duvD + vec2(0.0, e)) - h0) * t2) * (A / (2.5 / 256.0));
+      vec3 g = ((dmapH(duvD + vec2(e, 0.0), dLvl) - h0) * t1 + (dmapH(duvD + vec2(0.0, e), dLvl) - h0) * t2) * (A / (2.5 / 256.0));
       g -= n * dot(g, n);                               // keep the gradient tangent
       n = normalize(n - g);
     }
@@ -76,10 +103,10 @@ void main(){
   if(det > 0.002){
     alb *= mix(1.0, 0.45 + 1.1 * n0, 0.8 * det);
     alb *= mix(1.0, 0.75 + 0.5 * h31(floor(vP * 14.0)), 0.5 * det);  // pebble speckle
-    if(haveD > 0.5) alb *= mix(1.0, 0.65 + 0.70 * texture2D(dmap, duvD).g, 0.9 * detD);  // MASCAM pebble grain ~2.5 m scale
-    if(haveD > 0.5) alb *= mix(1.0, 0.75 + 0.50 * texture2D(dmap, duvD * 4.0 + vec2(0.83, 0.29)).g, 0.8 * (1.0 - smoothstep(1.5, 5.0, dist)));  // MASCAM fine grain ~0.6 m scale (very close)
-    if(haveD > 0.5) alb *= mix(1.0, 0.78 + 0.44 * texture2D(dmap, duvD / 2.8 + vec2(0.61, 0.23)).g, 0.85 * (1.0 - smoothstep(30.0, 120.0, dist)));  // MASCAM mottling ~7 m scale
-    if(haveD > 0.5) alb *= mix(1.0, 0.86 + 0.28 * texture2D(dmap, duvD / 16.0 + vec2(0.11, 0.53)).g, 0.75 * (1.0 - smoothstep(60.0, 220.0, dist)));  // MASCAM mottling ~8 m scale (bridges to the 22 m procedural mottling)
+    if(haveD > 0.5) alb *= mix(1.0, 0.65 + 0.70 * dTexG(duvD, dLvl), 0.9 * detD);  // MASCAM pebble grain ~2.5 m scale (level-matched speckle)
+    if(haveD > 0.5) alb *= mix(1.0, 0.75 + 0.50 * dTexG(duvD * 4.0 + vec2(0.83, 0.29), dLvl), 0.8 * (1.0 - smoothstep(1.5, 5.0, dist)));  // MASCAM fine grain ~0.6 m scale (very close)
+    if(haveD > 0.5) alb *= mix(1.0, 0.78 + 0.44 * dTexG(duvD / 2.8 + vec2(0.61, 0.23), min(dLvl, dLevels - 1.0)), 0.85 * (1.0 - smoothstep(30.0, 120.0, dist)));  // MASCAM mottling ~7 m scale
+    if(haveD > 0.5) alb *= mix(1.0, 0.86 + 0.28 * dTexG(duvD / 16.0 + vec2(0.11, 0.53), min(dLvl, dLevels - 1.0)), 0.75 * (1.0 - smoothstep(60.0, 220.0, dist)));  // MASCAM mottling ~8 m scale (bridges to the 22 m procedural mottling)
   }
   vec3 col = alb * vec3(1.0,0.94,0.9) * on * 1.35;   // slight reddish dark grey (Cb-type)
   gl_FragColor = vec4(pow(col, vec3(1.0/2.2)), 1.0);
@@ -88,7 +115,7 @@ void main(){
 export class Terrain {
   group = new THREE.Group(); mat!: THREE.ShaderMaterial; mesh!: THREE.Mesh; collision?: THREE.Mesh; hm!: HeightMap;
   patch!: THREE.Mesh; private patchMat!: THREE.ShaderMaterial; private patchGeo!: THREE.BufferGeometry;
-  pLat = 1e9; pLon = 1e9; private patchCenter: V3 = [0, 0, 1]; patchHalf = 0;
+  pLat = 1e9; pLon = 1e9; private patchCenter: V3 = [0, 0, 1]; patchHalf = 0; dLevels = 7;
   private static readonly PATCH_SEG = 128; private static readonly PATCH_SPAN = 80;
   private ray = new THREE.Raycaster(); private tex!: THREE.CanvasTexture; ntex?: THREE.Texture;
   constructor(public renderer: THREE.WebGLRenderer) {}
@@ -101,7 +128,7 @@ export class Terrain {
       for (let i = 0; i < p.count; i++) { const x = p.getX(i) * 1000, y = p.getY(i) * 1000, z = p.getZ(i) * 1000; p.setXYZ(i, x, z, -y); }
       g.deleteAttribute('normal'); g.computeVertexNormals(); g.computeBoundingSphere(); return g; };
     this.tex = new THREE.CanvasTexture(await this.composite(1)); this.tex.colorSpace = THREE.SRGBColorSpace; this.tex.anisotropy = 4;
-    this.mat = new THREE.ShaderMaterial({ vertexShader: vert, fragmentShader: frag, uniforms: { map: { value: this.tex }, nmap: { value: null }, dmap: { value: null }, sunDir: { value: new THREE.Vector3(1, 0, 0) }, camPos: { value: new THREE.Vector3() }, shadowOn: { value: 0 }, useNmap: { value: 0 }, useD: { value: 0 } } });
+    this.mat = new THREE.ShaderMaterial({ vertexShader: vert, fragmentShader: frag, uniforms: { map: { value: this.tex }, nmap: { value: null }, dmap: { value: null }, sunDir: { value: new THREE.Vector3(1, 0, 0) }, camPos: { value: new THREE.Vector3() }, shadowOn: { value: 0 }, useNmap: { value: 0 }, useD: { value: 0 }, dLevels: { value: 7 } } });
     this.initPatch();   // after mat: the patch clones it (with polygonOffset) and shares its textures
     // lod3 immediately, then 49k
     const g0 = toThree(await parse('assets/generated/ryugu_lod3_5k.obj')); this.mesh = new THREE.Mesh(g0, this.mat); this.group.add(this.mesh);
@@ -109,11 +136,16 @@ export class Terrain {
     (async () => { try { const g = toThree(await parse('assets/generated/ryugu_collision_15k.obj')); this.collision = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ visible: false })); this.group.add(this.collision); } catch (e) { console.warn('collision', e); } })();
     // normal map + finer tiles in background
     new THREE.TextureLoader().load(url('assets/generated/ryugu_normal_2048.png'), (t: any) => { t.colorSpace = THREE.NoColorSpace; t.wrapS = THREE.RepeatWrapping; this.ntex = t; this.mat.uniforms.nmap.value = t; this.mat.uniforms.useNmap.value = 1; this.patchMat.uniforms.nmap.value = t; this.patchMat.uniforms.useNmap.value = 1; });
-    // MASCAM cm-scale detail grain (§4.6 stage 4): mirrored-repeat = seam-free
+    // MASCAM cm-scale detail grain (§4.6 stage 4): 7-level contrast-preserving
+    // atlas (levels side by side; each level keeps the base grain std so the
+    // speckle stays visible at any distance — a normal mip chain would average
+    // the pixel-uncorrelated MASCAM grain into mush). Mirrored-repeat = seam-free.
     new THREE.TextureLoader().load(url('assets/generated/ryugu_detail_256.png'), (t: any) => {
-      t.colorSpace = THREE.NoColorSpace; t.wrapS = THREE.MirroredRepeatWrapping; t.wrapT = THREE.MirroredRepeatWrapping; t.anisotropy = 8;
-      this.mat.uniforms.dmap.value = t; this.mat.uniforms.useD.value = 1;
-      this.patchMat.uniforms.dmap.value = t; this.patchMat.uniforms.useD.value = 1;
+      t.colorSpace = THREE.NoColorSpace; t.wrapS = THREE.RepeatWrapping; t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8;
+      t.generateMipmaps = false; t.minFilter = THREE.LinearFilter;
+      this.dLevels = Math.max(1, Math.floor((t.image?.width ?? 256) / 256));
+      this.mat.uniforms.dmap.value = t; this.mat.uniforms.useD.value = 1; this.mat.uniforms.dLevels.value = this.dLevels;
+      this.patchMat.uniforms.dmap.value = t; this.patchMat.uniforms.useD.value = 1; this.patchMat.uniforms.dLevels.value = this.dLevels;
     });
     this.composite(2).then(c => { this.swapTex(c); this.composite(3).then(c3 => this.swapTex(c3)).catch(() => 0); }).catch(() => 0);
   }
