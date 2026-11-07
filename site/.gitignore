@@ -1,0 +1,5 @@
+node_modules
+dist
+# build-time outputs (regenerate with `npm run precompute`)
+public/data
+public/assets

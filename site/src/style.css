@@ -1,0 +1,45 @@
+:root{--paper:#F0F0EB;--ink:#1C1B18;--amber:#E8A33D;--ease:cubic-bezier(0.16,1,0.3,1);--fg:rgba(240,240,235,.92)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#000;color:var(--paper);overflow:hidden;font-family:"Noto Sans JP",system-ui,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block;background:#000}
+#hud{position:fixed;left:max(24px,env(safe-area-inset-left));top:max(24px,env(safe-area-inset-top));font:13px/1.9 "IBM Plex Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;color:var(--fg);pointer-events:none;white-space:pre;z-index:5;transition:color .3s var(--ease)}
+body.sky-white #hud{color:rgba(28,27,24,.92)}
+#hint{position:fixed;bottom:24px;left:0;right:0;text-align:center;font:13px "IBM Plex Mono",ui-monospace,monospace;opacity:0;transition:opacity .4s var(--ease);color:var(--fg);pointer-events:none;z-index:5}
+body.sky-white #hint{color:var(--ink)}
+#hint.on{opacity:.35}#hint.first.on{opacity:.7}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.overlay{position:fixed;opacity:0;pointer-events:none;transition:opacity .35s var(--ease);z-index:8}
+.overlay.on{opacity:1;pointer-events:auto}
+#card{left:50%;bottom:56px;transform:translateX(-50%);width:min(40em,calc(100vw - 48px));padding:20px 24px;background:rgba(0,0,0,.82);color:var(--paper);font-size:14px;line-height:1.7;letter-spacing:.01em}
+#card h2{margin:0 0 .4em;font:600 14px/1.5 "IBM Plex Mono",monospace;color:var(--amber)}
+#card p{margin:.3em 0}
+#card .cr{font:11px "IBM Plex Mono",monospace;opacity:.55;margin-top:.8em}
+#card .q button{display:block;width:100%;text-align:left;margin:.25em 0;padding:.3em 0;background:none;border:0;color:var(--paper);font:inherit;cursor:pointer}
+#card .q button.ok{color:var(--amber)}#card .q button.no{color:#777}
+#card a{color:var(--amber)}
+#viewer{inset:0;background:rgba(0,0,0,.94);display:flex;flex-direction:column;align-items:center;justify-content:center}
+#viewer img{max-width:92vw;max-height:80vh;object-fit:contain;image-rendering:auto}
+#viewer .cap{margin-top:14px;font:12px/1.6 "IBM Plex Mono",monospace;text-align:center;max-width:90vw}
+#viewer .cr{opacity:.55;font-size:11px}
+#icons{position:fixed;right:max(20px,env(safe-area-inset-right));bottom:44px;display:flex;gap:6px;z-index:6}
+#icons button{width:36px;height:36px;padding:7px;background:none;border:0;opacity:.4;cursor:pointer;transition:opacity .25s var(--ease)}
+#icons button:hover,#icons button:focus-visible{opacity:1}
+#icons button:focus-visible,#intro .opt:focus-visible,#card button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+#icons svg{width:100%;height:100%;fill:none;stroke:var(--amber);stroke-width:1.5;stroke-linecap:round}
+#icons button.active{opacity:1}
+body.sky-white #icons svg{stroke:#9a6417}
+#foot{position:fixed;left:0;right:0;bottom:8px;text-align:center;font-size:10px;opacity:.35;z-index:4;color:var(--paper)}
+body.sky-white #foot{color:var(--ink)}
+#foot a{color:inherit}
+#intro{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#000;color:var(--paper);font:15px/2 "IBM Plex Mono",monospace;z-index:20;transition:opacity .6s var(--ease)}
+#intro.off{opacity:0;pointer-events:none}
+#intro .opt{cursor:pointer;opacity:.6;padding:0 .5em}#intro .opt.sel,#intro .opt:hover{opacity:1;color:var(--amber)}
+#stick,#hopbtn{display:none}
+@media (pointer:coarse){
+  #stick{display:block;position:fixed;left:28px;bottom:48px;width:110px;height:110px;border:1px solid rgba(240,240,235,.25);border-radius:50%;z-index:6}
+  #knob{position:absolute;left:35px;top:35px;width:40px;height:40px;border-radius:50%;background:rgba(232,163,61,.35)}
+  #hopbtn{display:block;position:fixed;right:28px;bottom:104px;width:56px;height:56px;border-radius:50%;border:1px solid rgba(232,163,61,.6);background:none;color:var(--amber);font-size:20px;z-index:6}
+  #hud{font-size:12px}
+  #icons button{width:44px;height:44px}
+}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}

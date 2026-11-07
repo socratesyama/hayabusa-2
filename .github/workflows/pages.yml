@@ -1,0 +1,28 @@
+name: site
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['site/**', 'tools/**', 'scripts/**', '12_site_data/**']
+permissions: { contents: read, pages: write, id-token: write }
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install numpy pillow
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: bash tools/precompute/run_all.sh
+      - run: cd site && npm install && npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: site/dist }
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: { name: github-pages, url: '${{ steps.d.outputs.page_url }}' }
+    steps:
+      - id: d
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>専門家の皆さんへ — RYUGU 38cm/s</title>
+<style>
+:root{--paper:#F0F0EB;--amber:#E8A33D}
+body{margin:0;background:#000;color:var(--paper);font:15px/1.7 "Noto Sans JP",system-ui,sans-serif;padding:48px 24px 96px}
+main{max-width:46em;margin:0 auto}h1{font:600 16px "IBM Plex Mono",monospace;color:var(--amber)}h2{font:600 14px "IBM Plex Mono",monospace;margin-top:2.4em;color:var(--amber)}
+table{border-collapse:collapse;width:100%;font-size:13px}td,th{border-bottom:1px solid #333;padding:.4em .6em;text-align:left;vertical-align:top}a{color:var(--amber)}code{font-family:"IBM Plex Mono",monospace;font-size:12px}
+li{margin:.35em 0}
+</style></head><body><main>
+<h1>専門家の皆さんへ — 確からしさの開示</h1>
+<p>本サイトは JAXA/ISAS 非公式のファンサイトです。主体験では「推定」「近似」を大きく断らず、小さな記号（† *）で示しています。その意味と根拠はこのページで完結します。<a href="./index.html">サイトへ戻る</a></p>
+
+<h2>1. 確からしさの分類（A〜E）</h2>
+<table><tr><th>クラス</th><th>意味</th><th>例</th><th>表示</th></tr>
+<tr><td>A 実測</td><td>ミッションが直接取得</td><td>ONC画像・SPICE軌道・MARA温度・形状モデル・MASCAM画像</td><td>記号なし</td></tr>
+<tr><td>B 導出</td><td>論文等から導かれた値</td><td>重力表・脱出速度・TD時刻・採取地点座標</td><td>記号なし</td></tr>
+<tr><td>C 補間・生成</td><td>元データからの機械的生成</td><td>タイル・標高マップ・事前計算表</td><td>†</td></tr>
+<tr><td>D 推定</td><td>モデル・仮定を含む</td><td>温度モデル・探査機姿勢・軌道層の点質量近似・岩の散布</td><td>*</td></tr>
+<tr><td>E 演出</td><td>体験のための人工的設定</td><td>歩行速度・ジャンプ初速・ホップ・白い空・音</td><td>初回の1行</td></tr></table>
+
+<h2>2. モデルの限界</h2>
+<ul>
+<li><b>軌道層の点質量近似*</b>：地表より上の重力は GM = 30.0075 m³/s²（重力表のプレート値 Gpotential×半径 の平均）の点質量で計算。プレート表は表面値のみで、多面体重力（Werner &amp; Scheeres 1996）との差は未評価。</li>
+<li><b>探査機位置データの欠損</b>：hpk SPK には 2019-02-20 23:17 〜 2019-02-22 03:00 UTC の欠落があり、第1回タッチダウン（2019-02-21 22:29 UTC）の降下を10秒刻みでは再現できません。image-time の位置（降下中の 22:02〜22:05 UTC と接地後 22:30:53 UTC など）のみが利用可能です。欠損区間は補間せず「データなし」と表示します。</li>
+<li><b>探査機姿勢*</b>：CKカーネル不在のため、機体は地表方向に軸を合わせた近似です。</li>
+<li><b>温度モデル*</b>：1次元熱伝導、ρc=10⁶ J/m³/K 一定、ボンドアルベド 0.014、放射率 0.9。緯度×熱慣性×太陽直下緯度（-8/0/+8°）の格子。傾斜・粗さ・影は未モデル化。MASCOT 地点（緯度-20°、TI=300）でモデルは 209〜327 K、MARA BP8-12 は 184〜308 K で、モデルが約 +19〜25 K 高い。補正は行っていません。UI に数値は出さず、色温度と音で表します。</li>
+<li><b>標高マップ†</b>：<code>ryugu_heightmap_meta.txt</code> に記載の補間統計（補間画素 8,778、最大膨張ステップ 2、最近傍頂点との誤差 中央値 3.01 m・最大 9.29 m）。</li>
+<li><b>l2dbpc 幾何</b>は 4 日分（20180626/0911/1014/1024）のみ。他の日の画像は運用日単位の対応です。</li>
+<li><b>太陽方向</b>：2018-06〜2019-12 は SPK（観測条件CSVと経度差 0.17° 以内）。それ以外は SPK 状態からの二体問題伝播（D、摂動未考慮）。</li>
+<li><b>MASCOT モード</b>：位置履歴は SPK（降下〜静止）で、地表位置は Scholten et al. 2019 の値。タンブリング姿勢は未再構成で、3D カメラは着陸地点に固定。MASCAM 画像は平面表示で 3D 再投影なし。MAG の衝撃は |dB/dt| のしきい値検出の候補です。</li>
+<li><b>脱出速度</b>：<code>sqrt(2×(Gpotential+Rpotential))</code>。重力表（7.63h）全プレートで 34.7〜39.2 cm/s。物理ジャンプの初速 0.30 m/s（E）はこの表では脱出に足りません。</li>
+</ul>
+
+<h2>3. 視覚演出の明細</h2>
+<ul>
+<li>演出層の昼の白い空はE（物理的には空は黒）。物理層・夜は黒。</li>
+<li>岩の散布（D）：Michikami et al. 2019 の統計（サイズ頻度のべき指数 ≈ −2、b/a=0.71、c/a=0.44）に基づく生成。個々の岩の位置は実測ではありません。</li>
+<li>ホップ・演出層の落下（E）：実重力では 0.8 m の跳躍の滞空は数時間、50 cm の落下に約 90 秒かかります。</li>
+<li>影：N·L による面ごとの明暗と、足元の簡易影のみ。地形・岩による投影影（シャドウマップ）は未実装です。</li>
+<li>頂点ディスプレイスメント・MASCAM 由来ディテール法線マップは未実装です。</li>
+</ul>
+
+<h2>4. データとライセンス</h2>
+<p>データは DARTS（JAXA/ISAS）、DLR/CNES/JAXA（MASCOT）等の公開アーカイブに基づきます。クレジットは <code>source_registry.csv</code> から自動表示しています。生成物（タイル・標高・事前計算表）は元データのライセンスを継承します。</p>
+</main></body></html>
