@@ -22,18 +22,21 @@ export class Card {
   show(title: string, bodyHtml: string, creditKind?: AssetKind, extraCredit?: string) {
     const cr = [creditKind ? credit(creditKind) : '', extraCredit ?? ''].filter(Boolean).join(' / ');
     this.el.innerHTML = `<h2>${esc(title)}</h2>${bodyHtml}${cr ? `<div class="cr">${esc(cr)}</div>` : ''}`; this.el.classList.add('on'); this.open_ = true; }
-  hide() { this.el.classList.remove('on'); this.open_ = false; this.onClose?.(); }
+  hide() { this.el.classList.remove('on', 'welcome'); this.open_ = false; this.onClose?.(); }
   get node() { return this.el; }
 }
 export interface ViewItem { src: string; caption: string; kind: AssetKind; credit2?: string; certainty?: string; }
 export class Viewer {
-  private el = $('viewer'); items: ViewItem[] = []; i = 0; isOpen = false;
-  open(items: ViewItem[], i = 0) { this.items = items; this.i = i; this.isOpen = true; this.render(); this.el.classList.add('on'); }
-  close() { this.el.classList.remove('on'); this.isOpen = false; }
+  private el = $('viewer'); items: ViewItem[] = []; i = 0; isOpen = false; private restoreFocus: HTMLElement | null = null;
+  open(items: ViewItem[], i = 0) { this.items = items; this.i = i; this.restoreFocus = document.activeElement as HTMLElement; this.isOpen = true; this.el.setAttribute('role', 'dialog'); this.el.setAttribute('aria-modal', 'true'); this.el.setAttribute('aria-label', '画像ビューア'); this.render(); this.el.classList.add('on'); (this.el.querySelector('.viewer-close') as HTMLButtonElement)?.focus(); }
+  close() { this.el.classList.remove('on'); this.isOpen = false; this.el.removeAttribute('aria-modal'); this.restoreFocus?.focus(); this.restoreFocus = null; }
   step(d: number) { if (!this.items.length) return; this.i = (this.i + d + this.items.length) % this.items.length; this.render(); }
   private render() {
     const it = this.items[this.i];
-    this.el.innerHTML = `<img alt="${esc(it.caption)}" src="${esc(it.src)}"><div class="cap">${esc(it.caption)}<div class="cr">${esc([credit(it.kind), it.credit2 ?? ''].filter(Boolean).join(' / '))}${this.items.length > 1 ? `　(${this.i + 1}/${this.items.length} ←→)` : ''}</div></div>`; }
+    this.el.innerHTML = `<button class="viewer-close" type="button" aria-label="画像ビューアを閉じる">×</button><img alt="${esc(it.caption)}" src="${esc(it.src)}"><div class="cap">${esc(it.caption)}<div class="cr">${esc([credit(it.kind), it.credit2 ?? ''].filter(Boolean).join(' / '))}${this.items.length > 1 ? `　(${this.i + 1}/${this.items.length} ←→)` : ''}</div></div>`;
+    this.el.querySelector('.viewer-close')?.addEventListener('click', () => this.close());
+  }
+  handleKey(e: KeyboardEvent) { if (!this.isOpen) return; if (e.key === 'Escape') { e.preventDefault(); this.close(); } else if (e.key === 'ArrowRight') { e.preventDefault(); this.step(1); } else if (e.key === 'ArrowLeft') { e.preventDefault(); this.step(-1); } }
 }
 /** P1-6: 起動時のモード選択は廃止。モードは M キー / 書庫内ボタンで切替（main.ts setMode）。 */
 export const Intro = {

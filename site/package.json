@@ -6,8 +6,9 @@
   "description": "RYUGU 38cm/s — 非公式ファンサイト（JAXA/ISAS非公式）",
   "scripts": {
     "precompute": "bash ../tools/precompute/run_all.sh",
+    "check-assets": "node ./check-assets.mjs",
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "npm run check-assets && tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },

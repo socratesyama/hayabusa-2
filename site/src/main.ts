@@ -497,7 +497,7 @@ function hudUpdate(S: { et: number; dir: V3; au: number }, gp: { lat: number; lo
     const elS = Math.max(0, (clock.ms - flightStartMs) / 1000); const elTxt = elS >= 3600 ? `${Math.floor(elS / 3600)}時間${Math.round((elS % 3600) / 60)}分` : elS >= 60 ? `${Math.round(elS / 60)}分` : `${Math.round(elS)}秒`;
     l3 = `${layer === 'orbit' ? T.esc_orbit : T.ballistic} ${a > 1000 ? (a / 1000).toFixed(1) + 'km' : a.toFixed(0) + 'm'} 速度 ${(spd * 100).toFixed(1)}cm/s 飛行${elTxt}（${T.pm}${mark('D')}）`;
     if (compress > 1.5) l3 += ` 時間圧縮×${Math.round(compress)}（演出E）`; }
-  else { const gs = sampleGravity(G, gp.lat, gp.lon); l3 = `${T.gravity} ${(gs.gmag * 1000).toFixed(2)}mm/s²  ${T.escape} ${(gs.esc * 100).toFixed(0)}cm/s${G === G340 ? '  [3.40h]' : ''}`; }
+  else { const gs = sampleGravity(G, gp.lat, gp.lon); l3 = `${T.gravity} ${(gs.gmag * 1000).toFixed(2)}mm/s²  ${T.escape} ${(gs.esc * 100).toFixed(0)}cm/s${mark('D')}${G === G340 ? '  [3.40h]' : ''}`; }
   if (scInfo) { const gl = (lang === 'ja' ? GRADE_LABEL : GRADE_LABEL_EN)[scInfo.grade]; l3 += `  はやぶさ2 ${scInfo.alt > 1000 ? (scInfo.alt / 1000).toFixed(1) + 'km' : scInfo.alt.toFixed(0) + 'm'} ${arrowChar(relBearing(scInfo.p, up, P.fwd))}${gl ? ' [' + gl + ']' : ''}`; }
   else if (clock.ms >= Date.UTC(2018, 5, 27) && clock.ms <= Date.UTC(2019, 10, 19)) l3 += `  はやぶさ2 ${T.no_data}（遠方観測・退避運用中）`;
   hud.set(2, l3);
@@ -697,7 +697,7 @@ function mascotEndCard() {
 // ---------------- input
 addEventListener('keydown', e => {
   if (!ready) return; activity(); if (minimap?.open && (e.key === 'Escape' || e.code === 'KeyE')) { minimap.hideModal(); return; }
-  if (viewer.isOpen) { if (e.key === 'ArrowRight') viewer.step(1); else if (e.key === 'ArrowLeft') viewer.step(-1); else if (e.key === 'Escape' || e.code === 'KeyE') viewer.close(); return; }
+  if (viewer.isOpen) { viewer.handleKey(e); if (e.code === 'KeyE') viewer.close(); return; }
   if (card.isOpen && /^[1-4]$/.test(e.key)) { (card.node.querySelectorAll('.q button')[+e.key - 1] as HTMLElement)?.click(); return; }
   keys.add(e.code);
   if (e.code === 'KeyE') { if (layer === 'mascot') { exitMascot(); } else if (layer === 'td1') { exitTd1(); } else interact(); }
@@ -730,12 +730,11 @@ stick.addEventListener('touchstart', e => { e.preventDefault(); joy.active = tru
 stick.addEventListener('touchmove', e => { e.preventDefault(); moveJoy(e.touches[0]); }, { passive: false });
 stick.addEventListener('touchend', () => { joy.active = false; joy.x = joy.y = 0; knob.style.transform = ''; });
 function moveJoy(t0: Touch) { const r = stick.getBoundingClientRect(); const cx = r.left + r.width / 2, cy = r.top + r.height / 2; let x = (t0.clientX - cx) / (r.width / 2), y = (t0.clientY - cy) / (r.height / 2); const l = Math.hypot(x, y); if (l > 1) { x /= l; y /= l; } joy.x = x; joy.y = y; knob.style.transform = `translate(${x * 35}px,${y * 35}px)`; }
-const hopbtn = $('hopbtn'); let hopTimer = 0;
-hopbtn.addEventListener('touchstart', e => { e.preventDefault(); hopTimer = window.setTimeout(() => { hopTimer = -1; }, 600); }, { passive: false });
-hopbtn.addEventListener('touchend', e => { e.preventDefault(); if (hopTimer > 0) { clearTimeout(hopTimer); doHop(); } hopTimer = 0; }, { passive: false });
+const hopbtn = $('hopbtn');
+hopbtn.addEventListener('click', () => { activity(); doHop(); });
 // 宇宙への脱出（ジャンプ）と帰還は、このボタンだけで行う（キー操作・離陸モードは廃止）
 const spaceBtn = new SpaceButton($('spacebtn') as HTMLButtonElement, () => { activity(); if (layer === 'walk') doPhysJump(); else returnToSurface(); });
-$('viewer').addEventListener('click', () => viewer.close());
+$('viewer').addEventListener('click', e => { if (e.target === $('viewer')) viewer.close(); });
 $('b-sound').addEventListener('click', toggleSound); $('b-rec').addEventListener('click', recordNow); $('b-mode').addEventListener('click', changeMode); $('b-lib').addEventListener('click', openLibrary);
 $('b-ev').addEventListener('click', () => { activity(); eventUi.openList(); });
 function toggleSound() { const on = sound.toggle(); $('b-sound').classList.toggle('active', on); if (on) hint.show(t().sound_on, false, 4000); }
@@ -758,14 +757,14 @@ function changeMode() { setMode(((mode + 1) % 3) as Mode); }
   session.callsign = `HYB2-WALK-${String(n).padStart(4, '0')}`; const T = t(); const g0 = bodyToGeo(P.dir); const up0 = eyeUp(P.dir);
   P.fwd = v3.norm(v3.cross(up0, [1, 0, 0])); P.stand = groundAt(P.dir); Intro.line(T.callsign_fmt(session.callsign, 5)); await new Promise(r => setTimeout(r, 1400)); Intro.off();
   hint.show(matchMedia('(pointer:coarse)').matches ? T.hint_keys_touch : T.hint_keys, true, 20000); setTimeout(() => hint.show(T.m01, true, 10000), 20500);
-  lastInput = performance.now(); welcome();
+  lastInput = performance.now(); window.setTimeout(welcome, 10000);
 })();
-/** 起動直後の入口: 迷わせず「いちばんの見どころ」に直行できるようにする */
+/** 起動直後の入口: 10秒間は最小HUDだけを見せ、その後に2つの主導線だけを出す。 */
 function welcome() {
-  card.show('2019年2月22日 07:29 JST — はやぶさ2、タッチダウンの10分前', `<p>いま、あなたはリュウグウの上空にいます。10分後、探査機がここに降りてきます。</p>
-    <div class="eva" style="display:flex;flex-direction:column;gap:8px;margin:12px 0"><button id="w-td1" class="hot" style="min-height:48px;font-weight:600">▶ 探査機の視点でタッチダウンを見る</button><button id="w-walk" style="min-height:44px">地表を歩いてみる（カウントダウンは進みます）</button><button id="w-ev" style="min-height:44px">ほかのイベントへ行く（人工クレーター・MASCOT…）</button></div>
-    <p class="evn" style="opacity:.6;font-size:12px">時間は画面下のスライダー、場所は右上の地図で動かせます。サイト名「38cm/s」はリュウグウの脱出速度 — この速度を超えると、もう地表へは戻れません。</p>`, undefined);
-  $('w-td1').addEventListener('click', () => enterTd1()); $('w-walk').addEventListener('click', () => card.hide()); $('w-ev').addEventListener('click', () => { card.hide(); eventUi.openList(); });
+  card.node.classList.add('welcome');
+  card.show('どこから始めますか', `<p class="welcome-lede">2019-02-22 07:29 JST — タッチダウンの10分前</p>
+    <div class="eva"><button id="w-td1" class="hot" type="button">▶ TD1を見る</button><button id="w-walk" type="button">地表を歩く</button></div>`, undefined);
+  $('w-td1').addEventListener('click', () => { card.hide(); enterTd1(); }); $('w-walk').addEventListener('click', () => card.hide());
 }
 function frameStart() { requestAnimationFrame(frame); }
 // debugging / acceptance hooks (read-only state)

@@ -61,6 +61,12 @@ a{color:var(--accent-hi)}
   border:1px solid var(--border);border-radius:var(--radius);
   -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
   box-shadow:0 12px 40px rgba(0,0,0,.5)}
+#card.welcome{width:min(34em,calc(100vw - 32px));padding:var(--s3) var(--s4);}
+#card.welcome h2{font-size:14px;margin-bottom:.35em}
+#card.welcome .welcome-lede{color:var(--muted);font-size:12px;margin:.2em 0 .8em}
+#card.welcome .eva{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#card.welcome .eva button{min-height:44px;border:1px solid var(--border-hi);border-radius:var(--s1);background:rgba(59,130,246,.08);color:var(--fg);font:inherit;cursor:pointer}
+#card.welcome .eva button.hot{border-color:var(--accent);background:rgba(59,130,246,.18);color:var(--accent-hi)}
 #card h2{margin:0 0 .5em;font:400 15px/1.5 var(--font-hud);color:var(--accent-hi);letter-spacing:.06em;
   padding-bottom:.4em;border-bottom:1px solid var(--border)}
 #card p{margin:.35em 0}
@@ -109,6 +115,8 @@ a{color:var(--accent-hi)}
   border:1px solid var(--border);border-radius:var(--radius)}
 #viewer .cap{margin-top:var(--s3);font:12px/1.7 var(--font-body);text-align:center;max-width:90vw;color:var(--fg-dim)}
 #viewer .cr{color:var(--muted);font-size:11px}
+#viewer .viewer-close{position:absolute;top:max(18px,env(safe-area-inset-top));right:max(18px,env(safe-area-inset-right));width:44px;height:44px;border:1px solid var(--border-hi);border-radius:50%;background:rgba(11,11,16,.8);color:var(--fg);font:24px/1 var(--font-jp);cursor:pointer}
+#viewer .viewer-close:hover,#viewer .viewer-close:focus-visible{border-color:var(--accent-hi);color:var(--accent-hi)}
 
 /* ---- 右端アイコンボタン列（ミニマップとスライダーの間、縦中央） ---- */
 #icons{position:fixed;right:max(16px,env(safe-area-inset-right));top:50%;transform:translateY(-50%);

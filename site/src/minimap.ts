@@ -90,15 +90,23 @@ export class MiniMap {
 
   private async loadMesh() {
     try {
-      const txt = await (await fetch(url('assets/generated/ryugu_lod3_5k.obj'))).text();
-      const o = new OBJLoader().parse(txt);
-      const g = (o.children[0] as THREE.Mesh).geometry as THREE.BufferGeometry;
-      const p = g.getAttribute('position') as THREE.BufferAttribute;
-      for (let i = 0; i < p.count; i++) { const x = p.getX(i) * 1000, y = p.getY(i) * 1000, z = p.getZ(i) * 1000; p.setXYZ(i, x, z, -y); }
-      g.deleteAttribute('normal'); g.computeVertexNormals(); g.computeBoundingSphere();
+      const parse = async (path: string) => {
+        const txt = await (await fetch(url(path))).text();
+        const o = new OBJLoader().parse(txt);
+        const g = (o.children[0] as THREE.Mesh).geometry as THREE.BufferGeometry;
+        const p = g.getAttribute('position') as THREE.BufferAttribute;
+        for (let i = 0; i < p.count; i++) { const x = p.getX(i) * 1000, y = p.getY(i) * 1000, z = p.getZ(i) * 1000; p.setXYZ(i, x, z, -y); }
+        g.deleteAttribute('normal'); g.computeVertexNormals(); g.computeBoundingSphere();
+        return g;
+      };
+      // 5k面を先に出して操作可能にし、展開マップでは49k面へ差し替える。
+      const g = await parse('assets/generated/ryugu_lod3_5k.obj');
       this.mesh = new THREE.Mesh(g, this.mat);
       this.globe.add(this.mesh);
       this.repositionMarkers();   // メッシュ実測半径に合わせてマーカーを再配置（浮き防止）
+      const hi = await parse('assets/shape/ryugu_shape_spc_49k_v20200323_web.obj');
+      const old = this.mesh.geometry; this.mesh.geometry = hi; old.dispose();
+      this.repositionMarkers();
     } catch (e) { console.warn('minimap mesh', e); }
   }
 

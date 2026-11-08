@@ -26,6 +26,7 @@ export class TimeSlider {
     this.el.setAttribute('aria-label', 'リュウグウ滞在期間の時間スライダー（2018-06-27〜2019-11-13）');
     this.el.setAttribute('aria-valuemin', String(MISSION_T0));
     this.el.setAttribute('aria-valuemax', String(MISSION_T1));
+    this.el.setAttribute('aria-valuetext', fmtJST(this.ms));
     this.el.tabIndex = 0;
     this.el.innerHTML = `<div class="ts-track"></div><div class="ts-marks"></div><div class="ts-fill"></div><div class="ts-handle"></div><div class="ts-label"></div>`;
     document.body.appendChild(this.el);
@@ -74,6 +75,7 @@ export class TimeSlider {
       if (this.label.textContent !== txt) this.label.textContent = txt;
       this.label.style.left = (f * 100) + '%';
       this.el.setAttribute('aria-valuenow', String(this.ms));
+      this.el.setAttribute('aria-valuetext', fmtJST(this.ms));
     };
     const paintLoop = () => { paint(); requestAnimationFrame(paintLoop); };
     paintLoop();
