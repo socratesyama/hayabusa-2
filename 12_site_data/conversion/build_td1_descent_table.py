@@ -30,6 +30,7 @@ import datetime as dt
 import numpy as np
 import spiceypy as sp
 from scipy.interpolate import PchipInterpolator
+from shape_intersection import ray_triangle_distances
 
 # ---------------------------------------------------------------- 定数
 
@@ -112,25 +113,12 @@ class ShapeModel:
         d = np.array([math.cos(lat) * math.cos(lon),
                       math.cos(lat) * math.sin(lon),
                       math.sin(lat)])
-        v0, v1, v2 = self.tri[:, 0], self.tri[:, 1], self.tri[:, 2]
-        e1 = v1 - v0
-        e2 = v2 - v0
-        h = np.cross(d, e2)
-        a = np.einsum("ij,ij->i", e1, h)
-        mask = np.abs(a) > 1e-9
-        f = np.zeros_like(a)
-        s = (d - v0)
-        f[mask] = np.einsum("ij,ij->i", s[mask], h[mask]) / a[mask]
-        q = np.cross(s, e1)
-        g = np.zeros_like(a)
-        r = np.zeros_like(a)
-        g[mask] = np.einsum("k,ik->i", d, q[mask]) / a[mask]
-        r[mask] = np.einsum("ik,ik->i", e2[mask], q[mask]) / a[mask]
-        hit = mask & (f >= 0) & (g >= 0) & (r >= 0) & (f + g <= 1) & (f > 0)
-        if not hit.any():
+        hits = ray_triangle_distances(self.tri, np.zeros(3), d)
+        if not hits.size:
             return None
-        t = np.einsum("ij,ij->i", e2[hit], q[hit]) / a[hit]
-        return float(t.max())  # 最初に交差する面 = max t (t は交点までの距離)
+        # レイは中心から外向き。非凸メッシュで正の交点が複数あるときも
+        # 表面に初めて到達する距離は最小の正の t (max は奥側の交差を選び得る)。
+        return float(hits[0])
 
 # ---------------------------------------------------------------- SPICE
 
@@ -287,6 +275,16 @@ def main():
         rl = shape.radius(lat, lon)
         if rl:
             alt_local = round(r - rl, 2)
+        if g == "A":
+            method = "SPICE direct position at an anchor epoch"
+        elif g == "B":
+            method = "published altitude with position reconstructed from TD1 coordinates"
+        elif g == "D":
+            method = "PCHIP interpolation across a long, weakly constrained interval"
+        elif src.startswith("interp "):
+            method = "PCHIP interpolation between identified anchors"
+        else:
+            method = "reconstruction or estimate from published sources"
         table.append({
             "t": fmt_t(t),
             "lat": round(lat, 4),
@@ -295,6 +293,9 @@ def main():
             "alt_local": alt_local,
             "grade": g,
             "src": src,
+            "method": method,
+            "uncertainty": None,
+            "uncertainty_note": "定量的な位置不確かさは確定できない。gradeは根拠区分であり精度の指標ではない。",
         })
 
     # 60s: 長期降下 (gap start → 21:36)
@@ -324,18 +325,30 @@ def main():
 
     out = {
         "description": (
-            "第1回タッチダウン(TD1)運用におけるはやぶさ2の位置(リュウグウ本体固定座標系)。"
+            "第1回タッチダウン(TD1)運用におけるはやぶさ2の位置再構成(リュウグウ本体固定座標系)。"
             "hpk SPKの欠損期間 2019-02-20 23:17:48〜2019-02-22 03:00 UTC を、"
             "SPC形状モデルチームの航法解(spc_pos v02)とJAXA公表資料(記者説明会2019-03-05等)の"
             "アンカーをPCHIP補間でつないだもの。行ごとにgrade(A〜D)で根拠を明示。"
-            "alt_localはSPC 49k形状モデルでの局所表面からの高度(中心高度、±3m程度の地形誤差あり)。"
+            "gradeは根拠区分で、精度・正確度を表すものではない。定量不確かさは未確定。"
+            "alt_localはSPC 49k形状モデルでの局所表面からの高度。"
             "hpk再開後(2019-02-22 03:00 UTC以降)はhpkカーネルを直接使うこと。"
             "sfm_posカーネルはTD1期にSPC解と食い違うため不使用。"
         ),
         "frame": "RYUGU_FIXED (リュウグウ本体固定座標系, IAU_RYUGU極・本初子午線)",
         "units": {"lat_lon": "deg", "r": "m (リュウグウ中心からの距離)", "alt_local": "m"},
         "td1_site": {"lat": TD1_LAT, "lon": TD1_LON, "surface_radius_m": round(r_site, 2),
-                     "source": "Nakamura et al. 2022 (座標) / SPC 49k v20200323 (半径)"},
+                     "source": "Nakamura et al. 2022 (座標) / SPC 49k v20200323 (半径)",
+                     "method": "outward ray from mesh origin; nearest positive triangle intersection"},
+        "provenance": {
+            "grade_is_accuracy": False,
+            "quantitative_uncertainty": None,
+            "uncertainty_note": "公開根拠から位置不確かさを定量化できない。各行にもuncertainty=nullを記録。",
+            "generator": "12_site_data/conversion/build_td1_descent_table.py",
+            "generated_at_utc_date": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d"),
+            "source_ids": ["SRC006", "SRC014", "SRC017", "SRC023"],
+            "position_model": "SPC 49k v20200323 operational web mesh",
+            "attitude": "not included; no attitude CK was used for this position table",
+        },
         "touchdown_utc": TOUCHDOWN_UTC,
         "hpk_gap": {"start": HPK_GAP_START + "Z", "end": HPK_GAP_END + "Z",
                     "kernel": "hyb2_hpk_20180627_20191119_v01.bsp"},

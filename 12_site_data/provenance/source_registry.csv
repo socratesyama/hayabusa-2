@@ -20,3 +20,5 @@ SRC018,education,クイズ・ミッション・誤解訂正の元事実,Science/
 SRC019,generated,クアッドツリータイル(全球地図から生成),socratesyama(SRC001/SRC007から生成),元データのライセンスを継承(CC BY 4.0),元データの出典を表示,https://darts.isas.jaxa.jp/,2026-11-06,12_site_data/generated/tiles/
 SRC020,generated,リュウグウ標高マップ・法線マップ(SRC001から生成),socratesyama(SRC001から生成),元データのライセンスを継承(CC BY 4.0),元データの出典を表示,https://darts.isas.jaxa.jp/,2026-11-06,12_site_data/generated/
 SRC021,generated,LOD・当たり判定用簡易メッシュ(SRC001から生成),socratesyama(SRC001から生成),元データのライセンスを継承(CC BY 4.0),元データの出典を表示,https://darts.isas.jaxa.jp/,2026-11-06,12_site_data/generated/
+SRC022,generated,TD1降下位置再構成テーブル(SRC006/SRC014/SRC017/SRC023を入力),socratesyama (build_td1_descent_table.py),元データのライセンスを継承・出典明記,生成物は公開データの再構成でありSPICE直接値のみではない,https://darts.isas.jaxa.jp/datasets/darts:hyb2-00600/,2026-11-08,12_site_data/td1_descent_positions.json
+SRC023,shape_model,SPC形状モデル 49k面 v20200323 (Web OBJ・TD1運用半径用),JAXA/ISAS/DARTS,ISAS Data Policy / CC BY 4.0,Data: JAXA/ISAS/DARTS(Watanabe et al. 2019),https://data.darts.isas.jaxa.jp/pub/hayabusa2/shape/shape_en.html,2026-11-04,01_shape_models/ryugu_shape_spc_49k_v20200323_web.obj
