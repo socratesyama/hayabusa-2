@@ -698,7 +698,7 @@ function moveJoy(t0: Touch) { const r = stick.getBoundingClientRect(); const cx 
 const hopbtn = $('hopbtn'); let hopTimer = 0;
 hopbtn.addEventListener('touchstart', e => { e.preventDefault(); if (layer === 'ballistic' || layer === 'orbit') { returnToSurface(); return; } hopTimer = window.setTimeout(() => { hopTimer = -1; doPhysJump(); }, 600); }, { passive: false });
 hopbtn.addEventListener('touchend', e => { e.preventDefault(); if (hopTimer > 0) { clearTimeout(hopTimer); doHop(); } hopTimer = 0; }, { passive: false });
-const spaceBtn = new SpaceButton($('spacebtn') as HTMLButtonElement, () => { activity(); if (layer === 'walk') doPhysJump(); else returnToSurface(); });   // 地上: ジャンプ(Shift+Space) / 宇宙: 帰還(Q)
+const spaceBtn = new SpaceButton($('spacebtn') as HTMLButtonElement);   // 表示専用: 操作(ジャンプ/帰還)はキー(Shift+Space / Q)のみ。ボタンは押せない
 $('viewer').addEventListener('click', () => viewer.close());
 $('b-sound').addEventListener('click', toggleSound); $('b-rec').addEventListener('click', recordNow); $('b-mode').addEventListener('click', changeMode); $('b-lib').addEventListener('click', openLibrary);
 $('b-ev').addEventListener('click', () => { activity(); eventUi.openList(); });
