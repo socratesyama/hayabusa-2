@@ -89,14 +89,19 @@ export class Rocks {
    *  relief offset (m) so rocks sit ON the displaced surface, not floating above it (§4.6 stage 2). */
   update(lat: number, lon: number, ground?: (dir: V3, rBase: number) => number) {
     this.playerUp = geoToBody(lat, lon, 1);
-    const R = 450, la = lat * Math.PI / 180; const dLat = CELL / R, dLon = CELL / (R * Math.max(0.15, Math.cos(la)));
-    const ci = Math.round(lon * Math.PI / 180 / dLon), cj = Math.round(la / dLat);
-    if (Math.abs(ci - this.cx) < 2 && Math.abs(cj - this.cy) < 2) return; this.cx = ci; this.cy = cj;
+    // 岩の格子は「位置だけ」で決まる固定格子（緯度行ごとに経度の分割数を整数で固定）。
+    // 以前は格子幅がプレイヤーの緯度で変わったため、歩くたびに岩の配置が組み変わっていた。
+    const R = 450, la = lat * Math.PI / 180, lonR = lon * Math.PI / 180; const dLat = CELL / R;
+    if (this.cx < 1e8) { let dl = lonR - this.cx; dl = Math.atan2(Math.sin(dl), Math.cos(dl)); if (Math.hypot((la - this.cy) * R, dl * R * Math.max(0.15, Math.cos(la))) < 2 * CELL) return; }
+    this.cx = lonR; this.cy = la; const cj = Math.round(la / dLat);
     this.list = []; const n = Math.ceil(RADIUS / CELL); const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), pos = new THREE.Vector3();
     const counts = new Array(NVAR).fill(0);
     for (const mesh of this.meshes) { (mesh.geometry.getAttribute('tone') as THREE.InstancedBufferAttribute).needsUpdate = true; }
-    for (let dj = -n; dj <= n; dj++) for (let di = -n; di <= n; di++) {
-      if (di * di + dj * dj > n * n) continue; const I = ci + di, J = cj + dj;
+    for (let dj = -n; dj <= n; dj++) {
+      const J = cj + dj, latRow = J * dLat; if (Math.abs(latRow) > 89 * Math.PI / 180) continue;
+      const NJ = Math.max(1, Math.round(2 * Math.PI * R * Math.max(0.15, Math.cos(latRow)) / CELL)), dLon = 2 * Math.PI / NJ, ci = Math.round(lonR / dLon);
+      for (let di = -n; di <= n; di++) {
+      if (di * di + dj * dj > n * n) continue; const I = (((ci + di) % NJ) + NJ) % NJ;   // 経度方向は周回で正規化（0°/360°の継ぎ目でも同じ岩）
       const h = hash2(I, J, 7); if (h > 0.55) continue;                       // ~55% of cells hold a rock (~0.06/m², Michikami et al. 2019 class estimate)
       const D = Math.min(DMAX, DMIN * Math.pow(1 - hash2(I, J, 11) * 0.999, -0.5)); // N(>D) ~ D^-2
       const clat = (J + hash2(I, J, 3) * 0.8 - 0.4) * dLat, clon = (I + hash2(I, J, 5) * 0.8 - 0.4) * dLon;
@@ -110,21 +115,24 @@ export class Rocks {
       q.setFromUnitVectors(new THREE.Vector3(0, 1, 0), upT); const spin = new THREE.Quaternion().setFromAxisAngle(upT, rock.rot); q.premultiply(spin);
       const pt = bodyToThree(rock.p); pos.set(pt[0] + u[0] * c * 0.15, pt[1] + u[1] * c * 0.15, pt[2] + u[2] * c * 0.15); s.set(a, c, b); // a long axis, c up(short) : flat & angular
       m.compose(pos, q, s); mesh.setMatrixAt(k, m); (mesh.geometry.getAttribute('tone') as THREE.InstancedBufferAttribute).setX(k, rock.tone); counts[v]++;
+      }
     }
     this.meshes.forEach((mesh, i) => { mesh.count = counts[i]; mesh.instanceMatrix.needsUpdate = true; });
     this.placeShadows();
     this.updatePebbles(lat, lon, ground);
   }
   private updatePebbles(lat: number, lon: number, ground?: (dir: V3, rBase: number) => number) {
-    const R = 450, la = lat * Math.PI / 180; const dLat = PEB_CELL / R, dLon = PEB_CELL / (R * Math.max(0.15, Math.cos(la)));
-    const ci = Math.round(lon * Math.PI / 180 / dLon), cj = Math.round(la / dLat);
-    if (Math.abs(ci - this.px) < 3 && Math.abs(cj - this.py) < 3) return; this.px = ci; this.py = cj;
+    const R = 450, la = lat * Math.PI / 180, lonR = lon * Math.PI / 180; const dLat = PEB_CELL / R;
+    if (this.px < 1e8) { let dl = lonR - this.px; dl = Math.atan2(Math.sin(dl), Math.cos(dl)); if (Math.hypot((la - this.py) * R, dl * R * Math.max(0.15, Math.cos(la))) < 3 * PEB_CELL) return; }
+    this.px = lonR; this.py = la; const cj = Math.round(la / dLat);
     const n = Math.ceil(PEB_RADIUS / PEB_CELL); const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), pos = new THREE.Vector3();
     const tone = (this.pebbleMesh.geometry.getAttribute('tone') as THREE.InstancedBufferAttribute); let k = 0;
-    for (let dj = -n; dj <= n && k < PEB_MAX; dj++) for (let di = -n; di <= n && k < PEB_MAX; di++) {
-      if (di * di + dj * dj > n * n) continue; const I = ci + di, J = cj + dj;
-      const near = di * di + dj * dj < (5 / PEB_CELL) ** 2;
-      if (hash2(I, J, 71) > (near ? 0.3 : 0.75)) continue;   // dense within 5 m (~7/m2, MASCAM-like), sparse beyond
+    for (let dj = -n; dj <= n && k < PEB_MAX; dj++) {
+      const J = cj + dj, latRow = J * dLat; if (Math.abs(latRow) > 89 * Math.PI / 180) continue;
+      const NJ = Math.max(1, Math.round(2 * Math.PI * R * Math.max(0.15, Math.cos(latRow)) / PEB_CELL)), dLon = 2 * Math.PI / NJ, ci = Math.round(lonR / dLon);
+      for (let di = -n; di <= n && k < PEB_MAX; di++) {
+      if (di * di + dj * dj > n * n) continue; const I = (((ci + di) % NJ) + NJ) % NJ;
+      if (hash2(I, J, 71) > 0.3) continue;   // 密度は位置に依存せず一定（以前は近距離だけ密度を変えていたため、歩くと小石が出入りしていた）。0.3×約6900セル≈2100 < PEB_MAX
       const D = 0.03 + hash2(I, J, 73) * 0.27;
       const clat = (J + (hash2(I, J, 75) - 0.5) * 0.9) * dLat, clon = (I + (hash2(I, J, 77) - 0.5) * 0.9) * dLon;
       const latd = clat * 180 / Math.PI, lond = ((clon * 180 / Math.PI) % 360 + 360) % 360; if (Math.abs(latd) > 89) continue;
@@ -134,6 +142,7 @@ export class Rocks {
       q.setFromUnitVectors(new THREE.Vector3(0, 1, 0), upT); const spin = new THREE.Quaternion().setFromAxisAngle(upT, hash2(I, J, 79) * Math.PI * 2); q.premultiply(spin);
       const pt = bodyToThree(v3.mul(up, rr)); pos.set(pt[0] + u[0] * D * 0.1, pt[1] + u[1] * D * 0.1, pt[2] + u[2] * D * 0.1); s.set(D, D * 0.6, D * 0.75);
       m.compose(pos, q, s); this.pebbleMesh.setMatrixAt(k, m); tone.setX(k, hash2(I, J, 81)); k++;
+      }
     }
     this.pebbleMesh.count = k; this.pebbleMesh.instanceMatrix.needsUpdate = true; tone.needsUpdate = true;
   }

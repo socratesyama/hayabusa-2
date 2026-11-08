@@ -206,7 +206,7 @@ function startPhysics(velB: V3, why: string) {
   flightStartMs = clock.ms; flightStartDir = v3.norm(P.dir);
   orbit = launch(posB, velB, et, G.meta.gm_effective_m3s2, 2 * Math.PI / (G.meta.period_h * 3600)); layer = 'ballistic'; used.add('phys'); P.hop = -1; farHinted = false;
   hud.announce(why);
-  hint.show('飛行中 — 右下のボタン: 地表に戻る / WASD: スラスタ（Space上・C下）/ 矢印キー: 向きを回す（無操作で自動的に時間圧縮・演出E）', false, 7000);
+  hint.show('飛行中 — 右上のスイッチ: 地表に戻る / WASD: スラスタ（Space上・C下）/ 矢印キー: 向きを回す（無操作で自動的に時間圧縮・演出E）', false, 7000);
 }
 /** return to the surface from ballistic flight / orbit (presentation shortcut; the sub-player point) */
 function returnToSurface() {
@@ -261,7 +261,7 @@ function stepFlight(et: number, dt: number, dtReal = dt) {
   const etT = Math.max(et, orbit.t + dt);
   const hit = advance(orbit, etT, surf); const b = bodyOf(orbit); P.dir = v3.norm(b);
   layer = isEscape(orbit) ? 'orbit' : 'ballistic';
-  if (!farHinted && v3.len(b) - groundAt(v3.norm(b)) > 1500) { farHinted = true; hint.show('高度が上がっています — 右下のボタンで地表に戻れます', false, 6000); }
+  if (!farHinted && v3.len(b) - groundAt(v3.norm(b)) > 1500) { farHinted = true; hint.show('高度が上がっています — 右上のスイッチで地表に戻れます', false, 6000); }
   if (hit && orbit.landed) {
     const vB = velBodyOf(orbit); const spd = v3.len(vB);
     P.stand = groundAt(P.dir); orbit = null; layer = 'walk'; P.dip = 0.2;

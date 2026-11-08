@@ -147,7 +147,7 @@ a{color:var(--accent-hi)}
     -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
   #knob{position:absolute;left:35px;top:35px;width:40px;height:40px;border-radius:50%;
     background:rgba(59,130,246,.4);border:1px solid var(--accent)}
-  #hopbtn{display:block;position:fixed;right:calc(max(20px,env(safe-area-inset-right)) + 92px);bottom:130px;width:56px;height:56px;
+  #hopbtn{display:block;position:fixed;right:max(24px,env(safe-area-inset-right));bottom:118px;width:56px;height:56px;
     border-radius:50%;border:1px solid var(--accent);background:rgba(11,11,16,.66);color:var(--accent-hi);font-size:20px;z-index:6;
     -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
   #hud{font-size:11px;padding:8px 12px 6px 14px;max-width:calc(100vw - 140px)}   /* ミニマップ(104px)と重ならない */
@@ -182,7 +182,7 @@ a{color:var(--accent-hi)}
 #tslider .ts-mark:hover,#tslider .ts-mark:focus-visible{background:var(--accent-hi);box-shadow:0 0 0 4px rgba(59,130,246,.3),0 0 10px rgba(59,130,246,.6)}
 
 /* ---- P2-2 3Dミニマップ（コーナーブラケット付きフレーム） ---- */
-#mmap-small{position:fixed;right:max(16px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));
+#mmap-small{position:fixed;right:max(16px,env(safe-area-inset-right));top:calc(max(16px,env(safe-area-inset-top)) + 76px);
   width:148px;height:148px;border-radius:var(--radius);border:1px solid var(--border-hi);
   background:rgba(10,10,14,.1);cursor:pointer;z-index:6;overflow:hidden;
   transition:border-color var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
@@ -226,8 +226,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ring);outline-offse
 }
 
 /* 地上⇄宇宙ボタン（丸）: 黒地に白いはやぶさ2 ⇄ 白地に黒いリュウグウ */
-#spacebtn{position:fixed;right:max(20px,env(safe-area-inset-right));bottom:112px;width:76px;height:76px;padding:0;border:0;border-radius:50%;overflow:hidden;cursor:pointer;z-index:6;background:#000;box-shadow:0 0 0 2px var(--accent-hi,#E8A33D),0 0 18px rgba(59,130,246,.35);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#spacebtn{position:fixed;right:max(16px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));width:132px;height:64px;padding:0;border:0;border-radius:32px;overflow:hidden;cursor:pointer;z-index:7;background:#000;box-shadow:0 0 0 2px var(--accent-hi,#E8A33D),0 0 18px rgba(59,130,246,.35);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 #spacebtn:hover{box-shadow:0 0 0 2px var(--accent-hi,#E8A33D),0 0 26px rgba(59,130,246,.65)}
-#spacebtn:active{transform:scale(.95)}
+#spacebtn:active{transform:scale(.97)}
 #spacebtn:focus-visible{outline:2px solid var(--ring,#fff);outline-offset:4px}
-#spacebtn canvas{display:block;width:76px;height:76px;border-radius:50%}

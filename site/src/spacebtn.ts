@@ -9,7 +9,7 @@ import { HAYABUSA_SIL } from './hayabusa_sil';
  *  シルエット→粒に拡散(0-30%)→粒の色と地が反転(30-50%)→粒が集まって別の形(50-100%)
  */
 export type SpaceState = 'ground' | 'space';
-const S = 96, N = 1500, DUR = 1500, SIZE = 76, FIT = 0.8;
+const S = 96, N = 1500, DUR = 1500, SIZE = 52, FIT = 0.84, TRACK_W = 132, PAD = 6, TRAVEL = TRACK_W - PAD * 2 - SIZE;   // 横長スイッチ: 枠132×64px、つまみ52px
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v)), lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const eio = (t: number) => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, eout = (t: number) => 1 - Math.pow(1 - t, 3);
 const gray = (v: number) => `rgb(${v},${v},${v})`;
@@ -27,7 +27,7 @@ export class SpaceButton {
   private state: SpaceState | null = null; private anim: { t0: number; from: SpaceState; to: SpaceState } | null = null; private want: SpaceState | null = null; private ready = false; private k = 1;
   private reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   constructor(private el: HTMLButtonElement, onPress?: () => void) {
-    this.cv = document.createElement('canvas'); const K = devicePixelRatio || 1; this.cv.width = this.cv.height = SIZE * K; this.k = SIZE * K / S; this.el.appendChild(this.cv); this.cx = this.cv.getContext('2d')!;
+    this.cv = document.createElement('canvas'); const K = devicePixelRatio || 1; this.cv.width = this.cv.height = SIZE * K; this.k = SIZE * K / S; this.cv.style.cssText = `position:absolute;left:${PAD}px;top:${PAD}px;width:${SIZE}px;height:${SIZE}px;border-radius:50%;display:block`; this.el.appendChild(this.cv); this.cx = this.cv.getContext('2d')!;
     this.el.addEventListener('click', e => { if (e.detail) this.el.blur(); if (!this.anim) onPress?.(); });   // マウス/タッチ後はフォーカスを外し、Spaceが二重に効かないようにする
     this.img.onload = () => { this.HP = this.pick(this.sample(this.draw(c => this.hayabusa(c, '#000')))); this.RP = this.pick(this.sample(this.draw(c => { c.fillStyle = '#000'; ryugu(c); }))); this.ready = true; if (this.want) this.sync(this.want); };
     this.img.src = HAYABUSA_SIL;
@@ -41,21 +41,21 @@ export class SpaceButton {
   private shape(c: CanvasRenderingContext2D, s: SpaceState, col: number) { if (s === 'ground') this.hayabusa(c, col > 127 ? '#fff' : '#000'); else { c.fillStyle = gray(col); ryugu(c); } }
   private label(s: SpaceState) { this.el.setAttribute('aria-label', s === 'ground' ? 'ジャンプして宇宙へ' : '地表に戻る'); this.el.title = this.el.getAttribute('aria-label')!; }
   private rest(s: SpaceState) {
-    const g = s === 'ground', bg = g ? 0 : 255, fg = 255 - bg, c = this.cx; c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = gray(bg); c.fillRect(0, 0, this.cv.width, this.cv.height);
-    const o = S * (1 - FIT) / 2 * this.k; c.setTransform(this.k * FIT, 0, 0, this.k * FIT, o, o); this.shape(c, s, fg); this.label(s);
+    const g = s === 'ground', bg = g ? 0 : 255, c = this.cx; c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = gray(255 - bg); c.fillRect(0, 0, this.cv.width, this.cv.height);   // つまみは枠の反対色
+    const o = S * (1 - FIT) / 2 * this.k; c.setTransform(this.k * FIT, 0, 0, this.k * FIT, o, o); this.shape(c, s, bg); this.label(s); this.el.style.background = gray(bg); this.cv.style.transform = `translateX(${g ? 0 : TRAVEL}px)`;
   }
   private frame(p: number, from: SpaceState) {
     const g = from === 'ground', A = g ? this.HP : this.RP, B = g ? this.RP : this.HP, D = this.D, c = this.cx; const bgA = g ? 0 : 255, bgB = 255 - bgA;
     const cs = eio(clamp((p - .30) / .20, 0, 1)), bg = Math.round(lerp(bgA, bgB, cs)), pc = Math.round(lerp(bgB, bgA, cs));
-    c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = gray(bg); c.fillRect(0, 0, this.cv.width, this.cv.height); const o = S * (1 - FIT) / 2 * this.k; c.setTransform(this.k * FIT, 0, 0, this.k * FIT, o, o);
+    c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = gray(255 - bg); c.fillRect(0, 0, this.cv.width, this.cv.height); this.el.style.background = gray(bg); const mv = eio(p); this.cv.style.transform = `translateX(${(g ? mv : 1 - mv) * TRAVEL}px)`; const o = S * (1 - FIT) / 2 * this.k; c.setTransform(this.k * FIT, 0, 0, this.k * FIT, o, o);
     const sp = eout(clamp(p / .30, 0, 1)), ga = eio(clamp((p - .50) / .50, 0, 1)), sIn = 1 - clamp(p / .06, 0, 1), sOut = clamp((p - .94) / .06, 0, 1);
-    if (sIn > 0) { c.globalAlpha = sIn; this.shape(c, from, pc); c.globalAlpha = 1; }
-    c.fillStyle = gray(pc); const r = 1.15;
+    if (sIn > 0) { c.globalAlpha = sIn; this.shape(c, from, 255 - pc); c.globalAlpha = 1; }
+    c.fillStyle = gray(255 - pc); const r = 1.15;
     for (let i = 0; i < N; i++) { const a = A[i], b = B[i], d = D[i]; let x: number, y: number;
       if (p < .5) { x = a[0] + d[0] * sp; y = a[1] + d[1] * sp; } else { x = lerp(a[0] + d[0], b[0], ga); y = lerp(a[1] + d[1], b[1], ga); }
       if (p > .3 && p < .75) { x += Math.sin(p * 18 + i) * 1.1; y += Math.cos(p * 16 + i * 1.7) * 1.1; }
       c.fillRect(x - r, y - r, r * 2, r * 2); }
-    if (sOut > 0) { c.globalAlpha = sOut; this.shape(c, g ? 'space' : 'ground', pc); c.globalAlpha = 1; }
+    if (sOut > 0) { c.globalAlpha = sOut; this.shape(c, g ? 'space' : 'ground', 255 - pc); c.globalAlpha = 1; }
   }
   private tick = (now: number) => {
     const a = this.anim; if (!a) return; const p = clamp((now - a.t0) / DUR, 0, 1); this.frame(p, a.from);
