@@ -14,7 +14,7 @@ import { Hud, Hint, Card, Viewer, Intro, tierText, Mode, esc } from './ui';
 import { nearby, quizzesFor, World, Poi } from './search';
 import { Sound } from './audio';
 import { exportSession, Session } from './archive';
-import { MascotReplay, MascotData, SITE, T_SEP, T_END } from './mascot';
+import { MascotReplay, MascotData, SITE, T_SEP, T_END, T_TRAJ_END } from './mascot';
 import { Library } from './library';
 import { TimeSlider } from './timeslider';
 import { buildEvents, EventUi, nextEvent, fmtCountdown, REvent, FOLDER_NOTE, SCI_MS } from './events';
@@ -367,9 +367,11 @@ function frame(now: number) {
   // camera
   let eyeB: V3; const upV = layer === 'ballistic' || layer === 'orbit' || layer === 'walk' ? eyeUp(P.dir) : v3.norm(P.dir);
   if (layer === 'ballistic' || layer === 'orbit') { eyeB = orbit ? bodyOf(orbit) : v3.mul(P.dir, groundAt(P.dir) + EYE); }
-  else if (layer === 'mascot') { const r = hm.radius(SITE.lat, SITE.lon); eyeB = v3.mul(geoToBody(SITE.lat, SITE.lon, 1), r + 0.1); }
+  else if (layer === 'mascot') { eyeB = mascotEye(); }
   else { let h = P.stand + EYE - P.dip; if (P.hop >= 0) { const u = P.hop; const base = P.hopFrom + (P.hopTo - P.hopFrom) * u; const arcH = 4 * HOP_H * u * (1 - u); h = base + EYE + arcH; const d = v3.norm(v3.add(v3.mul(P.hopDir0, 1 - u), v3.mul(P.hopDir1, u))); eyeB = v3.mul(d, h); } else eyeB = v3.mul(P.dir, h); }
-  lookAt(eyeB!, P.fwd, upV, P.pitch); const cp = camera.position.clone();
+  lookAt(eyeB!, P.fwd, upV, P.pitch);
+  if (layer === 'mascot') { const q = mascot.posTopo(); if (q && Math.hypot(q[0], q[1], q[2]) > 1.2) { const rS = hm.radius(SITE.lat, SITE.lon); camera.lookAt(tr(v3.mul(geoToBody(SITE.lat, SITE.lon, 1), rS))); } }   // 降下・バウンド中はMASCOTが向かう着陸点を見る
+  const cp = camera.position.clone();
   // 遠方まで見えるように near/far と背景天球を距離に比例させる（はやぶさ2のHP=約20kmを視界に入れる）
   { const rC = v3.len(eyeB!); const fl = layer === 'ballistic' || layer === 'orbit'; const far = Math.max(6000, (rC + 600) * 1.6, fl ? 50000 : 0); const near = fl ? Math.min(40, Math.max(0.3, (rC - 520) * 0.004)) : 0.05;
     if (Math.abs(camera.far - far) > 1 || Math.abs(camera.near - near) > 1e-3) { camera.far = far; camera.near = near; camera.updateProjectionMatrix(); } bgK = far / 6000; }
@@ -604,7 +606,39 @@ function teleport(lat: number, lon: number) {
   activity();
 }
 
-function enterMascot() { card.hide(); layer = 'mascot'; mascot.enter(); clock.running = false; P.pitch = -0.38; hint.show('ホイール: MASCOTの時間を進める / E: 終了', false, 5000); }
+function enterMascot() {
+  card.hide(); layer = 'mascot'; mascot.enter(); clock.running = false; P.pitch = -0.25; mascotEnded = false; document.body.classList.add('mascot-on'); buildMascotPanel();
+  hint.show('MASCOT着陸機の記録を再生しています。ドラッグで見回せます。Space: 一時停止 / ⏮⏭: 前後の撮影 / E: 終了', false, 9000);
+}
+/** MASCOT再生パネル: 何を見ているか・操作（再生/停止・速度・撮影間ジャンプ・スクラブ・終了）を画面上に常時表示（タッチ対応） */
+let mrp: HTMLElement | null = null;
+function buildMascotPanel() {
+  mrp?.remove(); mrp = document.createElement('div'); mrp.id = 'mrp'; mrp.setAttribute('role', 'group'); mrp.setAttribute('aria-label', 'MASCOT記録再生');
+  mrp.innerHTML = `<div class="mrt"><b>MASCOT着陸機の視点（記録の再生）</b><span>2018-10-03 分離 → 降下 → 着地 → 17時間の観測。位置・画像・温度は実データ、視線の向きは近似</span><button id="mr-x" type="button">✕ 終了して地表へ</button></div>
+    <div class="mrc"><button id="mr-prev" type="button" aria-label="前の撮影へ">⏮</button><button id="mr-play" type="button" aria-label="一時停止">❚❚</button><button id="mr-next" type="button" aria-label="次の撮影へ">⏭</button><button id="mr-spd" type="button" aria-label="再生速度">×1</button>
+    <input id="mr-rng" type="range" min="0" max="10000" value="0" aria-label="再生位置"><span id="mr-t"></span></div>
+    <div class="mrl"><span style="flex:3">降下・バウンド（約23分）</span><span style="flex:7">静止後の観測: 昼と夜（約16時間44分）</span></div>`;
+  document.body.appendChild(mrp);
+  const $$ = (id: string) => mrp!.querySelector('#' + id) as HTMLElement;
+  $$('mr-x').addEventListener('click', exitMascot); $$('mr-play').addEventListener('click', () => { mascot.playing = !mascot.playing; if (mascot.finished) { mascot.t = T_SEP; mascotEnded = false; mascot.playing = true; } });
+  $$('mr-prev').addEventListener('click', () => mascot.seekImage(-1)); $$('mr-next').addEventListener('click', () => mascot.seekImage(1));
+  $$('mr-spd').addEventListener('click', () => { const L = [1, 2, 4, 0.5]; mascot.mult = L[(L.indexOf(mascot.mult) + 1) % L.length]; });
+  ($$('mr-rng') as HTMLInputElement).addEventListener('input', e => { mascot.t = MascotReplay.fromBar(+(e.target as HTMLInputElement).value / 10000); mascotEnded = false; });
+}
+function updateMascotPanel() {
+  if (!mrp) return; const q = (id: string) => mrp!.querySelector('#' + id) as HTMLElement;
+  const rng = q('mr-rng') as HTMLInputElement; if (document.activeElement !== rng) rng.value = String(Math.round(mascot.toBar() * 10000));
+  const play = q('mr-play'); const lab = mascot.playing && !mascot.finished ? '❚❚' : '▶'; if (play.textContent !== lab) { play.textContent = lab; play.setAttribute('aria-label', lab === '▶' ? '再生' : '一時停止'); }
+  q('mr-spd').textContent = `×${mascot.mult}`; const el = (mascot.t - T_SEP) / 1000; const m = Math.floor(el / 60), h = Math.floor(m / 60);
+  q('mr-t').textContent = `分離から ${h > 0 ? h + '時間' : ''}${String(m % 60).padStart(2, '0')}分`;
+}
+/** MASCOTの目の位置: 降下・バウンド中は実際のSPK軌道（着陸点基準のTOPO座標。x=北, y=西, z=上と仮定。方位は近似D）、静止後は着陸点の地面 */
+function mascotEye(): V3 {
+  const rS = hm.radius(SITE.lat, SITE.lon); const up = geoToBody(SITE.lat, SITE.lon, 1); const q = mascot.posTopo();
+  if (!q) return v3.mul(up, rS + 0.15);
+  const east = v3.norm(v3.cross([0, 0, 1], up)), north = v3.cross(up, east);
+  return v3.add(v3.mul(up, rS + Math.max(0, q[2]) + 0.15), v3.add(v3.mul(east, -q[1]), v3.mul(north, q[0])));
+}
 const TD1_MS = Date.UTC(2019, 1, 21, 22, 29, 10), TD1_A = Date.UTC(2019, 1, 20, 23, 17, 48), TD1_B = Date.UTC(2019, 1, 22, 3, 0, 0);
 const TD1_SITE = { lat: 4.3, lon: 206.47 };
 function enterTd1() {
@@ -635,14 +669,17 @@ function td1Burst() {
     const q = v3.add(base, v3.add(v3.mul(v3.add(v3.mul(e1, Math.cos(az)), v3.mul(e2, Math.sin(az))), sp * dts), v3.mul(up, vu * dts - 0.5 * 0.0002 * dts * dts))); const th = bodyToThree(q); pa.setXYZ(i, th[0], th[1], th[2]); }
   pa.needsUpdate = true; burst.visible = true; (burst.material as THREE.PointsMaterial).opacity = Math.max(0, 0.9 * (1 - dts / 8));
 }
-function exitMascot() { mascot.exit(); layer = 'walk'; clock.running = true; clock.set(Math.max(T_SEP, Math.min(T_END, mascot.t))); P.dir = geoToBody(SITE.lat, SITE.lon, 1); P.stand = groundAt(P.dir); P.pitch = 0; mascotMarker.visible = true; (document.getElementById('mascot-img'))?.remove(); mascotImg = null; mascotImgId = ''; }
+function exitMascot() { mrp?.remove(); mrp = null; document.body.classList.remove('mascot-on'); document.getElementById('mascot-pip')?.remove(); mascot.exit(); layer = 'walk'; clock.running = true; clock.set(Math.max(T_SEP, Math.min(T_END, mascot.t))); P.dir = geoToBody(SITE.lat, SITE.lon, 1); P.stand = groundAt(P.dir); P.pitch = 0; mascotMarker.visible = true; mascotImg = null; mascotImgId = ''; }
 function mascotStep(dt: number) {
+  mascot.advance(dt); updateMascotPanel();
   const im = mascot.imageAt(); const id = im?.img.id ?? '';
-  if (id !== mascotImgId) { mascotImgId = id; const old = document.getElementById('mascot-img'); old?.remove(); mascotImg = null;
-    if (im) { const e = new Image(); e.id = 'mascot-img'; e.src = url(im.img.png); e.alt = `MASCAM ${im.img.id}`; e.style.cssText = 'position:fixed;inset:12% 18%;margin:auto;max-width:64vw;max-height:76vh;object-fit:contain;opacity:0;transition:opacity .5s;z-index:3;pointer-events:none'; document.body.appendChild(e); requestAnimationFrame(() => e.style.opacity = '1'); mascotImg = e;
-      const ph = im.img.phase === 'Descent' ? '降下中' : im.img.phase.startsWith('MP_') ? '着地後(' + im.img.phase + ')' : im.img.phase;
-      const ledTxt = im.img.led && im.img.led !== 'NONE' ? ' — 赤外LED照明で夜間撮影' : ' — 太陽光で撮影';
-      mascotCap(`MASCAM ${im.img.id}（${ph}）${ledTxt}`, true); } else mascotCap('', false); }
+  if (id !== mascotImgId) { mascotImgId = id; document.getElementById('mascot-pip')?.remove(); mascotImg = null;
+    if (im) { const w = document.createElement('div'); w.id = 'mascot-pip'; const e = new Image(); e.src = url(im.img.png); e.alt = `MASCAM ${im.img.id}`; const c = document.createElement('div'); c.className = 'cap'; w.appendChild(e); w.appendChild(c); document.body.appendChild(w); requestAnimationFrame(() => w.classList.add('on')); mascotImg = e; }
+  }
+  const pip = document.getElementById('mascot-pip'); if (pip && im) {
+    const ph = im.img.phase === 'Descent' ? '降下中' : '着地後'; const led = im.img.led && im.img.led !== 'NONE' ? '赤外LEDで照らした夜の撮影' : '太陽光での撮影';
+    const age = im.ageS > 120 ? `　（${Math.round(im.ageS / 60)}分前の画像）` : '';
+    (pip.querySelector('.cap') as HTMLElement).textContent = `MASCAMのカメラ画像 ${ph}・${led}${age}　${credit('mascam')}`; }
   if (mascot.finished && !mascotEnded) { mascotEnded = true; mascotEndCard(); }
 }
 let mascotEnded = false;
@@ -656,7 +693,6 @@ function mascotEndCard() {
     <p>• <b>${nImg}枚の地表の写真</b> — 夜は赤外LED照明で撮影した（MASCAM）</p>
     <p class="lnote">画像・温度・位置・磁場はすべて実データ（DLR/CNES/JAXA）。Eキーで地表に戻ります</p>`, 'mascam');
 }
-function mascotCap(text: string, on: boolean) { let c = document.getElementById('mascot-cap'); if (!c) { c = document.createElement('div'); c.id = 'mascot-cap'; c.style.cssText = 'position:fixed;left:0;right:0;bottom:40px;text-align:center;font:11px "Fira Code","Noto Sans JP",monospace;opacity:.85;z-index:4;color:#F8FAFC'; document.body.appendChild(c); } c.textContent = on ? `${text}　${credit('mascam')}` : ''; }
 
 // ---------------- input
 addEventListener('keydown', e => {
@@ -665,6 +701,7 @@ addEventListener('keydown', e => {
   if (card.isOpen && /^[1-4]$/.test(e.key)) { (card.node.querySelectorAll('.q button')[+e.key - 1] as HTMLElement)?.click(); return; }
   keys.add(e.code);
   if (e.code === 'KeyE') { if (layer === 'mascot') { exitMascot(); } else if (layer === 'td1') { exitTd1(); } else interact(); }
+  if (layer === 'mascot') { if (e.code === 'Space') { e.preventDefault(); mascot.playing = !mascot.playing; } else if (e.code === 'ArrowRight') mascot.seekImage(1); else if (e.code === 'ArrowLeft') mascot.seekImage(-1); if (e.code !== 'KeyE') return; }
   if (e.code === 'Space' && layer === 'td1') { e.preventDefault(); clock.running = !clock.running; return; }
   if (e.code === 'Space') { e.preventDefault(); doHop(); }
   if (e.code === 'KeyP') { G = G === G340 ? G763 : G340; hint.show(G === G340 ? '過去モード: 自転周期 3.40h（重力表 3.40h）' : '現在: 自転周期 7.63h', false, 3000); }
@@ -680,7 +717,7 @@ addEventListener('mousemove', e => { if (!drag) return; look(e.clientX - lx, e.c
 function look(dx: number, dy: number) { const up = v3.norm(P.dir); const a = -dx * 0.004; const f = v3.norm(v3.sub(P.fwd, v3.mul(up, v3.dot(P.fwd, up)))); const r = v3.cross(up, f); P.fwd = v3.norm(v3.add(v3.mul(f, Math.cos(a)), v3.mul(r, Math.sin(a)))); P.pitch = Math.max(-1.4, Math.min(1.4, P.pitch - dy * 0.004)); }
 // ホイール: 時間移動は廃止（P1-1）。MASCOT スクラブと TD1 リプレイのみ残す。
 canvas.addEventListener('wheel', e => { e.preventDefault(); activity();
-  if (layer === 'mascot') { mascot.scrub(Math.sign(e.deltaY) * -1 * (e.shiftKey ? 3600e3 : 120e3)); return; }
+  if (layer === 'mascot') { return; }   // 時間は再生パネルで操作（ホイールでは動かさない）
   if (layer === 'td1') { clock.running = false; clock.jump(Math.sign(e.deltaY) * -1 * (e.shiftKey ? 60e3 : 10e3)); clock.set(Math.max(TD1_A, Math.min(TD1_B, clock.ms))); return; }
 }, { passive: false });
 // touch (passive:false so we can preventDefault — skill: threejs touch events)

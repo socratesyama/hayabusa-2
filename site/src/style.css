@@ -230,3 +230,22 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ring);outline-offse
 #spacebtn:hover{box-shadow:0 0 0 2px var(--accent-hi,#E8A33D),0 0 26px rgba(59,130,246,.65)}
 #spacebtn:active{transform:scale(.97)}
 #spacebtn:focus-visible{outline:2px solid var(--ring,#fff);outline-offset:4px}
+
+/* ---- MASCOT 記録再生パネル / MASCAM画像 ---- */
+body.mascot-on #tslider{visibility:hidden}
+#mrp{position:fixed;left:max(16px,env(safe-area-inset-left));right:max(16px,env(safe-area-inset-right));bottom:70px;z-index:6;padding:10px 14px;background:rgba(8,8,12,.82);border:1px solid var(--border-hi);border-radius:var(--radius);color:var(--fg)}
+#mrp .mrt{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:12px;line-height:1.6}
+#mrp .mrt b{font:600 13px var(--font-hud);color:var(--accent-hi)}
+#mrp .mrt span{flex:1;min-width:200px;color:var(--fg-dim)}
+#mrp button{min-width:40px;min-height:40px;padding:0 12px;background:rgba(11,11,16,.66);border:1px solid var(--border-hi);border-radius:var(--radius);color:var(--fg);font:13px var(--font-hud);cursor:pointer}
+#mrp button:hover{border-color:var(--accent);box-shadow:0 0 10px rgba(59,130,246,.35)}
+#mrp button:focus-visible,#mrp input:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+#mrp #mr-x{margin-left:auto}
+#mrp .mrc{display:flex;gap:8px;align-items:center;margin-top:6px}
+#mrp input[type=range]{flex:1;min-width:0;height:28px;accent-color:var(--accent)}
+#mrp #mr-t{min-width:9em;text-align:right;font:12px var(--font-hud);font-variant-numeric:tabular-nums;color:var(--accent-hi)}
+#mrp .mrl{display:flex;margin:0 calc(9em + 8px) 0 calc(4 * 48px + 4 * 8px);font:10px var(--font-hud);color:var(--fg-dim)}
+#mascot-pip{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:176px;width:min(36vw,300px);z-index:5;opacity:0;transition:opacity .5s;pointer-events:none;background:rgba(0,0,0,.8);border:1px solid var(--border-hi)}
+#mascot-pip.on{opacity:1}#mascot-pip img{display:block;width:100%;height:auto}
+#mascot-pip .cap{padding:6px 8px;font:10px/1.6 var(--font-hud);color:var(--fg-dim)}
+@media (max-width:720px){#mrp .mrl{display:none}#mrp #mr-t{min-width:5em}#mascot-pip{bottom:210px;width:min(52vw,240px)}}
