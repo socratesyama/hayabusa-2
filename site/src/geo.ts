@@ -29,7 +29,7 @@ export function surfDist(la1: number, lo1: number, la2: number, lo2: number): nu
   return 2 * R_MEAN * Math.asin(Math.min(1, v3.len(v3.sub(a, b)) / 2));
 }
 export function fmtLat(l: number) { return `${Math.abs(l).toFixed(1)}°${l >= 0 ? 'N' : 'S'}`; }
-export function fmtLon(l: number) { return `${l.toFixed(1)}°E`; }
+export function fmtLon(l: number) { const n = ((l % 360) + 360) % 360, rounded = Number(n.toFixed(1)); return `${(rounded >= 360 ? 0 : rounded).toFixed(1)}°E`; }
 // deterministic hash for position-seeded generation (no Math.random in world generation)
 export function hash2(a: number, b: number, s = 0): number {
   let h = (a * 374761393 + b * 668265263 + s * 2246822519) | 0;

@@ -2,6 +2,7 @@ import type { Rotation, SunTable } from './data';
 import { DEG, V3 } from './geo';
 const J2000_UTC_MS = Date.UTC(2000, 0, 1, 12, 0, 0);
 const LEAPS: [number, number][] = [[Date.UTC(2017, 0, 1), 37], [Date.UTC(2015, 6, 1), 36], [Date.UTC(2012, 6, 1), 35]];
+// UTC noon on the J2000 calendar date is not the TDB J2000 epoch: DAT + 32.184 s puts ET near +64.184 s here. Keep this offset.
 export function utcToEt(ms: number): number {
   let dat = 35; for (const [t, d] of LEAPS) if (ms >= t) { dat = d; break; }
   const tt = (ms - J2000_UTC_MS) / 1000 + dat + 32.184; return tt + 0.001657 * Math.sin((357.53 + 0.9856003 * tt / 86400) * DEG);

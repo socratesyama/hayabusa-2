@@ -32,7 +32,8 @@ addEventListener('resize', resize); resize();
 
 // ---------------- state
 let layer: Layer = 'walk'; let mode: Mode = 1;
-const EYE = 1.5, WALK = 2.6, DASH = 9.0, HOP_H = 0.8, HOP_D = 2.0, HOP_T = 0.6, JUMP_V = 0.30;   // P1-3: 歩行2.6 / ダッシュ9.0 m/s
+const EYE = 1.5, DRIVE_SPEED = 8, DRIVE_BOOST = 16, DRIVE_ACCEL = 12, DRIVE_BRAKE = 18, TURN_RATE = 1.2, GROUND_LAUNCH = 9;
+const MAX_DRIVE_SLOPE = 55, MAX_DRIVE_STEP = 0.4, DRIVE_SUBSTEP = 0.2, HOP_H = 0.8, HOP_D = 2.0, HOP_T = 0.6, JUMP_V = 0.30;
 const P = { dir: geoToBody(4.3, 206.47, 1) as V3, fwd: [0, 0, 1] as V3, pitch: 0, stand: 0, hop: -1, hopFrom: 0, hopTo: 0, hopDir0: [0, 0, 0] as V3, hopDir1: [0, 0, 0] as V3, dip: 0 };
 let orbit: Orbit | null = null; let pastMode = false;
 const keys = new Set<string>(); let lastInput = performance.now(); const used = new Set<string>(); const hintShown: Record<string, number> = {};
@@ -186,9 +187,9 @@ function moveOnSurface(dist: number, side: number): V3 {
   return nd;
 }
 const ground0 = () => R_MEAN;
-function slopeFactor(deg: number) { return deg >= 35 ? 0 : deg <= 0 ? 1 : deg <= 30 ? 1 - 0.4 * deg / 30 : 0.6 - 0.12 * (deg - 30); }
+function slopeFactor(deg: number) { return deg <= 25 ? 1 : deg >= MAX_DRIVE_SLOPE ? 0 : 1 - 0.8 * (deg - 25) / (MAX_DRIVE_SLOPE - 25); }
 
-let dashing = false; let flightTarget = 0;
+let dashing = false; let driveSpeed = 0; let flightTarget = 0;
 let farHinted = false;
 /** P1-3: 発射速度を局所脱出速度の75%にクランプ（どこから跳んでも脱出軌道に入らない） */
 function launchClamp(velB: V3): V3 {
@@ -204,7 +205,7 @@ let flightStartMs = 0; let flightStartDir: V3 = [0, 0, 1];
 function startPhysics(velB: V3, why: string) {
   const g0 = groundAt(P.dir); const posB = v3.mul(P.dir, g0 + 0.02); const et = utcToEt(clock.ms);
   flightStartMs = clock.ms; flightStartDir = v3.norm(P.dir);
-  orbit = launch(posB, velB, et, G.meta.gm_effective_m3s2, 2 * Math.PI / (G.meta.period_h * 3600)); layer = 'ballistic'; used.add('phys'); P.hop = -1; farHinted = false;
+  orbit = launch(posB, velB, et, G.meta.gm_effective_m3s2, 2 * Math.PI / (G.meta.period_h * 3600)); layer = 'ballistic'; used.add('phys'); P.hop = -1; driveSpeed = 0; farHinted = false;
   hud.announce(why);
   hint.show('飛行中 — 右上のスイッチ: 地表に戻る / WASD: スラスタ（Space上・C下）/ 矢印キー: 向きを回す（無操作で自動的に時間圧縮・演出E）', false, 7000);
 }
@@ -217,16 +218,34 @@ function returnToSurface() {
 }
 function stepWalk(dt: number) {
   const g = bodyToGeo(P.dir); const gs = sampleGravity(G, g.lat, g.lon);
-  let f = 0, s = 0; if (keys.has('KeyW') || keys.has('ArrowUp')) f += 1; if (keys.has('KeyS') || keys.has('ArrowDown')) f -= 1; if (keys.has('KeyD') || keys.has('ArrowRight')) s += 1; if (keys.has('KeyA') || keys.has('ArrowLeft')) s -= 1;
-  dashing = (keys.has('ShiftLeft') || keys.has('ShiftRight')) && f > 0 && !keys.has('Space');
-  if (joy.active) { f += -joy.y; s += joy.x; dashing = Math.hypot(joy.x, joy.y) > 0.95; }
-  const len = Math.hypot(f, s); if (len > 0) {
-    f /= Math.max(1, len); s /= Math.max(1, len); used.add('walk'); const spd = (dashing ? DASH : WALK) * slopeFactor(gs.slope); const nd = moveOnSurface(f * spd * dt, s * spd * dt);
-    const ng = groundAt(nd), cur = P.stand; const rise = ng - cur; const ns = sampleGravity(G, bodyToGeo(nd).lat, bodyToGeo(nd).lon);
-    if (rise > 0.4 || ns.slope >= 35) { /* wall / too steep: stop */ }
-    else if (dashing && rise < -1.0) { // cliff edge while dashing -> physics layer with the real running speed (§4.2 b), clamped (P1-3)
-      P.dir = nd; const fw = v3.norm(v3.sub(P.fwd, v3.mul(P.dir, v3.dot(P.fwd, P.dir)))); P.stand = ng; startPhysics(launchClamp(v3.mul(fw, DASH)), 'cliff'); return; }
-    else { P.dir = nd; P.fwd = v3.norm(v3.sub(P.fwd, v3.mul(P.dir, v3.dot(P.fwd, P.dir)))); if (Math.floor(performance.now() / 500) !== stepTick) { stepTick = Math.floor(performance.now() / 500); sound.step(140 + Math.min(400, ns.slope * 22)); } }
+  let throttle = 0, steer = 0;
+  if (keys.has('KeyW') || keys.has('ArrowUp')) throttle += 1; if (keys.has('KeyS') || keys.has('ArrowDown')) throttle -= 1;
+  if (keys.has('KeyD') || keys.has('ArrowRight')) steer += 1; if (keys.has('KeyA') || keys.has('ArrowLeft')) steer -= 1;
+  if (joy.active) { throttle += -joy.y; steer += joy.x; }
+  throttle = Math.max(-1, Math.min(1, throttle)); steer = Math.max(-1, Math.min(1, steer));
+  dashing = (keys.has('ShiftLeft') || keys.has('ShiftRight')) && throttle > 0 && !keys.has('Space');
+  if (joy.active && -joy.y > 0.85) dashing = true;
+  const targetSpeed = throttle * (dashing ? DRIVE_BOOST : DRIVE_SPEED) * slopeFactor(gs.slope);
+  const speedDelta = targetSpeed - driveSpeed, speedStep = (Math.abs(targetSpeed) < Math.abs(driveSpeed) || Math.sign(targetSpeed) !== Math.sign(driveSpeed) ? DRIVE_BRAKE : DRIVE_ACCEL) * dt;
+  driveSpeed += Math.sign(speedDelta) * Math.min(Math.abs(speedDelta), speedStep);
+  if (Math.abs(driveSpeed) < 0.03) driveSpeed = 0;
+  if (Math.abs(driveSpeed) > 0.03 && steer !== 0) {
+    const up = v3.norm(P.dir), speedTurn = 0.25 + 0.75 * Math.min(1, Math.abs(driveSpeed) / DRIVE_SPEED);
+    const yaw = -steer * Math.sign(driveSpeed) * TURN_RATE * speedTurn * dt, c = Math.cos(yaw), s = Math.sin(yaw);
+    P.fwd = v3.norm(v3.add(v3.mul(P.fwd, c), v3.mul(v3.cross(up, P.fwd), s)));
+  }
+  if (Math.abs(driveSpeed) > 0.03) {
+    used.add('walk'); const distance = driveSpeed * dt, steps = Math.max(1, Math.ceil(Math.abs(distance) / DRIVE_SUBSTEP)), ds = distance / steps;
+    for (let i = 0; i < steps; i++) {
+      const nd = moveOnSurface(ds, 0), ng = groundAt(nd), rise = ng - P.stand, ngp = bodyToGeo(nd), ns = sampleGravity(G, ngp.lat, ngp.lon);
+      if (rise > MAX_DRIVE_STEP || ns.slope >= MAX_DRIVE_SLOPE) { driveSpeed = 0; break; }
+      if (rise < -1.0) {
+        if (dashing) { P.dir = nd; P.stand = ng; startPhysics(launchClamp(v3.mul(v3.norm(v3.sub(P.fwd, v3.mul(P.dir, v3.dot(P.fwd, P.dir)))), driveSpeed)), 'cliff'); return; }
+        driveSpeed = 0; break;
+      }
+      P.dir = nd; P.stand = ng; P.fwd = v3.norm(v3.sub(P.fwd, v3.mul(P.dir, v3.dot(P.fwd, P.dir))));
+      if (Math.floor(performance.now() / 500) !== stepTick) { stepTick = Math.floor(performance.now() / 500); if (Math.abs(driveSpeed) < 3) sound.step(140 + Math.min(400, ns.slope * 22)); }
+    }
   }
   // hop (演出): 0.8 m / 2 m / 0.6 s, completes inside the presentation layer
   if (P.hop >= 0) { P.hop += dt / HOP_T; if (P.hop >= 1) { P.hop = -1; P.dir = P.hopDir1; P.stand = P.hopTo; P.dip = 0.2; kickDust(v3.mul(P.dir, P.stand), v3.norm(P.dir), 0.1); } }
@@ -234,9 +253,9 @@ function stepWalk(dt: number) {
   P.dip = Math.max(0, P.dip - dt * 1.2);
 }
 let stepTick = 0;
-function doHop() { if (P.hop >= 0 || layer !== 'walk') return; used.add('hop'); P.hopDir0 = P.dir; const nd = moveOnSurface(HOP_D, 0); P.hopDir1 = nd; P.hopFrom = P.stand; P.hopTo = groundAt(nd); P.hop = 0; }
+function doHop() { if (P.hop >= 0 || layer !== 'walk') return; driveSpeed = 0; used.add('hop'); P.hopDir0 = P.dir; const nd = moveOnSurface(HOP_D, 0); P.hopDir1 = nd; P.hopFrom = P.stand; P.hopTo = groundAt(nd); P.hop = 0; }
 function doPhysJump() { if (layer !== 'walk') return; const up = v3.norm(P.dir); const mov = keys.has('KeyW') || keys.has('ArrowUp') || (joy.active && joy.y < -0.3); const fw = v3.norm(v3.sub(P.fwd, v3.mul(up, v3.dot(P.fwd, up))));
-  startPhysics(launchClamp(mov ? v3.add(v3.mul(fw, DASH), v3.mul(up, JUMP_V)) : v3.mul(up, JUMP_V)), mov ? 'dash-jump' : 'jump'); }
+  startPhysics(launchClamp(mov ? v3.add(v3.mul(fw, GROUND_LAUNCH), v3.mul(up, JUMP_V)) : v3.mul(up, JUMP_V)), mov ? 'dash-jump' : 'jump'); }
 
 /** P3-1: 宇宙空間の自由飛行 — 矢印キーでヨー・ピッチ（WASDは微推力のまま） */
 function steerFlight(dt: number) {
@@ -473,10 +492,10 @@ const arrowChar = (deg: number) => ARROWS[((Math.round(deg / 45) % 8) + 8) % 8];
 function hudUpdate(S: { et: number; dir: V3; au: number }, gp: { lat: number; lon: number; r: number }, up: V3, eB: { dir: V3; au: number }) {
   const T = t();
   if (layer === 'td1') {
-    const gl = scInfo ? (lang === 'ja' ? GRADE_LABEL : GRADE_LABEL_EN)[scInfo.grade] : ''; const atTd = Math.abs(clock.ms - TD1_MS) < 30000;
-    hud.set(0, fmtJST(clock.ms).replace(' JST', ':' + String(new Date(clock.ms).getUTCSeconds()).padStart(2, '0') + ' JST') + (atTd ? ' — 接地・試料採取' : ''));
-    hud.set(1, scInfo ? `はやぶさ2 高度 ${scInfo.alt >= 100 ? (scInfo.alt >= 1000 ? (scInfo.alt / 1000).toFixed(2) + 'km' : scInfo.alt.toFixed(0) + 'm') : scInfo.alt.toFixed(1) + 'm'}（中心）　${compass(gp, scInfo)}${gl ? '  [' + gl + ']' : ''}` : `はやぶさ2 ${T.no_data}`);
-    hud.set(2, `姿勢は降下方向に合わせた近似${mark('D')}（CKカーネルなし）　ホイール: 10秒　Shift: 60秒　Space: 再生　E: 終了`); hud.set(3, ''); return; }
+    const gl = scInfo ? (lang === 'ja' ? GRADE_LABEL : GRADE_LABEL_EN)[scInfo.grade] : ''; const atTd = Math.abs(clock.ms - TD1_MS) < 500;
+    hud.set(0, fmtJST(clock.ms).replace(' JST', ':' + String(new Date(clock.ms).getUTCSeconds()).padStart(2, '0') + ' JST') + (atTd ? ' — 公表接地時刻' : ''));
+    hud.set(1, scInfo ? `はやぶさ2 高度 ${scInfo.alt >= 100 ? (scInfo.alt >= 1000 ? (scInfo.alt / 1000).toFixed(2) + 'km' : scInfo.alt.toFixed(0) + 'm') : scInfo.alt.toFixed(1) + 'm'}（地表面から・機体中心）　${compass(gp, scInfo)}  [${gl}]` : `はやぶさ2 ${T.no_data}`);
+    hud.set(2, `位置:SPK欠損を航法点・公表アンカー等から補完（根拠A–Dを表示）　姿勢:降下方向に合わせた近似${mark('D')}（CKなし）　Space:再生　E:終了`); hud.set(3, ''); return; }
   if (layer === 'mascot') {
     const jst = fmtJST(mascot.t) + ''; hud.set(0, jst.replace(' JST', ':' + String(new Date(mascot.t).getUTCSeconds()).padStart(2, '0') + ' JST')); hud.set(1, mascot.position());
     const mc = library.data?.temp?.mara_comparison; const diffs = mc ? mc.model_K_lat20_ti300.map((m: number, i: number) => m - mc.mara_K[i]) : [];
@@ -490,15 +509,16 @@ function hudUpdate(S: { et: number; dir: V3; au: number }, gp: { lat: number; lo
   else if (nx) l0 += ` — 次: ${nx.title}まで ${fmtCountdown(clock.ms, nx)}`;
   else l0 += ` — 滞在期間の最終日（${fmtJST(MISSION_T1).slice(0, 10)}出発）`;
   hud.set(0, l0);
-  // 標高: 歩行=足元の地面 / 飛行=実際の位置(重心からの距離)（gp.rは方向単位ベクトル長=1で-448mになるバグを修正）
+  // 標高=位置の動径距離−平均半径448.8m。歩行は地面、飛行は機体中心の位置を使う（局所地表からの高度ではない）。
   const posR = layer === 'walk' ? P.stand : (orbit ? v3.len(bodyOf(orbit)) : hm.radius(gp.lat, gp.lon));
   const elev = posR - R_MEAN; const ll = `${fmtLat(gp.lat)} ${fmtLon(gp.lon)}  ${T.elev} ${Math.round(elev)}m`; hud.set(1, ll);
   let l3: string; if ((layer === 'ballistic' || layer === 'orbit') && orbit) { const a = altitude(orbit, groundAt); const spd = v3.len(velBodyOf(orbit));
     const elS = Math.max(0, (clock.ms - flightStartMs) / 1000); const elTxt = elS >= 3600 ? `${Math.floor(elS / 3600)}時間${Math.round((elS % 3600) / 60)}分` : elS >= 60 ? `${Math.round(elS / 60)}分` : `${Math.round(elS)}秒`;
-    l3 = `${layer === 'orbit' ? T.esc_orbit : T.ballistic} ${a > 1000 ? (a / 1000).toFixed(1) + 'km' : a.toFixed(0) + 'm'} 速度 ${(spd * 100).toFixed(1)}cm/s 飛行${elTxt}（${T.pm}${mark('D')}）`;
+    l3 = `${layer === 'orbit' ? T.esc_orbit : T.ballistic} ${a > 1000 ? (a / 1000).toFixed(1) + 'km' : a.toFixed(0) + 'm'} 速度（リュウグウ固定系） ${(spd * 100).toFixed(1)}cm/s 飛行${elTxt}（${T.pm}${mark('D')}）`;
     if (compress > 1.5) l3 += ` 時間圧縮×${Math.round(compress)}（演出E）`; }
   else { const gs = sampleGravity(G, gp.lat, gp.lon); l3 = `${T.gravity} ${(gs.gmag * 1000).toFixed(2)}mm/s²  ${T.escape} ${(gs.esc * 100).toFixed(0)}cm/s${mark('D')}${G === G340 ? '  [3.40h]' : ''}`; }
-  if (scInfo) { const gl = (lang === 'ja' ? GRADE_LABEL : GRADE_LABEL_EN)[scInfo.grade]; l3 += `  はやぶさ2 ${scInfo.alt > 1000 ? (scInfo.alt / 1000).toFixed(1) + 'km' : scInfo.alt.toFixed(0) + 'm'} ${arrowChar(relBearing(scInfo.p, up, P.fwd))}${gl ? ' [' + gl + ']' : ''}`; }
+  if (layer === 'walk' && Math.abs(driveSpeed) > 0.1) l3 += `  車両風走行 ${Math.abs(driveSpeed).toFixed(1)}m/s（演出E）`;
+  if (scInfo) { const gl = (lang === 'ja' ? GRADE_LABEL : GRADE_LABEL_EN)[scInfo.grade]; l3 += `  はやぶさ2高度 ${scInfo.alt > 1000 ? (scInfo.alt / 1000).toFixed(1) + 'km' : scInfo.alt.toFixed(0) + 'm'}（地表面から・機体中心） ${arrowChar(relBearing(scInfo.p, up, P.fwd))} [${gl}]`; }
   else if (clock.ms >= Date.UTC(2018, 5, 27) && clock.ms <= Date.UTC(2019, 10, 19)) l3 += `  はやぶさ2 ${T.no_data}（遠方観測・退避運用中）`;
   hud.set(2, l3);
   // P2-1: 地球の方位・仰角・距離（歩行層で常時。矢印は視線方向からの相対角度）
@@ -583,6 +603,7 @@ const ARRIVE_NOTE: Record<string, string> = {
 };
 function goToEvent(ev: REvent) {
   card.hide(); viewer.close(); minimap?.hideModal();
+  driveSpeed = 0;
   if (layer === 'ballistic' || layer === 'orbit') returnToSurface();
   if (layer === 'mascot') exitMascot();
   if (layer === 'td1') exitTd1();
@@ -598,6 +619,7 @@ function goToEvent(ev: REvent) {
 }
 /** P2-2: ミニマップからの瞬間移動（演出E） */
 function teleport(lat: number, lon: number) {
+  driveSpeed = 0;
   if (layer === 'ballistic' || layer === 'orbit') returnToSurface();
   if (layer === 'mascot') exitMascot();
   if (layer === 'td1') exitTd1();
@@ -607,7 +629,7 @@ function teleport(lat: number, lon: number) {
 }
 
 function enterMascot() {
-  card.hide(); layer = 'mascot'; mascot.enter(); clock.running = false; P.pitch = -0.25; mascotEnded = false; document.body.classList.add('mascot-on'); buildMascotPanel();
+  card.hide(); driveSpeed = 0; layer = 'mascot'; mascot.enter(); clock.running = false; P.pitch = -0.25; mascotEnded = false; document.body.classList.add('mascot-on'); buildMascotPanel();
   hint.show('MASCOT着陸機の記録を再生しています。ドラッグで見回せます。Space: 一時停止 / ⏮⏭: 前後の撮影 / E: 終了', false, 9000);
 }
 /** MASCOT再生パネル: 何を見ているか・操作（再生/停止・速度・撮影間ジャンプ・スクラブ・終了）を画面上に常時表示（タッチ対応） */
@@ -642,8 +664,8 @@ function mascotEye(): V3 {
 const TD1_MS = Date.UTC(2019, 1, 21, 22, 29, 10), TD1_A = Date.UTC(2019, 1, 20, 23, 17, 48), TD1_B = Date.UTC(2019, 1, 22, 3, 0, 0);
 const TD1_SITE = { lat: 4.3, lon: 206.47 };
 function enterTd1() {
-  card.hide(); layer = 'td1'; orbit = null; P.dir = geoToBody(TD1_SITE.lat, TD1_SITE.lon, 1); P.stand = groundAt(P.dir); P.hop = -1;
-  clock.running = false; clock.set(Date.UTC(2019, 1, 21, 22, 19, 0)); hint.show('ホイール: 時間（10秒刻み） / Space: 再生 / E: 終了　22:29:10 UTC（07:29:10 JST）が接地', false, 7000); used.add('time');
+  card.hide(); driveSpeed = 0; layer = 'td1'; orbit = null; P.dir = geoToBody(TD1_SITE.lat, TD1_SITE.lon, 1); P.stand = groundAt(P.dir); P.hop = -1;
+  clock.running = false; clock.set(Date.UTC(2019, 1, 21, 22, 19, 0)); hint.show('ホイール: 時間（10秒刻み） / Space: 再生 / E: 終了　22:29:10 UTC（07:29:10 JST）は公表接地時刻', false, 7000); used.add('time');
 }
 function exitTd1() { layer = 'walk'; clock.running = true; clock.set(Math.max(TD1_MS, Math.min(TD1_B, clock.ms))); burst.visible = false; P.stand = groundAt(P.dir); }
 /** P1演出: TD1リプレイの実況キャプション — カウントダウン→接触→離陸の各段階を1行で伝える。
@@ -656,8 +678,9 @@ function td1Caption() {
   let stage = -1, html = '';
   if (dts < -60) { stage = 0; }
   else if (dts < 0) { stage = 1; html = `接地まで <b>${Math.max(1, Math.ceil(-dts))}</b> 秒 — 高度を下げています`; }
-  else if (dts < 8) { stage = 2; html = `<b>22:29:10 — 接触。</b>弾丸を発射、試料を採取`; }
-  else if (dts < 30) { stage = 3; html = `タッチダウン成功 — 探査機は上昇を開始`; }
+  else if (dts < 2) { stage = 2; html = `<b>22:29:10 UTC — 公表接地時刻。</b>接触・弾丸発射・試料採取を再生`; }
+  else if (dts < 30) { stage = 3; html = `次の公表位置アンカー（22:29:40 UTC）まで — 軌跡は再構成・補間表示`; }
+  else if (dts < 60) { stage = 4; html = `<b>22:29:40 UTC — 公表位置アンカー。</b>探査機は上昇中`; }
   if (stage !== td1CapStage) { td1CapStage = stage; if (html) { td1CapEl.innerHTML = html; td1CapEl.classList.add('on'); } else td1CapEl.classList.remove('on'); }
 }
 /** touchdown projectile burst (minimal particles, deterministic). t = seconds since 22:29:10 UTC. Effect only; not data. */
@@ -705,7 +728,7 @@ addEventListener('keydown', e => {
   if (e.code === 'Space' && layer === 'td1') { e.preventDefault(); clock.running = !clock.running; return; }
   if (e.code === 'Space') { e.preventDefault(); doHop(); }
   if (e.code === 'KeyP') { G = G === G340 ? G763 : G340; hint.show(G === G340 ? '過去モード: 自転周期 3.40h（重力表 3.40h）' : '現在: 自転周期 7.63h', false, 3000); }
-  if (e.code === 'KeyR') recordNow(); if (e.code === 'KeyS') toggleSound(); if (e.code === 'KeyM') changeMode(); if (e.code === 'KeyG') openLibrary();
+  if (e.code === 'KeyR') recordNow(); if (e.code === 'KeyB') toggleSound(); if (e.code === 'KeyM') changeMode(); if (e.code === 'KeyG') openLibrary();
   if (e.code === 'KeyV') eventUi.openList();   // イベントメニュー（Vキー）
   if (e.shiftKey && e.code === 'KeyW') used.add('dash');
 });

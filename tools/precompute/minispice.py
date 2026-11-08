@@ -125,18 +125,25 @@ def hermite(x, y, dy, t):
 _LEAP=[(10,'1972-01-01'),(11,'1972-07-01'),(12,'1973-01-01'),(13,'1974-01-01'),(14,'1975-01-01'),(15,'1976-01-01'),(16,'1977-01-01'),(17,'1978-01-01'),(18,'1979-01-01'),(19,'1980-01-01'),(20,'1981-07-01'),(21,'1982-07-01'),(22,'1983-07-01'),(23,'1985-07-01'),(24,'1988-01-01'),(25,'1990-01-01'),(26,'1991-01-01'),(27,'1992-07-01'),(28,'1993-07-01'),(29,'1994-07-01'),(30,'1996-01-01'),(31,'1997-07-01'),(32,'1999-01-01'),(33,'2006-01-01'),(34,'2009-01-01'),(35,'2012-07-01'),(36,'2015-07-01'),(37,'2017-01-01')]
 import datetime as _dt
 _J2000=_dt.datetime(2000,1,1,12,0,0)
-def utc2et(s):
-    """s: 'YYYY-MM-DDTHH:MM:SS' UTC -> ET seconds past J2000 (TDB approx = TT + 1.657e-3 sin(M))."""
-    t=_dt.datetime.fromisoformat(s.replace('Z','')); 
+def _dat_at_utc(t):
     dat=10
     for d,dd in _LEAP:
         if t>=_dt.datetime.fromisoformat(dd): dat=d
+    return dat
+def utc2et(s):
+    """s: 'YYYY-MM-DDTHH:MM:SS' UTC -> ET seconds past J2000 (TDB approx = TT + 1.657e-3 sin(M))."""
+    t=_dt.datetime.fromisoformat(s.replace('Z',''))
+    dat=_dat_at_utc(t)
     tt=(t-_J2000).total_seconds()+dat+32.184
     M=np.radians(357.53+0.9856003*(tt/86400))
     return tt+0.001657*np.sin(M)
 def et2utc(et):
-    M=np.radians(357.53+0.9856003*(et/86400)); tt=et-0.001657*np.sin(M)
-    t=_J2000+_dt.timedelta(seconds=tt-32.184-37)
+    """ET (TDB seconds past J2000) -> UTC; iterate DAT because it changes at leap-second dates."""
+    t=_J2000+_dt.timedelta(seconds=et-32.184-37)
+    for _ in range(4):
+        M=np.radians(357.53+0.9856003*(et/86400)); tt=et-0.001657*np.sin(M)
+        dat=_dat_at_utc(t)
+        t=_J2000+_dt.timedelta(seconds=tt-32.184-dat)
     return t
 
 def parse_tpc(path):

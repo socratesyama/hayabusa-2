@@ -40,8 +40,8 @@ export function scAtG(t: ScTable, et: number): { p: V3; grade: Grade } | null {
   return { p: [0, 1, 2].map(i => t.pos[a + i] * (1 - f) + t.pos[c + i] * f) as V3, grade: g };
 }
 export const scAt = (t: ScTable, et: number): V3 | null => scAtG(t, et)?.p ?? null;
-export const GRADE_LABEL: Record<number, string> = { 0: '', 1: '', 2: '補間', 3: '推定軌道（アンカー遠隔区間）' }; // T3: A/B silent
-export const GRADE_LABEL_EN: Record<number, string> = { 0: '', 1: '', 2: 'interpolated', 3: 'estimated trajectory (far from anchors)' };
+export const GRADE_LABEL: Record<number, string> = { 0: 'A:SPICE航法サンプル', 1: 'B:公表高度・座標から位置再構成', 2: 'C:公開点の補間・再構成', 3: 'D:遠隔アンカー間の推定' };
+export const GRADE_LABEL_EN: Record<number, string> = { 0: 'A:SPICE navigation sample', 1: 'B:position reconstructed from published altitude/coordinates', 2: 'C:interpolated/reconstructed', 3: 'D:estimate between distant anchors' };
 
 // ---------- heightmap (16 bit) : radius = rmin + v/65535 * (rmax-rmin)
 export const RMIN = 379.789, RMAX = 527.332;
