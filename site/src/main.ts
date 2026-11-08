@@ -11,7 +11,7 @@ import { skyFor, applySky, Layer, PAPER } from './sky';
 import { setRegistry, credit, mark } from './credits';
 import { t, lang } from './i18n';
 import { Hud, Hint, Card, Viewer, Intro, tierText, Mode, esc } from './ui';
-import { nearby, quizzesFor, World, Poi } from './search';
+import { nearby, World, Poi } from './search';
 import { Sound } from './audio';
 import { exportSession, Session } from './archive';
 import { MascotReplay, MascotData, SITE, T_SEP, T_END, T_TRAJ_END } from './mascot';
@@ -33,11 +33,11 @@ addEventListener('resize', resize); resize();
 // ---------------- state
 let layer: Layer = 'walk'; let mode: Mode = 1;
 const EYE = 1.5, DRIVE_SPEED = 8, DRIVE_BOOST = 16, DRIVE_ACCEL = 12, DRIVE_BRAKE = 18, TURN_RATE = 1.2, GROUND_LAUNCH = 9;
-const MAX_DRIVE_SLOPE = 55, MAX_DRIVE_STEP = 0.4, DRIVE_SUBSTEP = 0.2, HOP_H = 0.8, HOP_D = 2.0, HOP_T = 0.6, JUMP_V = 0.30;
-const P = { dir: geoToBody(4.3, 206.47, 1) as V3, fwd: [0, 0, 1] as V3, pitch: 0, stand: 0, hop: -1, hopFrom: 0, hopTo: 0, hopDir0: [0, 0, 0] as V3, hopDir1: [0, 0, 0] as V3, dip: 0 };
+const MAX_DRIVE_SLOPE = 55, MAX_DRIVE_STEP = 0.4, DRIVE_SUBSTEP = 0.2, JUMP_V = 0.30;
+const P = { dir: geoToBody(4.3, 206.47, 1) as V3, fwd: [0, 0, 1] as V3, pitch: 0, stand: 0, dip: 0 };
 let orbit: Orbit | null = null; let pastMode = false;
 const keys = new Set<string>(); let lastInput = performance.now(); const used = new Set<string>(); const hintShown: Record<string, number> = {};
-const session: Session = { callsign: '', start: new Date().toISOString(), track: [], inspected: new Set(), quiz: [] };
+const session: Session = { callsign: '', start: new Date().toISOString(), track: [], inspected: new Set() };
 let world: World; let G763!: Gravity, G340!: Gravity, G: Gravity; let sc!: ScTable; let sun!: Sun; let hm!: HeightMap; let terrain!: Terrain; let rocks!: Rocks; let mascot!: MascotReplay;
 let timeline: any; const clock = new Clock(initialMissionMs()); let ready = false; let rotation: any;
 let sunLight!: THREE.DirectionalLight; let burst!: THREE.Points; let scMesh: THREE.Object3D | null = null; let scDot!: THREE.Mesh; let starPts!: THREE.Points; let sunDot!: THREE.Mesh; let sunGlow!: THREE.Sprite; let shadow!: THREE.Mesh; let markers!: THREE.Group; let mascotMarker!: THREE.Mesh; let craterMark: THREE.Group | null = null;
@@ -63,10 +63,10 @@ async function boot() {
   Intro.line('2018-03-01'); const dot = document.createElement('div'); dot.style.cssText = 'width:2px;height:2px;border-radius:50%;background:#F8FAFC;margin-top:18px;transition:all 1.2s cubic-bezier(.16,1,.3,1)'; $('intro').appendChild(dot);
   const bump = (px: number) => { dot.style.width = dot.style.height = px + 'px'; dot.style.boxShadow = `0 0 ${px}px rgba(240,240,235,.5)`; };
   bump(4);
-  const [reg, rot, sunT, hmap, g763, g340, scT, tl, poi, ev, locmap, samples, quizzes, mis, mis_c, gal, l2c, geo, mascam, mara, mag, mpos, sp] = await Promise.all([
+  const [reg, rot, sunT, hmap, g763, g340, scT, tl, poi, ev, locmap, samples, mis, mis_c, gal, l2c, geo, mascam, mara, mag, mpos, sp] = await Promise.all([
     loadRegistry(), getJSON('data/rotation.json'), getJSON('data/sun_table.json'), HeightMap.load(), loadGravity('763'), loadGravity('340'), loadSc(), getJSON('data/timeline.json'),
     getJSON('data/poi_master.json'), getJSON('data/event_asset_links.json'), getJSON('data/image_location_map.json'), getJSON('data/samples_metadata.json'),
-    getJSON('data/edu/quizzes.json'), getJSON('data/edu/mission_scenarios.json'), getJSON('data/edu/misconceptions.json'),
+    getJSON('data/edu/mission_scenarios.json'), getJSON('data/edu/misconceptions.json'),
     getJSON('data/gallery_manifest.json'), getJSON('data/l2c_manifest.json'), getJSON('data/image_geometry.json'), getJSON('data/mascam_manifest.json'),
     getJSON('data/mara.json'), getJSON('data/mag.json'), getJSON('data/mascot_position.json'), getJSON('data/ryugu_surface_points.json')]);
   bump(10);
@@ -81,7 +81,7 @@ async function boot() {
     description: `${f.type === 'Crater' ? 'クレーター' : f.type === 'Dorsum' ? '尾根(ドルスム)' : f.type === 'Fossa' ? '溝(フォッサ)' : f.type === 'Saxum' ? '岩塊(サクスム)' : f.type}　直径/長さ ${f.diameter_km}km　(IAU承認 ${f.approved})`,
     accuracy: `IAU公認の地形名（USGS Gazetteer）。座標は度単位の概略位置。`, nickname: '',
     sources: [{ label: 'USGS Astrogeology: Ryugu Nomenclature', url: 'https://planetarynames.wr.usgs.gov/SearchResults?Target=Ryugu' }] }));
-  world = { pois: [...poi.poi.map((p: any) => ({ ...p, lat: p.latitude_deg, lon: p.longitude_deg })), ...iauPois], events: ev.events, gallery: gl, l2c: l2cs, samples, quizzes: quizzes.quizzes };
+  world = { pois: [...poi.poi.map((p: any) => ({ ...p, lat: p.latitude_deg, lon: p.longitude_deg })), ...iauPois], events: ev.events, gallery: gl, l2c: l2cs, samples };
   (world as any).missions = mis.scenarios; (world as any).misc = mis_c.misconceptions;
   terrain = new Terrain(renderer); await terrain.init(hm); scene.add(terrain.group);
   rocks = new Rocks(hm); scene.add(rocks.group);
@@ -205,7 +205,7 @@ let flightStartMs = 0; let flightStartDir: V3 = [0, 0, 1];
 function startPhysics(velB: V3, why: string) {
   const g0 = groundAt(P.dir); const posB = v3.mul(P.dir, g0 + 0.02); const et = utcToEt(clock.ms);
   flightStartMs = clock.ms; flightStartDir = v3.norm(P.dir);
-  orbit = launch(posB, velB, et, G.meta.gm_effective_m3s2, 2 * Math.PI / (G.meta.period_h * 3600)); layer = 'ballistic'; used.add('phys'); P.hop = -1; driveSpeed = 0; farHinted = false;
+  orbit = launch(posB, velB, et, G.meta.gm_effective_m3s2, 2 * Math.PI / (G.meta.period_h * 3600)); layer = 'ballistic'; used.add('phys'); driveSpeed = 0; farHinted = false;
   hud.announce(why);
   hint.show('飛行中 — 右上のスイッチ: 地表に戻る / WASD: スラスタ（Space上・C下）/ 矢印キー: 向きを回す（無操作で自動的に時間圧縮・演出E）', false, 7000);
 }
@@ -247,13 +247,11 @@ function stepWalk(dt: number) {
       if (Math.floor(performance.now() / 500) !== stepTick) { stepTick = Math.floor(performance.now() / 500); if (Math.abs(driveSpeed) < 3) sound.step(140 + Math.min(400, ns.slope * 22)); }
     }
   }
-  // hop (演出): 0.8 m / 2 m / 0.6 s, completes inside the presentation layer
-  if (P.hop >= 0) { P.hop += dt / HOP_T; if (P.hop >= 1) { P.hop = -1; P.dir = P.hopDir1; P.stand = P.hopTo; P.dip = 0.2; kickDust(v3.mul(P.dir, P.stand), v3.norm(P.dir), 0.1); } }
-  else { const tg = groundAt(P.dir); if (P.stand > tg) P.stand = Math.max(tg, P.stand - Math.max(2, (P.stand - tg) * 8) * dt); else P.stand = tg; }
+  // 足元の高さを地面に合わせる（段差を降りるときは素早く追従）
+  { const tg = groundAt(P.dir); if (P.stand > tg) P.stand = Math.max(tg, P.stand - Math.max(2, (P.stand - tg) * 8) * dt); else P.stand = tg; }
   P.dip = Math.max(0, P.dip - dt * 1.2);
 }
 let stepTick = 0;
-function doHop() { if (P.hop >= 0 || layer !== 'walk') return; driveSpeed = 0; used.add('hop'); P.hopDir0 = P.dir; const nd = moveOnSurface(HOP_D, 0); P.hopDir1 = nd; P.hopFrom = P.stand; P.hopTo = groundAt(nd); P.hop = 0; }
 function doPhysJump() { if (layer !== 'walk') return; const up = v3.norm(P.dir); const mov = keys.has('KeyW') || keys.has('ArrowUp') || (joy.active && joy.y < -0.3); const fw = v3.norm(v3.sub(P.fwd, v3.mul(up, v3.dot(P.fwd, up))));
   startPhysics(launchClamp(mov ? v3.add(v3.mul(fw, GROUND_LAUNCH), v3.mul(up, JUMP_V)) : v3.mul(up, JUMP_V)), mov ? 'dash-jump' : 'jump'); }
 
@@ -369,8 +367,8 @@ function frame(now: number) {
   const flying = layer === 'ballistic' || layer === 'orbit';
   const held = ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'Space', 'KeyC', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].some(k => keys.has(k));
   const idle = flying && !held && performance.now() - lastInput > 2000;
-  // 滑らかに ×1 → ×6000（約4.5秒）。操作したら素早く ×1 に戻る（演出E）
-  compress = idle ? Math.min(6000, Math.max(1, compress) * Math.pow(10, dt)) : Math.max(1, compress * Math.pow(0.004, dt)); if (compress < 1.02) compress = 1;
+  // 滑らかに ×1 → ×500（約3秒）。操作したら素早く ×1 に戻る（演出E）
+  compress = idle ? Math.min(500, Math.max(1, compress) * Math.pow(10, dt)) : Math.max(1, compress * Math.pow(0.004, dt)); if (compress < 1.02) compress = 1;
   const dtSim = dt * compress;
   // time: real time unless in MASCOT replay (flight follows the clock; compression above fast-forwards it)
   // （時計はdtRaw: 低fps環境でも実時間どおりに進む。物理の積分はキャップ済みのdtSim）
@@ -387,7 +385,7 @@ function frame(now: number) {
   let eyeB: V3; const upV = layer === 'ballistic' || layer === 'orbit' || layer === 'walk' ? eyeUp(P.dir) : v3.norm(P.dir);
   if (layer === 'ballistic' || layer === 'orbit') { eyeB = orbit ? bodyOf(orbit) : v3.mul(P.dir, groundAt(P.dir) + EYE); }
   else if (layer === 'mascot') { eyeB = mascotEye(); }
-  else { let h = P.stand + EYE - P.dip; if (P.hop >= 0) { const u = P.hop; const base = P.hopFrom + (P.hopTo - P.hopFrom) * u; const arcH = 4 * HOP_H * u * (1 - u); h = base + EYE + arcH; const d = v3.norm(v3.add(v3.mul(P.hopDir0, 1 - u), v3.mul(P.hopDir1, u))); eyeB = v3.mul(d, h); } else eyeB = v3.mul(P.dir, h); }
+  else { const h = P.stand + EYE - P.dip; eyeB = v3.mul(P.dir, h); }
   lookAt(eyeB!, P.fwd, upV, P.pitch);
   if (layer === 'mascot') { const q = mascot.posTopo(); if (q && Math.hypot(q[0], q[1], q[2]) > 1.2) { const rS = hm.radius(SITE.lat, SITE.lon); camera.lookAt(tr(v3.mul(geoToBody(SITE.lat, SITE.lon, 1), rS))); } }   // 降下・バウンド中はMASCOTが向かう着陸点を見る
   const cp = camera.position.clone();
@@ -530,7 +528,7 @@ function hudUpdate(S: { et: number; dir: V3; au: number }, gp: { lat: number; lo
 }
 
 // ---------------- idle hints (§5.3.1): flight-control comms, only unused features, max 3 times each
-const HINT_ORDER: [string, number][] = [['time', 0], ['inspect', 1], ['hop', 2], ['phys', 3], ['dash', 4], ['misc', 5]];
+const HINT_ORDER: [string, number][] = [['time', 0], ['inspect', 1], ['phys', 3], ['dash', 4], ['misc', 5]];
 function hints() {
   if (card.isOpen || viewer.isOpen || minimap?.open || mode < 0) { return; }
   // P1-5: 視点リプレイ地点の近くでは発見性を補強
@@ -557,19 +555,12 @@ let mascotPoi = false;
 function openPoi(p: Poi) {
   session.inspected.add(p.id); const body = mode === 0 ? `${p.nickname ? `<p>${esc(p.nickname)}</p>` : ''}<p>${esc(p.education_hook ?? p.description)}</p>` : mode === 1 ? `<p>${esc(p.description)}</p>` : `<p>${esc(p.description)}</p><p>${esc(p.accuracy ?? '')}</p>`;
   const refs = (mode === 2 && p.sources) ? '<p>' + p.sources.map((s: any) => s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.label)}</a>` : esc(s.label)).join(' / ') + '</p>' : '';
-  // モード別の難易度フィルタ（のんびり=elementary / じっくり=全問 / せんもん=advanced）。
-  // 正解済みの設問は次回スキップ（複数のクイズがあるPOIで全部出る）
-  const pool = quizzesFor(world, p.id).filter(x => mode === 0 ? x.difficulty === 'elementary' : mode === 1 ? true : x.difficulty === 'advanced');
-  const solved = new Set(session.quiz.filter(r => r.ok).map(r => r.id));
-  const q = pool.find(x => !solved.has(x.id)) ?? pool[0];
   mascotPoi = p.id === 'mascot_landing'; let extra = '';
   if (p.id === 'td1') extra = `<p><a href="#" id="td1go">${esc(t().td1_enter)}</a></p>`; if (mascotPoi) extra = `<p><a href="#" id="mgo">${esc(t().mascot_enter)}</a>　(E)</p>`;
   const chamber = p.id === 'td1' ? 'A' : 'C';
   const parts = (p.id === 'td1' || p.id === 'td2') ? (world.samples?.samples ?? []).filter((s: any) => s.chamber === chamber) : [];
   const samp = (p.id === 'td1' || p.id === 'td2') ? `<p>試料: チャンバー${chamber}（${esc((world.samples?.chambers ?? []).find((c: any) => c.chamber === chamber)?.note ?? '')}）</p>${parts.length ? `<p>配布粒子: ${parts.map((s: any) => `<a href="#" class="smp" data-id="${esc(s.id)}">${esc(s.id)}</a>`).join(' ')}</p>` : ''}` : '';
-  // クイズを本文より先に置く（本文=答え合わせになる設計）
-  card.show(p.name_ja, (q ? quizHtml(q) : '') + body + refs + samp + extra, 'poi', p.sources?.[0]?.label);
-  card.node.querySelectorAll('.q button').forEach(b => b.addEventListener('click', () => answer(q, +(b as HTMLElement).dataset.i!, b as HTMLElement)));
+  card.show(p.name_ja, body + refs + samp + extra, 'poi', p.sources?.[0]?.label);
   document.getElementById('mgo')?.addEventListener('click', e => { e.preventDefault(); enterMascot(); }); document.getElementById('td1go')?.addEventListener('click', e => { e.preventDefault(); enterTd1(); });
   card.node.querySelectorAll('a.smp').forEach(a => a.addEventListener('click', e => { e.preventDefault(); library.showSample({ viewer, card, lat: () => bodyToGeo(P.dir).lat, localHour: () => libLocalHour(), subsolarLat: () => libSubsolarLat() }, (a as HTMLElement).dataset.id!); }));
 }
@@ -581,19 +572,6 @@ function openLibrary() {
   used.add('misc'); library.open({ viewer, card, lat: () => bodyToGeo(P.dir).lat, localHour: libLocalHour, subsolarLat: libSubsolarLat, mode: () => mode, onMode: setMode });
 }
 card.onClose = () => { mascotPoi = false; library.close(); card.node.classList.remove('lib'); };
-const quizHtml = (q: any) => `<div class="q"><h3>クイズ</h3><p>${esc(q.question)}</p>${q.choices.map((c: string, i: number) => `<button data-i="${i}">${i + 1}. ${esc(c)}</button>`).join('')}<p class="ex" style="opacity:.0"></p></div>`;
-function answer(q: any, i: number, el: HTMLElement) {
-  const ok = i === q.answer_index; session.quiz.push({ id: q.id, ok });
-  // 誤答にも反応する: 正解ボタンを示し、解説を「不正解」付きで表示（無反応は教育の逆）
-  const btns = Array.from(card.node.querySelectorAll('.q button')) as HTMLButtonElement[];
-  btns.forEach(b => b.disabled = true);
-  btns[q.answer_index]?.classList.add('ok');
-  el.classList.add(ok ? 'ok' : 'no');
-  if (!ok) el.classList.add('shake');
-  const ex = card.node.querySelector('.ex') as HTMLElement;
-  ex.style.opacity = '1';
-  ex.textContent = (ok ? '正解 — ' : `不正解（正解は ${q.answer_index + 1}） — `) + q.explanation;
-}
 
 // ---------------- P1-2: イベントへの時間・場所移動（演出E）
 const ARRIVE_NOTE: Record<string, string> = {
@@ -609,7 +587,7 @@ function goToEvent(ev: REvent) {
   if (layer === 'td1') exitTd1();
   clock.running = true; clock.set(ev.ms);
   if (ev.lat != null) {
-    P.dir = geoToBody(ev.lat, ev.lon!, 1); P.stand = groundAt(P.dir); P.hop = -1; orbit = null; layer = 'walk'; P.dip = 0.2;
+    P.dir = geoToBody(ev.lat, ev.lon!, 1); P.stand = groundAt(P.dir); orbit = null; layer = 'walk'; P.dip = 0.2;
     const up = v3.norm(P.dir); const sh = v3.sub(sunNow().dir, v3.mul(up, v3.dot(sunNow().dir, up)));
     if (v3.len(sh) > 1e-4) P.fwd = v3.norm(sh);   // 現地の昼側を向く
     P.pitch = 0.1;
@@ -623,7 +601,7 @@ function teleport(lat: number, lon: number) {
   if (layer === 'ballistic' || layer === 'orbit') returnToSurface();
   if (layer === 'mascot') exitMascot();
   if (layer === 'td1') exitTd1();
-  P.dir = geoToBody(lat, lon, 1); P.stand = groundAt(P.dir); P.hop = -1; orbit = null; layer = 'walk'; P.dip = 0.2;
+  P.dir = geoToBody(lat, lon, 1); P.stand = groundAt(P.dir); orbit = null; layer = 'walk'; P.dip = 0.2;
   hint.show(`${fmtLat(lat)} ${fmtLon(lon)} へ移動しました（演出E）`, false, 4000);
   activity();
 }
@@ -664,7 +642,7 @@ function mascotEye(): V3 {
 const TD1_MS = Date.UTC(2019, 1, 21, 22, 29, 10), TD1_A = Date.UTC(2019, 1, 20, 23, 17, 48), TD1_B = Date.UTC(2019, 1, 22, 3, 0, 0);
 const TD1_SITE = { lat: 4.3, lon: 206.47 };
 function enterTd1() {
-  card.hide(); driveSpeed = 0; layer = 'td1'; orbit = null; P.dir = geoToBody(TD1_SITE.lat, TD1_SITE.lon, 1); P.stand = groundAt(P.dir); P.hop = -1;
+  card.hide(); driveSpeed = 0; layer = 'td1'; orbit = null; P.dir = geoToBody(TD1_SITE.lat, TD1_SITE.lon, 1); P.stand = groundAt(P.dir);
   clock.running = false; clock.set(Date.UTC(2019, 1, 21, 22, 19, 0)); hint.show('ホイール: 時間（10秒刻み） / Space: 再生 / E: 終了　22:29:10 UTC（07:29:10 JST）は公表接地時刻', false, 7000); used.add('time');
 }
 function exitTd1() { layer = 'walk'; clock.running = true; clock.set(Math.max(TD1_MS, Math.min(TD1_B, clock.ms))); burst.visible = false; P.stand = groundAt(P.dir); }
@@ -721,12 +699,11 @@ function mascotEndCard() {
 addEventListener('keydown', e => {
   if (!ready) return; activity(); if (minimap?.open && (e.key === 'Escape' || e.code === 'KeyE')) { minimap.hideModal(); return; }
   if (viewer.isOpen) { viewer.handleKey(e); if (e.code === 'KeyE') viewer.close(); return; }
-  if (card.isOpen && /^[1-4]$/.test(e.key)) { (card.node.querySelectorAll('.q button')[+e.key - 1] as HTMLElement)?.click(); return; }
   keys.add(e.code);
   if (e.code === 'KeyE') { if (layer === 'mascot') { exitMascot(); } else if (layer === 'td1') { exitTd1(); } else interact(); }
   if (layer === 'mascot') { if (e.code === 'Space') { e.preventDefault(); mascot.playing = !mascot.playing; } else if (e.code === 'ArrowRight') mascot.seekImage(1); else if (e.code === 'ArrowLeft') mascot.seekImage(-1); if (e.code !== 'KeyE') return; }
   if (e.code === 'Space' && layer === 'td1') { e.preventDefault(); clock.running = !clock.running; return; }
-  if (e.code === 'Space') { e.preventDefault(); doHop(); }
+  if (e.code === 'Space') e.preventDefault();
   if (e.code === 'KeyP') { G = G === G340 ? G763 : G340; hint.show(G === G340 ? '過去モード: 自転周期 3.40h（重力表 3.40h）' : '現在: 自転周期 7.63h', false, 3000); }
   if (e.code === 'KeyR') recordNow(); if (e.code === 'KeyB') toggleSound(); if (e.code === 'KeyM') changeMode(); if (e.code === 'KeyG') openLibrary();
   if (e.code === 'KeyV') eventUi.openList();   // イベントメニュー（Vキー）
@@ -753,8 +730,6 @@ stick.addEventListener('touchstart', e => { e.preventDefault(); joy.active = tru
 stick.addEventListener('touchmove', e => { e.preventDefault(); moveJoy(e.touches[0]); }, { passive: false });
 stick.addEventListener('touchend', () => { joy.active = false; joy.x = joy.y = 0; knob.style.transform = ''; });
 function moveJoy(t0: Touch) { const r = stick.getBoundingClientRect(); const cx = r.left + r.width / 2, cy = r.top + r.height / 2; let x = (t0.clientX - cx) / (r.width / 2), y = (t0.clientY - cy) / (r.height / 2); const l = Math.hypot(x, y); if (l > 1) { x /= l; y /= l; } joy.x = x; joy.y = y; knob.style.transform = `translate(${x * 35}px,${y * 35}px)`; }
-const hopbtn = $('hopbtn');
-hopbtn.addEventListener('click', () => { activity(); doHop(); });
 // 宇宙への脱出（ジャンプ）と帰還は、このボタンだけで行う（キー操作・離陸モードは廃止）
 const spaceBtn = new SpaceButton($('spacebtn') as HTMLButtonElement, () => { activity(); if (layer === 'walk') doPhysJump(); else returnToSurface(); });
 $('viewer').addEventListener('click', e => { if (e.target === $('viewer')) viewer.close(); });

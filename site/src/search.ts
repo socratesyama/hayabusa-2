@@ -5,7 +5,7 @@ export interface Hit { kind: 'poi' | 'gallery' | 'l2c' | 'sample' | 'event' | 'q
 export interface World {
   pois: Poi[]; events: any[]; gallery: { id: string; folder: string; lat: number | null; lon: number | null; date: string; event: string }[];
   l2c: { id: string; day: string; utc: string; jpg: string; has_geometry: boolean; lat?: number; lon?: number }[];
-  samples: any; quizzes: any[];
+  samples: any;
 }
 export function nearby(w: World, lat: number, lon: number, ms: number): Hit[] {
   const out: Hit[] = [];
@@ -17,4 +17,3 @@ export function nearby(w: World, lat: number, lon: number, ms: number): Hit[] {
 export function samplesAt(w: World, lat: number, lon: number) {
   const r: any[] = []; for (const c of (w.samples?.chambers ?? [])) if (c.latitude_deg != null && surfDist(lat, lon, c.latitude_deg, c.longitude_deg) <= 100) r.push(c); return r;
 }
-export function quizzesFor(w: World, poiId: string) { return w.quizzes.filter(q => q.poi_id === poiId); }

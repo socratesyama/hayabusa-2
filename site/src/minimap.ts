@@ -3,13 +3,13 @@
 // 表面クリックで「ここへ移動」（演出E）。メイン renderer に setViewport/setScissor で追描画する。
 import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { url } from './data';
 import { V3, v3, geoToBody, bodyToGeo, threeToBody } from './geo';
 import { HeightMap } from './data';
 import { Card } from './ui';
 import { lang } from './i18n';
 
-const SMALL = matchMedia('(pointer:coarse)').matches ? 104 : 148;   // 常設ミニマップの一辺 (CSS px)
 
 const vert = `varying vec3 vP; varying vec3 vN; varying vec3 vV; void main(){ vP=position; vN=normal; vec4 mv=modelViewMatrix*vec4(position,1.0); vV=-mv.xyz; gl_Position=projectionMatrix*mv; }`;
 const frag = `
@@ -96,8 +96,10 @@ export class MiniMap {
         const g = (o.children[0] as THREE.Mesh).geometry as THREE.BufferGeometry;
         const p = g.getAttribute('position') as THREE.BufferAttribute;
         for (let i = 0; i < p.count; i++) { const x = p.getX(i) * 1000, y = p.getY(i) * 1000, z = p.getZ(i) * 1000; p.setXYZ(i, x, z, -y); }
-        g.deleteAttribute('normal'); g.computeVertexNormals(); g.computeBoundingSphere();
-        return g;
+        g.deleteAttribute('normal'); g.deleteAttribute('uv');
+        // 頂点を統合してから法線を計算する（統合しないと面ごとの法線になり角ばって見える）
+        const mg = mergeVertices(g, 1e-3); mg.computeVertexNormals(); mg.computeBoundingSphere();
+        return mg;
       };
       // 5k面を先に出して操作可能にし、展開マップでは49k面へ差し替える。
       const g = await parse('assets/generated/ryugu_lod3_5k.obj');
@@ -186,11 +188,15 @@ export class MiniMap {
       this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
       this.renderer.render(this.scene, this.camera);
     } else {
-      // WebGLのy原点は画面下端。CSSの #mmap-small は right:16px / top:16px なので一致させる
-      const x = Math.round(w - SMALL - 16), y = Math.round(h - SMALL - 16);
-      this.renderer.setViewport(x, y, SMALL, SMALL); this.renderer.setScissor(x, y, SMALL, SMALL);
-      this.camera.aspect = 1; this.camera.updateProjectionMatrix();
-      this.renderer.render(this.scene, this.camera);
+      // 描画範囲は CSS の #mmap-small の実際の位置に合わせる（CSS を変えても追従する）。WebGL の y 原点は画面下端。
+      const rc = this.smallEl.getBoundingClientRect(), cr = this.renderer.domElement.getBoundingClientRect();
+      const sw = Math.round(rc.width), sh = Math.round(rc.height);
+      if (sw > 0 && sh > 0) {
+        const x = Math.round(rc.left - cr.left), y = Math.round(cr.bottom - rc.bottom);
+        this.renderer.setViewport(x, y, sw, sh); this.renderer.setScissor(x, y, sw, sh);
+        this.camera.aspect = sw / sh; this.camera.updateProjectionMatrix();
+        this.renderer.render(this.scene, this.camera);
+      }
     }
     this.renderer.setScissorTest(false);
     this.renderer.setViewport(0, 0, w, h);
