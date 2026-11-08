@@ -2,8 +2,9 @@ import { HAYABUSA_SIL } from './hayabusa_sil';
 
 /**
  * 地上⇄宇宙の切替ボタン（演出E）。
- *  地上: 黒地に白いはやぶさ2 → 押すとジャンプ(Shift+Space)で宇宙へ
- *  宇宙: 白地に黒いリュウグウ → 押すと地表へ戻る(Q)
+ *  地上: 黒地に白いはやぶさ2 → 押すとジャンプして宇宙へ
+ *  宇宙: 白地に黒いリュウグウ → 押すと地表へ戻る
+ *  この世界から出入りする唯一の操作（キーボードの代替はない）
  * 見た目は「状態」に従う: 状態が変わった瞬間（ボタン・キー・自然着地のどれが原因でも）、1.5秒の粒子変形を再生する。
  *  シルエット→粒に拡散(0-30%)→粒の色と地が反転(30-50%)→粒が集まって別の形(50-100%)
  */
@@ -26,7 +27,6 @@ export class SpaceButton {
   private state: SpaceState | null = null; private anim: { t0: number; from: SpaceState; to: SpaceState } | null = null; private want: SpaceState | null = null; private ready = false; private k = 1;
   private reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   constructor(private el: HTMLButtonElement, onPress?: () => void) {
-    if (!onPress) { this.el.disabled = true; this.el.tabIndex = -1; }   // 表示専用モード（押せない）
     this.cv = document.createElement('canvas'); const K = devicePixelRatio || 1; this.cv.width = this.cv.height = SIZE * K; this.k = SIZE * K / S; this.el.appendChild(this.cv); this.cx = this.cv.getContext('2d')!;
     this.el.addEventListener('click', e => { if (e.detail) this.el.blur(); if (!this.anim) onPress?.(); });   // マウス/タッチ後はフォーカスを外し、Spaceが二重に効かないようにする
     this.img.onload = () => { this.HP = this.pick(this.sample(this.draw(c => this.hayabusa(c, '#000')))); this.RP = this.pick(this.sample(this.draw(c => { c.fillStyle = '#000'; ryugu(c); }))); this.ready = true; if (this.want) this.sync(this.want); };
@@ -39,7 +39,7 @@ export class SpaceButton {
   private sample(d: Uint8ClampedArray) { const p: number[][] = []; for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) if (d[(y * S + x) * 4 + 3] > 128) p.push([x, y]); return p; }
   private pick(m: number[][]) { return Array.from({ length: N }, () => { const p = m[(Math.random() * m.length) | 0]; return [p[0] + Math.random() - .5, p[1] + Math.random() - .5]; }); }
   private shape(c: CanvasRenderingContext2D, s: SpaceState, col: number) { if (s === 'ground') this.hayabusa(c, col > 127 ? '#fff' : '#000'); else { c.fillStyle = gray(col); ryugu(c); } }
-  private label(s: SpaceState) { this.el.setAttribute('aria-label', s === 'ground' ? '地上（宇宙へはShift+Space）' : '宇宙（地表へはQ）'); this.el.title = this.el.getAttribute('aria-label')!; }
+  private label(s: SpaceState) { this.el.setAttribute('aria-label', s === 'ground' ? 'ジャンプして宇宙へ' : '地表に戻る'); this.el.title = this.el.getAttribute('aria-label')!; }
   private rest(s: SpaceState) {
     const g = s === 'ground', bg = g ? 0 : 255, fg = 255 - bg, c = this.cx; c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = gray(bg); c.fillRect(0, 0, this.cv.width, this.cv.height);
     const o = S * (1 - FIT) / 2 * this.k; c.setTransform(this.k * FIT, 0, 0, this.k * FIT, o, o); this.shape(c, s, fg); this.label(s);

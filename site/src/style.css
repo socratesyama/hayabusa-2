@@ -226,5 +226,8 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--ring);outline-offse
 }
 
 /* 地上⇄宇宙ボタン（丸）: 黒地に白いはやぶさ2 ⇄ 白地に黒いリュウグウ */
-#spacebtn{position:fixed;right:max(20px,env(safe-area-inset-right));bottom:112px;width:76px;height:76px;padding:0;border:0;border-radius:50%;overflow:hidden;cursor:default;pointer-events:none;z-index:6;background:#000;box-shadow:0 0 0 2px var(--accent-hi,#E8A33D),0 0 18px rgba(59,130,246,.35);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#spacebtn{position:fixed;right:max(20px,env(safe-area-inset-right));bottom:112px;width:76px;height:76px;padding:0;border:0;border-radius:50%;overflow:hidden;cursor:pointer;z-index:6;background:#000;box-shadow:0 0 0 2px var(--accent-hi,#E8A33D),0 0 18px rgba(59,130,246,.35);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+#spacebtn:hover{box-shadow:0 0 0 2px var(--accent-hi,#E8A33D),0 0 26px rgba(59,130,246,.65)}
+#spacebtn:active{transform:scale(.95)}
+#spacebtn:focus-visible{outline:2px solid var(--ring,#fff);outline-offset:4px}
 #spacebtn canvas{display:block;width:76px;height:76px;border-radius:50%}

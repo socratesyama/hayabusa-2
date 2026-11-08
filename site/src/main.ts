@@ -206,7 +206,7 @@ function startPhysics(velB: V3, why: string) {
   flightStartMs = clock.ms; flightStartDir = v3.norm(P.dir);
   orbit = launch(posB, velB, et, G.meta.gm_effective_m3s2, 2 * Math.PI / (G.meta.period_h * 3600)); layer = 'ballistic'; used.add('phys'); P.hop = -1; farHinted = false;
   hud.announce(why);
-  hint.show('飛行中 — Q（または右下のボタン）: 地表に戻る / WASD: スラスタ（Space上・C下）/ 矢印キー: 向きを回す（無操作で自動的に時間圧縮・演出E）', false, 7000);
+  hint.show('飛行中 — 右下のボタン: 地表に戻る / WASD: スラスタ（Space上・C下）/ 矢印キー: 向きを回す（無操作で自動的に時間圧縮・演出E）', false, 7000);
 }
 /** return to the surface from ballistic flight / orbit (presentation shortcut; the sub-player point) */
 function returnToSurface() {
@@ -261,7 +261,7 @@ function stepFlight(et: number, dt: number, dtReal = dt) {
   const etT = Math.max(et, orbit.t + dt);
   const hit = advance(orbit, etT, surf); const b = bodyOf(orbit); P.dir = v3.norm(b);
   layer = isEscape(orbit) ? 'orbit' : 'ballistic';
-  if (!farHinted && v3.len(b) - groundAt(v3.norm(b)) > 1500) { farHinted = true; hint.show('高度が上がっています — Q（または右下のボタン）: 地表に戻る', false, 6000); }
+  if (!farHinted && v3.len(b) - groundAt(v3.norm(b)) > 1500) { farHinted = true; hint.show('高度が上がっています — 右下のボタンで地表に戻れます', false, 6000); }
   if (hit && orbit.landed) {
     const vB = velBodyOf(orbit); const spd = v3.len(vB);
     P.stand = groundAt(P.dir); orbit = null; layer = 'walk'; P.dip = 0.2;
@@ -666,12 +666,10 @@ addEventListener('keydown', e => {
   keys.add(e.code);
   if (e.code === 'KeyE') { if (layer === 'mascot') { exitMascot(); } else if (layer === 'td1') { exitTd1(); } else interact(); }
   if (e.code === 'Space' && layer === 'td1') { e.preventDefault(); clock.running = !clock.running; return; }
-  if (e.code === 'Space') { e.preventDefault(); if (e.shiftKey) doPhysJump(); else { doHop(); } }
-  if (e.code === 'KeyQ' || e.code === 'KeyU') returnToSurface();
+  if (e.code === 'Space') { e.preventDefault(); doHop(); }
   if (e.code === 'KeyP') { G = G === G340 ? G763 : G340; hint.show(G === G340 ? '過去モード: 自転周期 3.40h（重力表 3.40h）' : '現在: 自転周期 7.63h', false, 3000); }
   if (e.code === 'KeyR') recordNow(); if (e.code === 'KeyS') toggleSound(); if (e.code === 'KeyM') changeMode(); if (e.code === 'KeyG') openLibrary();
   if (e.code === 'KeyV') eventUi.openList();   // イベントメニュー（Vキー）
-  if (e.code === 'KeyL') launchMode();         // P3-1: 離陸モード（演出E）
   if (e.shiftKey && e.code === 'KeyW') used.add('dash');
 });
 addEventListener('keyup', e => keys.delete(e.code)); addEventListener('blur', () => keys.clear());
@@ -696,22 +694,15 @@ stick.addEventListener('touchmove', e => { e.preventDefault(); moveJoy(e.touches
 stick.addEventListener('touchend', () => { joy.active = false; joy.x = joy.y = 0; knob.style.transform = ''; });
 function moveJoy(t0: Touch) { const r = stick.getBoundingClientRect(); const cx = r.left + r.width / 2, cy = r.top + r.height / 2; let x = (t0.clientX - cx) / (r.width / 2), y = (t0.clientY - cy) / (r.height / 2); const l = Math.hypot(x, y); if (l > 1) { x /= l; y /= l; } joy.x = x; joy.y = y; knob.style.transform = `translate(${x * 35}px,${y * 35}px)`; }
 const hopbtn = $('hopbtn'); let hopTimer = 0;
-hopbtn.addEventListener('touchstart', e => { e.preventDefault(); if (layer === 'ballistic' || layer === 'orbit') { returnToSurface(); return; } hopTimer = window.setTimeout(() => { hopTimer = -1; doPhysJump(); }, 600); }, { passive: false });
+hopbtn.addEventListener('touchstart', e => { e.preventDefault(); hopTimer = window.setTimeout(() => { hopTimer = -1; }, 600); }, { passive: false });
 hopbtn.addEventListener('touchend', e => { e.preventDefault(); if (hopTimer > 0) { clearTimeout(hopTimer); doHop(); } hopTimer = 0; }, { passive: false });
-const spaceBtn = new SpaceButton($('spacebtn') as HTMLButtonElement);   // 表示専用: 操作(ジャンプ/帰還)はキー(Shift+Space / Q)のみ。ボタンは押せない
+// 宇宙への脱出（ジャンプ）と帰還は、このボタンだけで行う（キー操作・離陸モードは廃止）
+const spaceBtn = new SpaceButton($('spacebtn') as HTMLButtonElement, () => { activity(); if (layer === 'walk') doPhysJump(); else returnToSurface(); });
 $('viewer').addEventListener('click', () => viewer.close());
 $('b-sound').addEventListener('click', toggleSound); $('b-rec').addEventListener('click', recordNow); $('b-mode').addEventListener('click', changeMode); $('b-lib').addEventListener('click', openLibrary);
 $('b-ev').addEventListener('click', () => { activity(); eventUi.openList(); });
 function toggleSound() { const on = sound.toggle(); $('b-sound').classList.toggle('active', on); if (on) hint.show(t().sound_on, false, 4000); }
 function recordNow() { exportSession(session); hint.show(t().rec_saved, false, 2500); }
-/** P3-1: 離陸モード — 明示的に脱出速度で射出され宇宙空間へ（演出E）。Qでいつでも帰還。 */
-function launchMode() {
-  if (layer !== 'walk') return;
-  const g = bodyToGeo(P.dir); const esc = sampleGravity(G, g.lat, g.lon).esc;
-  used.add('launch'); activity();
-  startPhysics(v3.mul(v3.norm(P.dir), esc * 1.06), '離陸モード');
-  hint.show('離陸モード（演出E）— 脱出速度で射出されました。矢印キー: 姿勢 / WASD: 微推力 / Q（または右下のボタン）: 地表に戻る', false, 8000);
-}
 /** P1-6: モード切替（起動時の選択は廃止。最終値を記憶） */
 function setMode(m: number) {
   mode = Math.max(0, Math.min(2, Math.round(m))) as Mode; try { localStorage.setItem('ryugu_mode', String(mode)); } catch { /* ignore */ }
