@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { url, HeightMap } from './data';
 import { V3, v3, bodyToThree, threeToBody, bodyToGeo, geoToBody, DEG } from './geo';
 import { regolithOffset } from './regolith';
@@ -126,7 +127,8 @@ export class Terrain {
     const toThree = (g: THREE.BufferGeometry) => { // OBJ km body frame -> metres three frame
       const p = g.getAttribute('position') as THREE.BufferAttribute;
       for (let i = 0; i < p.count; i++) { const x = p.getX(i) * 1000, y = p.getY(i) * 1000, z = p.getZ(i) * 1000; p.setXYZ(i, x, z, -y); }
-      g.deleteAttribute('normal'); g.computeVertexNormals(); g.computeBoundingSphere(); return g; };
+      g.deleteAttribute('normal'); g.deleteAttribute('uv');   // uvはシェーダ内でワールド座標から作るので不要
+      const mg = mergeVertices(g, 1e-3); mg.computeVertexNormals(); mg.computeBoundingSphere(); return mg; };   // 頂点を統合して法線を滑らかにする（面ごとの法線だと三角形が見える）
     this.tex = new THREE.CanvasTexture(await this.composite(1)); this.tex.colorSpace = THREE.SRGBColorSpace; this.tex.anisotropy = 4;
     this.mat = new THREE.ShaderMaterial({ vertexShader: vert, fragmentShader: frag, uniforms: { map: { value: this.tex }, nmap: { value: null }, dmap: { value: null }, sunDir: { value: new THREE.Vector3(1, 0, 0) }, camPos: { value: new THREE.Vector3() }, shadowOn: { value: 0 }, useNmap: { value: 0 }, useD: { value: 0 }, dLevels: { value: 7 } } });
     this.initPatch();   // after mat: the patch clones it (with polygonOffset) and shares its textures
