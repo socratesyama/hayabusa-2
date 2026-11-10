@@ -309,10 +309,8 @@ body.mascot-on #annot{display:none}
 /* 読み込み演出: リュウグウが大きくなる（白い点の代わり） */
 #intro .ryugu-load{--grow:.06;width:min(46vmin,260px);height:min(46vmin,260px);margin-top:18px;transform:scale(var(--grow));transition:transform 1.4s cubic-bezier(.16,1,.3,1),opacity .7s;filter:drop-shadow(0 0 22px rgba(240,240,235,.18))}
 #intro .ryugu-load svg{width:100%;height:100%;display:block;overflow:visible}
-#intro .ryugu-load .spin{transform-origin:0 0;animation:ryspin 14s linear infinite}
-@keyframes ryspin{to{transform:rotate(360deg)}}
 #intro.off .ryugu-load{transform:scale(2.6);opacity:0}
-@media (prefers-reduced-motion:reduce){#intro .ryugu-load .spin{animation:none}#intro .ryugu-load{transition:none}}
+@media (prefers-reduced-motion:reduce){#intro .ryugu-load{transition:none}}
 
 /* 浮動スティック: 触れた場所に出る。coarse 端末でのみ見える（既定位置は薄いガイド）。 */
 @media (pointer:coarse){
