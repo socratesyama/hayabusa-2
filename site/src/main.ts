@@ -20,6 +20,7 @@ import { TimeSlider } from './timeslider';
 import { buildEvents, EventUi, nextEvent, fmtCountdown, REvent, FOLDER_NOTE, SCI_MS } from './events';
 import { SpaceButton } from './spacebtn';
 import { MiniMap } from './minimap';
+import { SpaceFlight, ASCEND_S, TIME_COMPRESS } from './space';
 
 const $ = (id: string) => document.getElementById(id)!;
 const canvas = $('gl') as HTMLCanvasElement;
@@ -36,6 +37,7 @@ const EYE = 1.5, DRIVE_SPEED = 8, DRIVE_BOOST = 16, DRIVE_ACCEL = 12, DRIVE_BRAK
 const MAX_DRIVE_SLOPE = 55, MAX_DRIVE_STEP = 0.4, DRIVE_SUBSTEP = 0.2, JUMP_V = 0.30;
 const P = { dir: geoToBody(4.3, 206.47, 1) as V3, fwd: [0, 0, 1] as V3, pitch: 0, stand: 0, dip: 0 };
 let orbit: Orbit | null = null; let pastMode = false;
+let sp: SpaceFlight | null = null; let camXf: { q0: THREE.Quaternion; t: number; dur: number } | null = null; let spFxT = 0;
 const keys = new Set<string>(); let lastInput = performance.now(); const used = new Set<string>(); const hintShown: Record<string, number> = {};
 const session: Session = { callsign: '', start: new Date().toISOString(), track: [], inspected: new Set() };
 let world: World; let G763!: Gravity, G340!: Gravity, G: Gravity; let sc!: ScTable; let sun!: Sun; let hm!: HeightMap; let terrain!: Terrain; let rocks!: Rocks; let mascot!: MascotReplay;
@@ -211,6 +213,11 @@ function startPhysics(velB: V3, why: string) {
 }
 /** return to the surface from ballistic flight / orbit (presentation shortcut; the sub-player point) */
 function returnToSurface() {
+  if (layer === 'space') {
+    const d = sp ? v3.norm(sp.dir) : v3.norm(P.dir);
+    P.dir = d; P.stand = groundAt(d); sp = null; camXf = null; orbit = null; layer = 'walk'; P.dip = 0.2; compress = 1;
+    hint.show('地表に戻りました（演出）', false, 3000); return;
+  }
   if (layer !== 'ballistic' && layer !== 'orbit') return;
   const d = v3.norm(orbit ? bodyOf(orbit) : P.dir);
   P.dir = d; P.stand = groundAt(d); orbit = null; layer = 'walk'; P.dip = 0.2;
@@ -252,8 +259,37 @@ function stepWalk(dt: number) {
   P.dip = Math.max(0, P.dip - dt * 1.2);
 }
 let stepTick = 0;
-function doPhysJump() { if (layer !== 'walk') return; const up = v3.norm(P.dir); const mov = keys.has('KeyW') || keys.has('ArrowUp') || (joy.active && joy.y < -0.3); const fw = v3.norm(v3.sub(P.fwd, v3.mul(up, v3.dot(P.fwd, up))));
-  startPhysics(launchClamp(mov ? v3.add(v3.mul(fw, GROUND_LAUNCH), v3.mul(up, JUMP_V)) : v3.mul(up, JUMP_V)), mov ? 'dash-jump' : 'jump'); }
+const inFlight = () => layer === 'ballistic' || layer === 'orbit' || layer === 'space';
+/** 宇宙モード開始: 局所地表の上空200mまで上昇し、リュウグウの方を向いて静止する */
+function startSpace() {
+  if (layer !== 'walk') return;
+  const dir = v3.norm(P.dir); const fwd = v3.norm(v3.sub(P.fwd, v3.mul(dir, v3.dot(P.fwd, dir))));
+  sp = new SpaceFlight(dir, fwd, P.stand + EYE - P.dip, groundAt);
+  camXf = { q0: camera.quaternion.clone(), t: 0, dur: ASCEND_S };   // 歩行視点から滑らかに向き直る
+  orbit = null; layer = 'space'; driveSpeed = 0; used.add('phys'); spFxT = 0;
+  hud.announce('宇宙モード');
+  hint.show('宇宙モード — 上空200mまで上昇します。Space:遠ざかる / C:近づく・着地 / WASD・矢印・ドラッグ:球面を周回 / 右上のスイッチ:最寄りの地表へ', false, 9000);
+}
+function stepSpace(dt: number) {
+  if (!sp) { layer = 'walk'; return; }
+  let x = 0, y = 0;
+  if (keys.has('KeyD') || keys.has('ArrowRight')) x += 1; if (keys.has('KeyA') || keys.has('ArrowLeft')) x -= 1;
+  if (keys.has('KeyW') || keys.has('ArrowUp')) y += 1; if (keys.has('KeyS') || keys.has('ArrowDown')) y -= 1;
+  if (joy.active) { x += joy.x; y += -joy.y; }
+  const hit = sp.step(dt, { x: Math.max(-1, Math.min(1, x)), y: Math.max(-1, Math.min(1, y)), out: keys.has('Space'), inward: keys.has('KeyC') }, groundAt, G.meta.gm_effective_m3s2, EYE);
+  P.dir = sp.dir;
+  if (sp.fx) { spFxT -= dt; if (spFxT <= 0) { spFxT = 0.12; jetFX(sp.fx); if (sound.on) sound.thrust(); } }
+  if (hit) landFromSpace();
+}
+/** 着地（Cキー・重力による自動着地・スイッチ帰還のどれでも）: 地上モードに戻す。右上のボタンは layer に追従して自動で地上表示に変わる */
+function landFromSpace() {
+  if (!sp) return; const d = v3.norm(sp.dir); const u = sp.up; const v = sp.touch;
+  camXf = { q0: camera.quaternion.clone(), t: 0, dur: 1.2 };
+  P.dir = d; P.stand = groundAt(d); P.fwd = v3.norm(v3.sub(u, v3.mul(d, v3.dot(u, d)))); P.pitch = 0; P.dip = 0.2; driveSpeed = 0;
+  layer = 'walk'; orbit = null; sp = null; compress = 1;
+  kickDust(v3.mul(d, P.stand), d, Math.max(0.08, Math.min(1.2, v * 0.3)));
+  hint.show('着地しました — 地上モードに戻ります', false, 4000);
+}
 
 /** P3-1: 宇宙空間の自由飛行 — 矢印キーでヨー・ピッチ（WASDは微推力のまま） */
 function steerFlight(dt: number) {
@@ -369,6 +405,7 @@ function frame(now: number) {
   const idle = flying && !held && performance.now() - lastInput > 2000;
   // 滑らかに ×1 → ×500（約3秒）。操作したら素早く ×1 に戻る（演出E）
   compress = idle ? Math.min(500, Math.max(1, compress) * Math.pow(10, dt)) : Math.max(1, compress * Math.pow(0.004, dt)); if (compress < 1.02) compress = 1;
+  if (layer === 'space') compress = sp && sp.captured ? TIME_COMPRESS : 1;   // 自動着地中だけ時間圧縮（演出E）
   const dtSim = dt * compress;
   // time: real time unless in MASCOT replay (flight follows the clock; compression above fast-forwards it)
   // （時計はdtRaw: 低fps環境でも実時間どおりに進む。物理の積分はキャップ済みのdtSim）
@@ -376,6 +413,7 @@ function frame(now: number) {
   if (layer === 'td1') { if (clock.ms > TD1_B) { clock.set(TD1_B); clock.running = false; } else if (clock.ms < TD1_A) clock.set(TD1_A); }
   const S = sunNow();
   if (layer === 'walk') { stepWalk(dt); } else if (layer === 'ballistic' || layer === 'orbit') stepFlight(S.et, dtSim, dt);
+  else if (layer === 'space') { stepSpace(dt); }
   else if (layer === 'mascot') { mascotStep(dt); }
   const gp = bodyToGeo(P.dir);
   // MASCOTリプレイ中は高解像度パッチをMASCOTサイトに張る（プレイヤー位置基準だと粗い全球メッシュが剥き出しになる）
@@ -384,13 +422,16 @@ function frame(now: number) {
   // camera
   let eyeB: V3; const upV = layer === 'ballistic' || layer === 'orbit' || layer === 'walk' ? eyeUp(P.dir) : v3.norm(P.dir);
   if (layer === 'ballistic' || layer === 'orbit') { eyeB = orbit ? bodyOf(orbit) : v3.mul(P.dir, groundAt(P.dir) + EYE); }
+  else if (layer === 'space' && sp) { eyeB = v3.mul(sp.dir, sp.rad); }
   else if (layer === 'mascot') { eyeB = mascotEye(); }
   else { const h = P.stand + EYE - P.dip; eyeB = v3.mul(P.dir, h); }
-  lookAt(eyeB!, P.fwd, upV, P.pitch);
+  if (layer === 'space' && sp) { camera.position.copy(tr(eyeB!)); camera.up.copy(tr(sp.up)); camera.lookAt(0, 0, 0); }   // 常にリュウグウ中心を見る
+  else lookAt(eyeB!, P.fwd, upV, P.pitch);
   if (layer === 'mascot') { const q = mascot.posTopo(); if (q && Math.hypot(q[0], q[1], q[2]) > 1.2) { const rS = hm.radius(SITE.lat, SITE.lon); camera.lookAt(tr(v3.mul(geoToBody(SITE.lat, SITE.lon, 1), rS))); } }   // 降下・バウンド中はMASCOTが向かう着陸点を見る
+  if (camXf) { camXf.t += dt; const s = Math.min(1, camXf.t / camXf.dur), e = s * s * (3 - 2 * s); const qT = camera.quaternion.clone(); camera.quaternion.copy(camXf.q0).slerp(qT, e); if (s >= 1) camXf = null; }
   const cp = camera.position.clone();
   // 遠方まで見えるように near/far と背景天球を距離に比例させる（はやぶさ2のHP=約20kmを視界に入れる）
-  { const rC = v3.len(eyeB!); const fl = layer === 'ballistic' || layer === 'orbit'; const far = Math.max(6000, (rC + 600) * 1.6, fl ? 50000 : 0); const near = fl ? Math.min(40, Math.max(0.3, (rC - 520) * 0.004)) : 0.05;
+  { const rC = v3.len(eyeB!); const fl = layer === 'ballistic' || layer === 'orbit' || layer === 'space'; const far = Math.max(6000, (rC + 600) * 1.6, fl ? 50000 : 0); const near = layer === 'space' ? Math.max(0.05, Math.min(40, (rC - groundAt(P.dir)) * 0.01)) : fl ? Math.min(40, Math.max(0.3, (rC - 520) * 0.004)) : 0.05;
     if (Math.abs(camera.far - far) > 1 || Math.abs(camera.near - near) > 1e-3) { camera.far = far; camera.near = near; camera.updateProjectionMatrix(); } bgK = far / 6000; }
   // sky (single source of truth) — P1-4: 白⇔黒を1.5秒で線形フェード（星・太陽グロー・地球の点も連動）
   const sElev = v3.dot(S.dir, upV); const mascotDay = layer === 'mascot' && !mascot.isNight();
@@ -432,7 +473,7 @@ function frame(now: number) {
   updateLocator(); minimap.render(dt);   // P2-2: メイン描画後に追描画
   // P1-1: スライダー同期・飛行中は無効化
   slider.sync(clock.ms); slider.setEnabled(layer === 'walk');
-  spaceBtn.sync(layer === 'walk' ? 'ground' : (layer === 'ballistic' || layer === 'orbit') ? 'space' : null);
+  spaceBtn.sync(layer === 'walk' ? 'ground' : inFlight() ? 'space' : null);
   if (layer === 'walk' && now - lastTrack > 5000) { lastTrack = now; session.track.push({ t: new Date(clock.ms).toISOString(), lat: gp.lat, lon: gp.lon, layer }); try { localStorage.setItem('ryugu_t', String(clock.ms)); } catch { /* ignore */ } }
   const m3 = mascot.active ? mascot.tempK() : null;
   // 磁場ドローン: MASCOTサイト近傍では実MAGデータの磁場強度、それ以外は背景値（E: 音響化）
@@ -444,7 +485,7 @@ let lastTrack = 0;
 
 function spacecraft(et: number, gp: { lat: number; lon: number }) {
   const r = layer === 'mascot' ? null : scAtG(sc, et); scDot.visible = false; if (scMesh) scMesh.visible = false; scInfo = null;
-  if (!r) return; const p = r.p; const eyeP = (orbit && (layer === 'ballistic' || layer === 'orbit')) ? bodyOf(orbit) : v3.mul(P.dir, groundAt(P.dir) + EYE); const dist = v3.len(v3.sub(p, eyeP)); const pg = bodyToGeo(p);
+  if (!r) return; const p = r.p; const eyeP = (layer === 'space' && sp) ? v3.mul(sp.dir, sp.rad) : (orbit && (layer === 'ballistic' || layer === 'orbit')) ? bodyOf(orbit) : v3.mul(P.dir, groundAt(P.dir) + EYE); const dist = v3.len(v3.sub(p, eyeP)); const pg = bodyToGeo(p);
   scInfo = { alt: v3.len(p) - hm.radius(pg.lat, pg.lon), dist, lat: pg.lat, lon: pg.lon, grade: r.grade, p };
   if (scMesh && dist < 2500) { scMesh.visible = true; scMesh.position.copy(tr(p)); scMesh.scale.setScalar(1);
     // attitude: NO CK kernels -> approximation (D). Model -Z (sampler horn) points at the surface,
@@ -464,7 +505,7 @@ const loc = (() => { const d = document.createElement('div'); d.id = 'hp-loc'; d
 const locRing = loc.querySelector('#hp-ring') as HTMLElement, locArr = loc.querySelector('#hp-arr') as HTMLElement, locTxt = loc.querySelector('#hp-txt') as HTMLElement;
 /** 飛行中、はやぶさ2の方向を画面に示す: 視界内ならリング、視界外なら画面端の矢印（演出E。位置データは観測/SPICE由来） */
 function updateLocator() {
-  if (!(layer === 'ballistic' || layer === 'orbit') || !scInfo) { loc.style.display = 'none'; return; }
+  if (!inFlight() || !scInfo) { loc.style.display = 'none'; return; }
   const v = tr(scInfo.p).project(camera); let x = v.x, y = v.y; const behind = v.z > 1; if (behind) { x = -x; y = -y; }
   const on = !behind && Math.abs(x) < 0.94 && Math.abs(y) < 0.9; const m = Math.max(Math.abs(x) / 0.94, Math.abs(y) / 0.9, 1e-6);
   const sx = on ? x : x / m * 0.94, sy = on ? y : y / m * 0.9; loc.style.display = 'block';
@@ -508,12 +549,17 @@ function hudUpdate(S: { et: number; dir: V3; au: number }, gp: { lat: number; lo
   else l0 += ` — 滞在期間の最終日（${fmtJST(MISSION_T1).slice(0, 10)}出発）`;
   hud.set(0, l0);
   // 標高=位置の動径距離−平均半径448.8m。歩行は地面、飛行は機体中心の位置を使う（局所地表からの高度ではない）。
-  const posR = layer === 'walk' ? P.stand : (orbit ? v3.len(bodyOf(orbit)) : hm.radius(gp.lat, gp.lon));
+  const posR = layer === 'walk' ? P.stand : (layer === 'space' && sp) ? sp.rad : (orbit ? v3.len(bodyOf(orbit)) : hm.radius(gp.lat, gp.lon));
   const elev = posR - R_MEAN; const ll = `${fmtLat(gp.lat)} ${fmtLon(gp.lon)}  ${T.elev} ${Math.round(elev)}m`; hud.set(1, ll);
   let l3: string; if ((layer === 'ballistic' || layer === 'orbit') && orbit) { const a = altitude(orbit, groundAt); const spd = v3.len(velBodyOf(orbit));
     const elS = Math.max(0, (clock.ms - flightStartMs) / 1000); const elTxt = elS >= 3600 ? `${Math.floor(elS / 3600)}時間${Math.round((elS % 3600) / 60)}分` : elS >= 60 ? `${Math.round(elS / 60)}分` : `${Math.round(elS)}秒`;
     l3 = `${layer === 'orbit' ? T.esc_orbit : T.ballistic} ${a > 1000 ? (a / 1000).toFixed(1) + 'km' : a.toFixed(0) + 'm'} 速度（リュウグウ固定系） ${(spd * 100).toFixed(1)}cm/s 飛行${elTxt}（${T.pm}${mark('D')}）`;
     if (compress > 1.5) l3 += ` 時間圧縮×${Math.round(compress)}（演出E）`; }
+  else if (layer === 'space' && sp) {
+    const alt = sp.rad - groundAt(sp.dir); const at = alt >= 1000 ? (alt / 1000).toFixed(2) + 'km' : alt.toFixed(0) + 'm';
+    const st = sp.phase === 'ascend' ? '上昇中' : sp.phase === 'return' ? '最寄りの地表へ帰還中' : sp.captured ? '重力に捕まりました — 自動着地' : '自由飛行';
+    l3 = `宇宙モード ${st}  高度 ${at}（地表から） 中心から ${sp.rad.toFixed(0)}m  速度 ${sp.speed.toFixed(1)}m/s${sp.captured ? `  時間圧縮×${TIME_COMPRESS}（演出E）` : ''}`;
+  }
   else { const gs = sampleGravity(G, gp.lat, gp.lon); l3 = `${T.gravity} ${(gs.gmag * 1000).toFixed(2)}mm/s²  ${T.escape} ${(gs.esc * 100).toFixed(0)}cm/s${mark('D')}${G === G340 ? '  [3.40h]' : ''}`; }
   if (layer === 'walk' && Math.abs(driveSpeed) > 0.1) l3 += `  車両風走行 ${Math.abs(driveSpeed).toFixed(1)}m/s（演出E）`;
   if (scInfo) { const gl = (lang === 'ja' ? GRADE_LABEL : GRADE_LABEL_EN)[scInfo.grade]; l3 += `  はやぶさ2高度 ${scInfo.alt > 1000 ? (scInfo.alt / 1000).toFixed(1) + 'km' : scInfo.alt.toFixed(0) + 'm'}（地表面から・機体中心） ${arrowChar(relBearing(scInfo.p, up, P.fwd))} [${gl}]`; }
@@ -524,7 +570,8 @@ function hudUpdate(S: { et: number; dir: V3; au: number }, gp: { lat: number; lo
     const eElev = Math.asin(Math.max(-1, Math.min(1, v3.dot(eB.dir, up)))) / DEG;
     const km = eB.au * 149597870.7;
     hud.setHtml(3, `地球 ${arrowChar(relBearing(eB.dir, up, P.fwd))} 仰角${eElev.toFixed(0)}°  ${eB.au.toFixed(2)}AU（${(km / 1e4).toFixed(0)}万km）`);
-  } else hud.set(3, '');
+  } else if (layer === 'space') hud.set(3, 'Space:遠ざかる　C:近づく・着地　WASD/矢印/ドラッグ:球面を周回　右上のスイッチ:最寄りの地表へ戻る');
+  else hud.set(3, '');
 }
 
 // ---------------- idle hints (§5.3.1): flight-control comms, only unused features, max 3 times each
@@ -582,7 +629,7 @@ const ARRIVE_NOTE: Record<string, string> = {
 function goToEvent(ev: REvent) {
   card.hide(); viewer.close(); minimap?.hideModal();
   driveSpeed = 0;
-  if (layer === 'ballistic' || layer === 'orbit') returnToSurface();
+  if (inFlight()) returnToSurface();
   if (layer === 'mascot') exitMascot();
   if (layer === 'td1') exitTd1();
   clock.running = true; clock.set(ev.ms);
@@ -598,7 +645,7 @@ function goToEvent(ev: REvent) {
 /** P2-2: ミニマップからの瞬間移動（演出E） */
 function teleport(lat: number, lon: number) {
   driveSpeed = 0;
-  if (layer === 'ballistic' || layer === 'orbit') returnToSurface();
+  if (inFlight()) returnToSurface();
   if (layer === 'mascot') exitMascot();
   if (layer === 'td1') exitTd1();
   P.dir = geoToBody(lat, lon, 1); P.stand = groundAt(P.dir); orbit = null; layer = 'walk'; P.dip = 0.2;
@@ -607,7 +654,7 @@ function teleport(lat: number, lon: number) {
 }
 
 function enterMascot() {
-  card.hide(); driveSpeed = 0; layer = 'mascot'; mascot.enter(); clock.running = false; P.pitch = -0.25; mascotEnded = false; document.body.classList.add('mascot-on'); buildMascotPanel();
+  card.hide(); driveSpeed = 0; sp = null; orbit = null; layer = 'mascot'; mascot.enter(); clock.running = false; P.pitch = -0.25; mascotEnded = false; document.body.classList.add('mascot-on'); buildMascotPanel();
   hint.show('MASCOT着陸機の記録を再生しています。ドラッグで見回せます。Space: 一時停止 / ⏮⏭: 前後の撮影 / E: 終了', false, 9000);
 }
 /** MASCOT再生パネル: 何を見ているか・操作（再生/停止・速度・撮影間ジャンプ・スクラブ・終了）を画面上に常時表示（タッチ対応） */
@@ -642,7 +689,7 @@ function mascotEye(): V3 {
 const TD1_MS = Date.UTC(2019, 1, 21, 22, 29, 10), TD1_A = Date.UTC(2019, 1, 20, 23, 17, 48), TD1_B = Date.UTC(2019, 1, 22, 3, 0, 0);
 const TD1_SITE = { lat: 4.3, lon: 206.47 };
 function enterTd1() {
-  card.hide(); driveSpeed = 0; layer = 'td1'; orbit = null; P.dir = geoToBody(TD1_SITE.lat, TD1_SITE.lon, 1); P.stand = groundAt(P.dir);
+  card.hide(); driveSpeed = 0; layer = 'td1'; orbit = null; sp = null; P.dir = geoToBody(TD1_SITE.lat, TD1_SITE.lon, 1); P.stand = groundAt(P.dir);
   clock.running = false; clock.set(Date.UTC(2019, 1, 21, 22, 19, 0)); hint.show('ホイール: 時間（10秒刻み） / Space: 再生 / E: 終了　22:29:10 UTC（07:29:10 JST）は公表接地時刻', false, 7000); used.add('time');
 }
 function exitTd1() { layer = 'walk'; clock.running = true; clock.set(Math.max(TD1_MS, Math.min(TD1_B, clock.ms))); burst.visible = false; P.stand = groundAt(P.dir); }
@@ -714,7 +761,7 @@ let drag = false, lx = 0, ly = 0;
 canvas.addEventListener('mousedown', e => { drag = true; lx = e.clientX; ly = e.clientY; activity(); });
 addEventListener('mouseup', () => drag = false);
 addEventListener('mousemove', e => { if (!drag) return; look(e.clientX - lx, e.clientY - ly); lx = e.clientX; ly = e.clientY; });
-function look(dx: number, dy: number) { const up = v3.norm(P.dir); const a = -dx * 0.004; const f = v3.norm(v3.sub(P.fwd, v3.mul(up, v3.dot(P.fwd, up)))); const r = v3.cross(up, f); P.fwd = v3.norm(v3.add(v3.mul(f, Math.cos(a)), v3.mul(r, Math.sin(a)))); P.pitch = Math.max(-1.4, Math.min(1.4, P.pitch - dy * 0.004)); }
+function look(dx: number, dy: number) { if (layer === 'space') { sp?.drag(dx, dy, groundAt); return; } const up = v3.norm(P.dir); const a = -dx * 0.004; const f = v3.norm(v3.sub(P.fwd, v3.mul(up, v3.dot(P.fwd, up)))); const r = v3.cross(up, f); P.fwd = v3.norm(v3.add(v3.mul(f, Math.cos(a)), v3.mul(r, Math.sin(a)))); P.pitch = Math.max(-1.4, Math.min(1.4, P.pitch - dy * 0.004)); }
 // ホイール: 時間移動は廃止（P1-1）。MASCOT スクラブと TD1 リプレイのみ残す。
 canvas.addEventListener('wheel', e => { e.preventDefault(); activity();
   if (layer === 'mascot') { return; }   // 時間は再生パネルで操作（ホイールでは動かさない）
@@ -731,7 +778,7 @@ stick.addEventListener('touchmove', e => { e.preventDefault(); moveJoy(e.touches
 stick.addEventListener('touchend', () => { joy.active = false; joy.x = joy.y = 0; knob.style.transform = ''; });
 function moveJoy(t0: Touch) { const r = stick.getBoundingClientRect(); const cx = r.left + r.width / 2, cy = r.top + r.height / 2; let x = (t0.clientX - cx) / (r.width / 2), y = (t0.clientY - cy) / (r.height / 2); const l = Math.hypot(x, y); if (l > 1) { x /= l; y /= l; } joy.x = x; joy.y = y; knob.style.transform = `translate(${x * 35}px,${y * 35}px)`; }
 // 宇宙への脱出（ジャンプ）と帰還は、このボタンだけで行う（キー操作・離陸モードは廃止）
-const spaceBtn = new SpaceButton($('spacebtn') as HTMLButtonElement, () => { activity(); if (layer === 'walk') doPhysJump(); else returnToSurface(); });
+const spaceBtn = new SpaceButton($('spacebtn') as HTMLButtonElement, () => { activity(); if (layer === 'walk') startSpace(); else if (layer === 'space') { if (sp) { sp.beginReturn(groundAt, EYE); hint.show('最寄りの地表へ戻ります…', false, 2500); } } else returnToSurface(); });
 $('viewer').addEventListener('click', e => { if (e.target === $('viewer')) viewer.close(); });
 $('b-sound').addEventListener('click', toggleSound); $('b-rec').addEventListener('click', recordNow); $('b-mode').addEventListener('click', changeMode); $('b-lib').addEventListener('click', openLibrary);
 $('b-ev').addEventListener('click', () => { activity(); eventUi.openList(); });
