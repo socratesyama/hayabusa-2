@@ -14,6 +14,7 @@ export interface ShaderItem { dir: V3; angR: number; band: boolean; rgb: [number
 export type TierMode = 0 | 1 | 2;   // 0=やさしい 1=ふつう 2=くわしい（モード切替は一時廃止中。常に 1）
 
 const MAX_LABELS = 7;        // 実際に見えている地物のラベル数の上限
+const SHOW_GUIDE = false;   // 見えない地物の方向・距離の案内は出さない（視界に入ったものだけ注釈する）
 const MAX_GUIDE = 4;         // 見えない地物の「方向の案内」の上限（近い順）
 const FAR_SMALL_M = 500;     // 半径20m未満の小さな地点は、これより遠いとラベルを出さない（点にしかならない）
 
@@ -78,7 +79,7 @@ export class Annotator {
         vis.push({ p, x: best.x, y: best.y, dist: best.dist, score, w, sel: isSel, inside: isIn, mode: 'vis', rot: 0, right: false });
         continue;
       }
-      if (!guide || isIn) continue;
+      if (!SHOW_GUIDE || !guide || isIn) continue;
       // 見えない: 中心（帯は最寄りの赤道）の方向を案内する。画面内なら「地形の陰」、画面外なら画面端の矢印。
       const gp = guidePoint(p, eyeDir); if (!gp) continue;
       const surf = distanceTo(p, eyeDir);

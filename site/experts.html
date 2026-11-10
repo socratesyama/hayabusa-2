@@ -6,7 +6,7 @@
 body{margin:0;background:#000;color:var(--paper);font:15px/1.7 "Noto Sans JP",system-ui,sans-serif;padding:48px 24px 96px}
 main{max-width:46em;margin:0 auto}h1{font:600 16px "IBM Plex Mono",monospace;color:var(--amber)}h2{font:600 14px "IBM Plex Mono",monospace;margin-top:2.4em;color:var(--amber)}
 table{border-collapse:collapse;width:100%;font-size:13px}td,th{border-bottom:1px solid #333;padding:.4em .6em;text-align:left;vertical-align:top}a{color:var(--amber)}code{font-family:"IBM Plex Mono",monospace;font-size:12px}
-li{margin:.35em 0}
+li{margin:.35em 0}.u{color:#9a9a94;font-size:12px}ul.src{font-size:13px}
 </style></head><body><main>
 <h1>専門家の皆さんへ — 確からしさの開示</h1>
 <p>本サイトは JAXA/ISAS 非公式のファンサイトです。重要な値は画面上に根拠区分・基準面・モデル性を併記し、詳細な定義と限界をこのページに記します。表示ラベルのない数値も「不確実性なし」や「センサーの直接測定」を意味しません。<a href="./index.html">サイトへ戻る</a></p>
@@ -17,7 +17,7 @@ li{margin:.35em 0}
 <tr><td>B 公表値・導出</td><td>論文・機関資料に公表されたアンカー値、またはその再構成</td><td>TD1の公表時刻/高度アンカー、重力表・採取地点座標</td><td>TD1位置HUDに根拠を表示</td></tr>
 <tr><td>C 補間・生成</td><td>元データからの機械的生成</td><td>タイル・標高マップ・事前計算表</td><td>†</td></tr>
 <tr><td>D 推定</td><td>モデル・仮定を含む</td><td>温度モデル・探査機姿勢・軌道層の点質量近似・岩の散布</td><td>*</td></tr>
-<tr><td>E 演出</td><td>体験のための人工的設定</td><td>車両風走行速度・物理ジャンプ初速・ホップ・白い空・音</td><td>初回の1行</td></tr></table>
+<tr><td>E 演出</td><td>体験のための人工的設定</td><td>車両風走行速度・物理ジャンプ初速・ホップ・白い空・音（磁場と足元の硬さに応じて変化。温度とは連動しません）</td><td>初回の1行</td></tr></table>
 <p><b>A〜Eは由来・処理方法の分類で、統計的信頼区間や測定誤差の等級ではありません。</b>このサイト全体の記号分類とTD1位置表の行別A〜Dラベルは別体系です。どちらも、同じ文字だから同じ精度という意味ではありません。</p>
 
 <h2>2. モデルの限界</h2>
@@ -40,11 +40,61 @@ li{margin:.35em 0}
 <li>岩の散布（D）：Michikami et al. 2019 の統計（サイズ頻度のべき指数 ≈ −2、b/a=0.71、c/a=0.44）に基づく生成。個々の岩の位置は実測ではありません。</li>
 <li>ホップ・演出層の落下（E）：実重力では 0.8 m の跳躍の滞空は数時間、50 cm の落下に約 90 秒かかります。</li>
 <li>影：N·L による面ごとの明暗と、足元の簡易影のみ。地形・岩による投影影（シャドウマップ）は未実装です。</li>
-<li><b>地表走行（E）</b>：操作を退屈にしない車両風の演出です。W/Sで前後、A/Dで操舵、通常最大8m/s・Shift（モバイルは左スティック全前進）ブースト最大16m/s。斜面では減速し、モデル傾斜55°以上は通行不可、地形追従は0.2m刻みです。車両・車輪・実機運動の物理再現ではなく、実際の探査機速度として解釈できません。</li>
+<li><b>地表走行（E）</b>：操作を退屈にしない車両風の演出です。W/Sで前後、A/Dで操舵、通常最大8m/s・Shift（モバイルは左半分に触れて出る浮動スティックを大きく倒す）でブースト最大16m/s。旋回時の傾き・加減速のピッチ・速度に応じた視野角と揺れ、運転パネルの計器はすべて見た目の演出（E）です。斜面では減速し、モデル傾斜55°以上は通行不可、地形追従は0.2m刻みです。車両・車輪・実機運動の物理再現ではなく、実際の探査機速度として解釈できません。</li>
 <li>頂点ディスプレイスメントは未実装。MASCAM 由来ディテールテクスチャ（mcam_1086250971_110_00203_n_rdr.png の高周波成分）は、コントラスト保存型の7レベル・アトラス（各レベルで粒りの標準偏差を基底レベル相当に再正規化し、ブロック量子化したもの）として地表に適用されます。シェーダは fwidth によるスクリーン上のテクセル密度からレベルを選択し、隣接レベルを滑らかにブレンドします。これにより視距離によらずテクセル単位のコントラストがほぼ一定に保たれ、遠方でのミップマップ的な灰色化（粒りの埋没）を防ぎます。アルベド粒り（約0.6m〜20mの複数スケール）と解析的勾配バンプの両方に同じレベル選択を用います。元画像は直径約6mの領域のもので、全周への外挿は演出（E）です。</li>
 <li><b>データ書庫（G キー）</b>：ONC 運用画像 783 枚（15運用日フォルダ）・l2c 地形画像・MASCAM 67 枚・温度モデル曲線・帰還試料 8 粒子（A0002〜C0007）・重力モデル・ライセンス一覧。位置データのない到着期フォルダ（nav20180731/0805/0911/1014）は座標を付けず「位置情報なし」と明記して収録します。IAU 公認地形名 10 件（Cendrillon、Kintaro 等）を USGS Gazetteer 由来の POI として追加。座標は度単位の概略です。</li>
 </ul>
 
-<h2>4. データとライセンス</h2>
+<h2>4. 地名ガイド（地形・出来事の注釈）の根拠と限界</h2>
+<ul>
+<li><b>収録内容</b>：IAU承認の地形名13件（クレーター7・リュウジン尾根・トコヨ/ホウライ溝・エジマ/カタフォ/オトヒメ岩塊）と、タッチダウン（TD1/TD2）・人工クレーター（SCI）・MASCOT/MINERVA-II1・ターゲットマーカ・着地候補地点を、23件の注釈として収録（<code>12_site_data/features.json</code>）。座標・名称はUSGS Planetary NomenclatureとJAXA/論文の公表値に基づく（A/B）。</li>
+<li><b>点群による位置の検証</b>：SfM点群（1,579,014点）と、サイトが地形に使う高さ地図の同じ緯度経度での半径差は 中央値 -1.03 m・標準偏差 2.58 m・95%点 3.83 m（絶対値）。注釈の緯度経度は、この範囲でサイトの地形に重なります。クレーターは縁が中心より高いこと、岩塊は中心が周囲より高いことを点群で確認（<code>tools/precompute/tests/test_features.py</code>）。</li>
+<li><b>範囲（半径・帯幅）</b>：クレーターの半径は直径÷2（IAU値）。リュウジン尾根は赤道を挟む緯度の帯で、半値幅 ±12.3°（平均半径 501.1 m → 435.6 m の中間 468.4 m になる緯度）を0.5°単位に丸めた値。<b>名前の付いた範囲の境界は、地質学的な定義ではなく、表示用の目安</b>です。タッチダウンなどの点は、公表された位置精度（TD2は約60 cm）より大きな円で表示します（見やすさ優先）。</li>
+<li><b>見える/見えないの判定</b>：目の高さ1.5 mでの地平線は約37 m先。注釈は、視線が高さ地図の地形（誤差の余裕 2 m＋距離×0.3%）に遮られない地点にだけ出します。<b>視界の外・地形の陰にある地物の方向や距離は表示しません</b>（一覧は L キー／リスト）。高さ地図の誤差（約2.6 m RMS）のため、縁に近い判定はずれることがあります。</li>
+<li><b>出来事の時刻</b>：TD1 2019-02-22 07:29:10 JST、SCI起爆 2019-04-05 11:36 JST、TD2 2019-07-11 10:06:18 JST（公表値）。サイトの時計が出来事の前なら「まだ先」と表示。人工クレーターは出来事の前は薄く表示します。</li>
+<li><b>愛称・由来の扱い</b>：「たまてばこ」等の着陸地点の愛称はIAU非公式で、カード内にそう明記。命名由来はUSGSの記載に基づく要約で、原文の逐語訳ではありません。</li>
+<li><b>色付け（E）</b>：地形への色付けはシェーダでの表示用で、地質区分ではありません。色だけに頼らないよう、記号と日本語名を必ず併記します。</li>
+</ul>
+
+<h2>5. データとライセンス</h2>
 <p>データは DARTS（JAXA/ISAS）、DLR/CNES/JAXA（MASCOT）等の公開アーカイブに基づきます。クレジットは <code>source_registry.csv</code> から自動表示しています。生成物（タイル・標高・事前計算表）は元データのライセンスを継承します。</p>
+<h2>6. 出典（地名ガイドの注釈ごと）</h2>
+<p>各注釈のカードにも出典を表示します。ここでは重複を除いて一覧にしました。「用途」は、その出典を使っている注釈です。</p>
+<ul class="src">
+<li><a href="https://doi.org/10.1126/science.aaz1701" target="_blank" rel="noopener">Arakawa et al. 2020, Science 368, 67-71 (TD2座標 10.04N, 300.60E としても報告)</a>　<span class="u">用途: TD2 うちでのこづち</span></li>
+<li><a href="https://doi.org/10.1126/science.aaz1701" target="_blank" rel="noopener">Arakawa et al. 2020, Science 368, 67-71 (クレーター寸法・重力支配領域)</a>　<span class="u">用途: 人工クレーター おむすびころりん</span></li>
+<li><a href="https://www.dlr.de/en/research-and-transfer/projects-and-missions/hayabusa2/mascot-landing-on-ryugu-operational-sequence" target="_blank" rel="noopener">DLR: MASCOT着陸シーケンス</a>　<span class="u">用途: MASCOT着陸点</span></li>
+<li><a href="https://www.hayabusa2.jaxa.jp/en/topics/20190711e_PPTD_ImageBulletin/" target="_blank" rel="noopener">Hayabusa2 Project: The 2nd touchdown (10:06 JST)</a>　<span class="u">用途: TD2 うちでのこづち</span></li>
+<li><a href="https://www.isas.jaxa.jp/en/topics/001848.html" target="_blank" rel="noopener">ISAS(英文): Determination of landing site candidates</a>　<span class="u">用途: TD1候補 L08</span></li>
+<li><a href="https://www.isas.jaxa.jp/topics/001886.html" target="_blank" rel="noopener">ISAS: MINERVA-II1のリュウグウ着陸成功(2018-09-22)</a>　<span class="u">用途: MINERVA-II1 トリトニス</span></li>
+<li><a href="https://www.isas.jaxa.jp/feature/forefront/201127.html" target="_blank" rel="noopener">ISAS: 人工クレーター形成実験の解説</a>　<span class="u">用途: 人工クレーター おむすびころりん</span></li>
+<li><a href="https://www.isas.jaxa.jp/topics/001826.html" target="_blank" rel="noopener">ISAS: 着地候補地点の決定について(2018-08-17)</a>　<span class="u">用途: TD1候補 L08</span></li>
+<li><a href="https://www.isas.jaxa.jp/topics/002050.html" target="_blank" rel="noopener">ISAS: 第1回タッチダウン成功について</a>　<span class="u">用途: TD1 たまてばこ</span></li>
+<li><a href="https://www.isas.jaxa.jp/topics/002123.html" target="_blank" rel="noopener">ISAS: 衝突装置の作動確認(2019-04-05)</a>　<span class="u">用途: 人工クレーター おむすびころりん</span></li>
+<li><a href="https://www.hayabusa2.jaxa.jp/en/topics/20181003e/" target="_blank" rel="noopener">JAXA: MASCOT分離・着陸(2018-10-03)</a>　<span class="u">用途: MASCOT着陸点</span></li>
+<li><a href="https://www.isas.jaxa.jp/en/topics/001996.html" target="_blank" rel="noopener">JAXA: MINERVA-II1の命名(イブー・アウル)</a>　<span class="u">用途: MINERVA-II1 トリトニス</span></li>
+<li><a href="https://global.jaxa.jp/projects/sas/hayabusa2/topics.html" target="_blank" rel="noopener">JAXA: MINERVA-II1着地点名の訂正(トリニトス→トリトニス)</a>　<span class="u">用途: MINERVA-II1 トリトニス</span></li>
+<li><a href="https://www.hayabusa2.jaxa.jp/en/topics/20180922e/" target="_blank" rel="noopener">JAXA: MINERVA-II1運用資料(分離時刻13:06 JST)</a>　<span class="u">用途: MINERVA-II1 トリトニス</span></li>
+<li><a href="https://www.hayabusa2.jaxa.jp/en/topics/20190403e_SCI_Schedule/" target="_blank" rel="noopener">JAXA: SCI運用スケジュール(起爆11:36 JST)</a>　<span class="u">用途: 人工クレーター おむすびころりん</span></li>
+<li><a href="https://www.hayabusa2.jaxa.jp/en/topics/20190220e_TDPoint/" target="_blank" rel="noopener">JAXA: タッチダウン地点の選定(L08-B1とL08-E1)</a>　<span class="u">用途: TM-B 目印</span></li>
+<li><a href="https://www.hayabusa2.jaxa.jp/en/topics/20190220e_TDPoint/" target="_blank" rel="noopener">JAXA: タッチダウン地点の選定経緯(L08-E1)</a>　<span class="u">用途: TD1 たまてばこ</span></li>
+<li><a href="https://fanfun.jaxa.jp/jaxatv/files/20180927_hayabusa2_e.pdf" target="_blank" rel="noopener">JAXA: 着地候補地点N6の選定(北半球・分離条件)</a>　<span class="u">用途: MINERVA-II1 トリトニス</span></li>
+<li><a href="https://www.hayabusa2.jaxa.jp/en/enjoy/material/press/Hayabusa2_Press20190611_ver6a.pdf" target="_blank" rel="noopener">JAXA: 記者説明会(2019-06-11) C01-Cb選定とTM着地位置</a>　<span class="u">用途: TD2 うちでのこづち</span></li>
+<li><a href="https://www.hayabusa2.jaxa.jp/en/enjoy/material/press/Hayabusa2_Press20190611_ver6a.pdf" target="_blank" rel="noopener">JAXA: 記者説明会(2019-06-11) PPTD-TM1Aの結果</a>　<span class="u">用途: TM-A 目印</span></li>
+<li><a href="https://www.hayabusa2.jaxa.jp/en/enjoy/material/press/Hayabusa2_Press20190611_ver6a.pdf" target="_blank" rel="noopener">JAXA: 記者説明会(2019-06-11) 候補地マップ(L14・C01・S01)</a>　<span class="u">用途: SCI目標 S01</span></li>
+<li><a href="https://www.hayabusa2.jaxa.jp/en/enjoy/material/press/Hayabusa2_Press20190305_ver9_en.pdf" target="_blank" rel="noopener">JAXA記者説明会資料(2019-03-05) タッチダウン時刻・精度</a>　<span class="u">用途: TD1 たまてばこ</span></li>
+<li><a href="https://www.hayabusa2.jaxa.jp/en/enjoy/material/press/Hayabusa2_Press20190725_ver9_en3.pdf" target="_blank" rel="noopener">JAXA記者説明会資料(2019-07-25) TD2時刻・精度60cm</a>　<span class="u">用途: TD2 うちでのこづち</span></li>
+<li><a href="https://doi.org/10.1016/j.icarus.2019.05.019" target="_blank" rel="noopener">Michikami et al. 2019, Icarus 331, 179 (ボルダーのサイズ頻度分布)</a>　<span class="u">用途: オトヒメ・サクスム</span></li>
+<li><a href="https://doi.org/10.2183/pjab.98.015" target="_blank" rel="noopener">Nakamura et al. 2022 (TD2座標 10.13N, 300.595E)</a>　<span class="u">用途: TD2 うちでのこづち</span></li>
+<li><a href="https://doi.org/10.2183/pjab.98.015" target="_blank" rel="noopener">Nakamura et al. 2022, Proc. Jpn. Acad. Ser. B 98, 277-314 (TD1座標)</a>　<span class="u">用途: TD1 たまてばこ</span></li>
+<li><a href="https://www.planetary.org/articles/hayabusa2-touchdown-recap" target="_blank" rel="noopener">Planetary Society: TD1とS01の位置関係(経度で約4分の1周東)</a>　<span class="u">用途: SCI目標 S01</span></li>
+<li><a href="https://www.aanda.org/articles/aa/full_html/2019/12/aa36759-19/aa36759-19.html" target="_blank" rel="noopener">Preusker et al. 2019, A&amp;A 632, A66 (MASCOT着陸域の高解像度地形モデル)</a>　<span class="u">用途: MASCOT着陸点</span></li>
+<li><a href="https://www.aanda.org/articles/aa/full_html/2019/12/aa36757-19/aa36757-19.html" target="_blank" rel="noopener">Scholten et al. 2019, A&amp;A 632, A67 (MASCOT降下・バウンド経路・各静止点座標)</a>　<span class="u">用途: MASCOT着陸点・MASCOT 最初の接触点</span></li>
+<li><a href="https://www.aanda.org/articles/aa/full_html/2019/12/aa36760-19/aa36760-19.html" target="_blank" rel="noopener">Scholten et al. 2019, A&amp;A 632, A68 (MASCam画像のステレオ解析)</a>　<span class="u">用途: MASCOT着陸点・MASCOT 最初の接触点</span></li>
+<li><a href="https://planetarynames.wr.usgs.gov/Page/Ryugu/target" target="_blank" rel="noopener">USGS Astrogeology: Planetary Nomenclature - Ryugu</a>　<span class="u">用途: リュウジン・ドールスム・オトヒメ・サクスム</span></li>
+<li><a href="https://planetarynames.wr.usgs.gov/SearchResults?Target=Ryugu" target="_blank" rel="noopener">USGS Astrogeology: Ryugu Nomenclature</a>　<span class="u">用途: センドリヨン・キンタロウ・ウラシマ・ブラボ・コロボク・モモタロウ・キビダンゴ・リュウジン・ドールスム・トコヨ・フォッサ・ホウライ・フォッサ・エジマ・サクスム・カタフォ・サクスム・オトヒメ・サクスム</span></li>
+<li><a href="https://doi.org/10.1038/s41550-019-0932-0" target="_blank" rel="noopener">Watanabe et al. 2019, Nature Astron. 3, 898-903 (形状・自転)</a>　<span class="u">用途: リュウジン・ドールスム</span></li>
+<li><a href="https://www.sciencedirect.com/science/article/pii/S0019103520305509" target="_blank" rel="noopener">Yoshimitsu et al. 2021, Icarus 368, 114592 (TM-A着地点の座標 φ=10.23, λ=300.89)</a>　<span class="u">用途: TM-A 目印</span></li>
+<li><a href="https://www.sciencedirect.com/science/article/pii/S0019103520305509" target="_blank" rel="noopener">Yoshimitsu et al. 2021, Icarus 368, 114592 (TM投下地点の座標 φ=4.04, λ=206.01)</a>　<span class="u">用途: TM-B 目印</span></li>
+</ul>
 </main></body></html>
