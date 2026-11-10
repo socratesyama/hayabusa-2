@@ -226,7 +226,7 @@ function startPhysics(velB: V3, why: string) {
   flightStartMs = clock.ms; flightStartDir = v3.norm(P.dir);
   orbit = launch(posB, velB, et, G.meta.gm_effective_m3s2, 2 * Math.PI / (G.meta.period_h * 3600)); layer = 'ballistic'; used.add('phys'); driveSpeed = 0; farHinted = false;
   hud.announce(why);
-  hint.show('飛行中 — 右上のスイッチ: 地表に戻る / WASD: スラスタ（Space上・C下）/ 矢印キー: 向きを回す（無操作で自動的に時間圧縮・演出E）', false, 7000);
+  hint.show('飛行中 — 右上のスイッチで地表へ / WASD: 進む / 矢印: 向き', false, 7000);
 }
 /** return to the surface from ballistic flight / orbit (presentation shortcut; the sub-player point) */
 function returnToSurface() {
@@ -417,9 +417,10 @@ function stepDust(dt: number) {
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const cockpit = (() => {
   const d = document.createElement('div'); d.id = 'cockpit'; d.setAttribute('aria-hidden', 'true');
-  d.innerHTML = '<div class="hood"></div><div class="dash"><div class="gauge"><b id="ck-v">0.0</b><small>m/s</small></div><div class="bars"><div class="bar st"><i id="ck-st"></i></div><div class="bar th"><i id="ck-th"></i></div></div></div>';
+  d.innerHTML = '<div class="dash"><div class="gauge"><b id="ck-v">0.0</b><small>m/s</small></div><div class="bars"><div class="bar st"><i id="ck-st"></i></div><div class="bar th"><i id="ck-th"></i></div></div><div class="place" id="ck-pl"><small>いまいる場所</small><b id="ck-pn">—</b></div></div>';
   document.body.appendChild(d); return d;
 })();
+const ckPl = document.getElementById('ck-pl')!, ckPn = document.getElementById('ck-pn')!;
 const ckV = document.getElementById('ck-v')!, ckSt = document.getElementById('ck-st')!, ckTh = document.getElementById('ck-th')!;
 function vehicleCamera(dt: number) {
   const on = layer === 'walk'; cockpit.classList.toggle('on', on);
@@ -603,7 +604,8 @@ function hudUpdate(S: { et: number; dir: V3; au: number }, gp: { lat: number; lo
   // 標高=位置の動径距離−平均半径448.8m。歩行は地面、飛行は機体中心の位置を使う（局所地表からの高度ではない）。
   const posR = layer === 'walk' ? P.stand : (layer === 'space' && sp) ? sp.rad : (orbit ? v3.len(bodyOf(orbit)) : hm.radius(gp.lat, gp.lon));
   const elev = posR - R_MEAN; const inF = annot && annotOn && layer === 'walk' ? annot.whereAmI(v3.norm(P.dir))[0] : undefined;
-  const ll = `${fmtLat(gp.lat)} ${fmtLon(gp.lon)}  ${T.elev} ${Math.round(elev)}m` + (inF ? `  いま「${inF.short_ja}」の中` : ''); hud.set(1, ll);
+  const ll = `${fmtLat(gp.lat)} ${fmtLon(gp.lon)}  ${T.elev} ${Math.round(elev)}m` ; hud.set(1, ll);
+  { const nm = inF ? inF.short_ja : '—'; if (ckPn.textContent !== nm) ckPn.textContent = nm; ckPl.classList.toggle('in', !!inF); }
   let l3: string; if ((layer === 'ballistic' || layer === 'orbit') && orbit) { const a = altitude(orbit, groundAt); const spd = v3.len(velBodyOf(orbit));
     const elS = Math.max(0, (clock.ms - flightStartMs) / 1000); const elTxt = elS >= 3600 ? `${Math.floor(elS / 3600)}時間${Math.round((elS % 3600) / 60)}分` : elS >= 60 ? `${Math.round(elS / 60)}分` : `${Math.round(elS)}秒`;
     l3 = `${layer === 'orbit' ? T.esc_orbit : T.ballistic} ${a > 1000 ? (a / 1000).toFixed(1) + 'km' : a.toFixed(0) + 'm'} 速度（リュウグウ固定系） ${(spd * 100).toFixed(1)}cm/s 飛行${elTxt}（${T.pm}${mark('D')}）`;
@@ -799,7 +801,7 @@ const TD1_MS = Date.UTC(2019, 1, 21, 22, 29, 10), TD1_A = Date.UTC(2019, 1, 20, 
 const TD1_SITE = { lat: 4.3, lon: 206.47 };
 function enterTd1() {
   card.hide(); driveSpeed = 0; layer = 'td1'; orbit = null; sp = null; P.dir = geoToBody(TD1_SITE.lat, TD1_SITE.lon, 1); P.stand = groundAt(P.dir);
-  clock.running = false; clock.set(Date.UTC(2019, 1, 21, 22, 19, 0)); hint.show('ホイール: 時間（10秒刻み） / Space: 再生 / E: 終了　22:29:10 UTC（07:29:10 JST）は公表接地時刻', false, 7000); used.add('time');
+  clock.running = false; clock.set(Date.UTC(2019, 1, 21, 22, 19, 0)); hint.show('下のバーで再生・±10秒・終了　22:29:10 UTC（07:29:10 JST）が公表接地時刻', false, 7000); used.add('time');
 }
 function exitTd1() { layer = 'walk'; clock.running = true; clock.set(Math.max(TD1_MS, Math.min(TD1_B, clock.ms))); burst.visible = false; P.stand = groundAt(P.dir); }
 /** P1演出: TD1リプレイの実況キャプション — カウントダウン→接触→離陸の各段階を1行で伝える。
@@ -906,7 +908,7 @@ canvas.addEventListener('touchstart', e => { e.preventDefault(); activity();
   for (const tt of Array.from(e.changedTouches)) {
     if (tt.clientX > innerWidth / 2) { if (touchLook < 0) { touchLook = tt.identifier; tlx = tt.clientX; tly = tt.clientY; } }
     else if (joyTouch < 0 && layer === 'walk') {
-      joyTouch = tt.identifier; jcx = tt.clientX; jcy = tt.clientY; joy.active = true; joy.x = joy.y = 0;
+      joyTouch = tt.identifier; jcx = Math.max(60, Math.min(innerWidth - 60, tt.clientX)); jcy = Math.max(60, Math.min(innerHeight - 60, tt.clientY));   // 枠が画面からはみ出さない位置に joy.active = true; joy.x = joy.y = 0;
       stick.style.left = (jcx - 55) + 'px'; stick.style.top = (jcy - 55) + 'px'; stick.style.bottom = 'auto'; stick.classList.add('on');
     }
   } }, { passive: false });

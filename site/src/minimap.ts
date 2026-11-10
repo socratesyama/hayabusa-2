@@ -70,7 +70,7 @@ export class MiniMap {
     this.buildMarkers();
     // DOM: 常設（右上）+ モーダル
     this.smallEl = document.createElement('div');
-    this.smallEl.id = 'mmap-small'; this.smallEl.title = lang === 'ja' ? 'リュウグウ全体図を開く' : 'Open globe map';
+    this.smallEl.id = 'mmap-small'; this.smallEl.dataset.label = lang === 'ja' ? '全体図' : 'Map'; this.smallEl.title = lang === 'ja' ? 'リュウグウ全体図を開く' : 'Open globe map';
     document.body.appendChild(this.smallEl);
     this.smallEl.addEventListener('click', () => this.showModal());
     this.modalEl = document.createElement('div');

@@ -11,7 +11,7 @@ export interface AnnotHooks {
   open(id: string): void;      // ラベルのタップ
 }
 export interface ShaderItem { dir: V3; angR: number; band: boolean; rgb: [number, number, number]; alpha: number; }
-export type TierMode = 0 | 1 | 2;   // のんびり / じっくり / せんもん
+export type TierMode = 0 | 1 | 2;   // 0=やさしい 1=ふつう 2=くわしい（モード切替は一時廃止中。常に 1）
 
 const MAX_LABELS = 7;        // 実際に見えている地物のラベル数の上限
 const MAX_GUIDE = 4;         // 見えない地物の「方向の案内」の上限（近い順）

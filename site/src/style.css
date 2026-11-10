@@ -21,7 +21,14 @@
   /* 8px spacing rhythm */
   --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px;
   --radius:6px;
+  /* layout tokens（画面の端と下部ドックの基準。位置はここだけで決める） */
+  --edge-l:max(16px,env(safe-area-inset-left)); --edge-r:max(16px,env(safe-area-inset-right));
+  --edge-t:max(16px,env(safe-area-inset-top)); --edge-b:max(8px,env(safe-area-inset-bottom));
+  --dock:84px;                       /* 下部: フッター+時間スライダーの上端 */
+  --panel-bg:rgba(11,11,16,.66); --panel-bg-hi:rgba(11,11,16,.82);
+  --fs-min:12px;                     /* 本文・HUD・ラベルの最小サイズ */
 }
+@media (pointer:coarse){:root{--dock:112px}}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);overflow:hidden;font-family:var(--font-jp);-webkit-user-select:none;user-select:none;touch-action:none}
 #gl{position:fixed;inset:0;width:100%;height:100%;display:block;background:var(--bg)}
@@ -31,7 +38,7 @@ a{color:var(--accent-hi)}
 #hud{position:fixed;left:max(16px,env(safe-area-inset-left));top:max(16px,env(safe-area-inset-top));
   font:13px/1.9 var(--font-hud);font-variant-numeric:tabular-nums;letter-spacing:.02em;color:var(--fg);
   pointer-events:none;white-space:pre-wrap;max-width:min(56em,calc(100vw - 200px));z-index:5;
-  padding:10px 14px 8px 16px;background:rgba(11,11,16,.66);
+  padding:10px 14px 8px 16px;background:var(--panel-bg);
   border:1px solid var(--border);border-left:2px solid var(--accent);border-radius:var(--radius);
   -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   text-shadow:0 1px 3px rgba(0,0,0,.6)}
@@ -44,7 +51,7 @@ a{color:var(--accent-hi)}
 #hint{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);max-width:min(90vw,48em);
   text-align:center;font:12px/1.7 var(--font-body);color:var(--fg-dim);word-break:keep-all;overflow-wrap:anywhere;
   opacity:0;transition:opacity var(--t-slow) var(--ease);pointer-events:none;z-index:5;
-  padding:6px 14px;background:rgba(11,11,16,.66);border:1px solid var(--border);border-radius:var(--radius);
+  padding:6px 14px;background:var(--panel-bg);border:1px solid var(--border);border-radius:var(--radius);
   -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 #hint.on{opacity:.85}#hint.first.on{opacity:1;color:var(--fg)}
 
@@ -121,7 +128,7 @@ a{color:var(--accent-hi)}
 /* ---- 右端アイコンボタン列（ミニマップとスライダーの間、縦中央） ---- */
 #icons{position:fixed;right:max(16px,env(safe-area-inset-right));top:50%;transform:translateY(-50%);
   display:flex;flex-direction:column;gap:var(--s2);z-index:6}
-#icons button{width:44px;height:44px;padding:9px;background:rgba(11,11,16,.66);border:1px solid var(--border);
+#icons button{width:44px;height:44px;padding:9px;background:var(--panel-bg);border:1px solid var(--border);
   border-radius:var(--radius);opacity:.75;cursor:pointer;
   -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   transition:opacity var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
@@ -156,7 +163,7 @@ a{color:var(--accent-hi)}
   #knob{position:absolute;left:35px;top:35px;width:40px;height:40px;border-radius:50%;
     background:rgba(59,130,246,.4);border:1px solid var(--accent)}
   #hopbtn{display:block;position:fixed;right:max(24px,env(safe-area-inset-right));bottom:118px;width:56px;height:56px;
-    border-radius:50%;border:1px solid var(--accent);background:rgba(11,11,16,.66);color:var(--accent-hi);font-size:20px;z-index:6;
+    border-radius:50%;border:1px solid var(--accent);background:var(--panel-bg);color:var(--accent-hi);font-size:20px;z-index:6;
     -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
   #hud{font-size:11px;padding:8px 12px 6px 14px;max-width:calc(100vw - 140px)}   /* ミニマップ(104px)と重ならない */
   #hint{bottom:auto;top:calc(max(16px,env(safe-area-inset-top)) + 176px)}        /* 下部の操作系と重ならない */
@@ -200,7 +207,7 @@ a{color:var(--accent-hi)}
 #mmap-full .mm-bar{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;
   padding:var(--s3) var(--s5);font:12px var(--font-body);color:var(--fg-dim);pointer-events:none;
   text-shadow:0 1px 3px rgba(0,0,0,.8)}
-#mmap-full .mm-bar button{pointer-events:auto;background:rgba(11,11,16,.66);border:1px solid var(--border-hi);
+#mmap-full .mm-bar button{pointer-events:auto;background:var(--panel-bg);border:1px solid var(--border-hi);
   color:var(--accent-hi);font:14px var(--font-hud);border-radius:var(--s1);padding:2px 10px;cursor:pointer;
   -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   transition:border-color var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease)}
@@ -245,7 +252,7 @@ body.mascot-on #tslider{visibility:hidden}
 #mrp .mrt{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:12px;line-height:1.6}
 #mrp .mrt b{font:600 13px var(--font-hud);color:var(--accent-hi)}
 #mrp .mrt span{flex:1;min-width:200px;color:var(--fg-dim)}
-#mrp button{min-width:40px;min-height:40px;padding:0 12px;background:rgba(11,11,16,.66);border:1px solid var(--border-hi);border-radius:var(--radius);color:var(--fg);font:13px var(--font-hud);cursor:pointer}
+#mrp button{min-width:40px;min-height:40px;padding:0 12px;background:var(--panel-bg);border:1px solid var(--border-hi);border-radius:var(--radius);color:var(--fg);font:13px var(--font-hud);cursor:pointer}
 #mrp button:hover{border-color:var(--accent);box-shadow:0 0 10px rgba(59,130,246,.35)}
 #mrp button:focus-visible,#mrp input:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
 #mrp #mr-x{margin-left:auto}
@@ -342,3 +349,45 @@ body.mascot-on #annot{display:none}
 #td1bar.on{display:flex}
 #td1bar button{min-height:44px;min-width:56px;padding:0 14px;border:1px solid var(--border-hi);border-radius:var(--radius);background:rgba(11,11,16,.82);color:var(--fg);font:12px var(--font-body);cursor:pointer}
 #td1bar button[data-a=exit]{border-color:var(--accent);color:var(--accent-hi)}
+
+/* ============================================================
+   v2 デザイン刷新（上書き）: 下部ドックの統一・文字サイズ・タップ領域・状態の見える化
+   ============================================================ */
+/* --- 下部の積み順: [フッター/スライダー] < ドック(運転パネル) < ヒント < カード --- */
+#hint{bottom:calc(var(--dock) + 64px)}
+#card{bottom:calc(var(--dock) + 8px)}
+@media (pointer:coarse){#hint{bottom:auto}}
+body:has(#card.on) #cockpit .dash{opacity:0;pointer-events:none}
+
+/* --- 文字サイズ: 本文・補足は12px以上（フッターの免責文のみ11px） --- */
+#card .cr,#card .lnote,#card .evrow .n,#viewer .cr,#card .fchip,#annot .ad,#tslider .ts-label,#mrp .mrl,#mascot-pip .cap{font-size:var(--fs-min)}
+#annot .ac{font-size:11px}
+#foot{font-size:11px}
+@media (pointer:coarse){#hud{font-size:var(--fs-min)}#foot{font-size:11px}}
+
+/* --- 運転パネル（1か所にまとめる）: 速度・操舵・アクセル・いまいる地名 --- */
+#cockpit .dash{left:var(--edge-l);bottom:var(--dock);transform:none;gap:12px;padding:8px 14px;border-radius:var(--radius);background:var(--panel-bg-hi);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:opacity var(--t-mid) var(--ease)}
+@media (pointer:coarse){#cockpit .dash{left:var(--edge-l);bottom:var(--dock)}}
+#cockpit .place{display:flex;flex-direction:column;min-width:7em;max-width:11em;padding-left:12px;border-left:1px solid var(--border-hi);font:var(--fs-min)/1.4 var(--font-jp)}
+#cockpit .place small{color:var(--muted);font-size:var(--fs-min)}
+#cockpit .place b{font-weight:500;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#cockpit .place.in b{color:var(--accent-hi)}
+#cockpit .hood{display:none}   /* 画面の下端は時間スライダーと被るので車体の絵は廃止 */
+
+/* --- タップ領域: カードの×を見える丸ボタンに --- */
+#card .card-x{top:6px;right:6px;width:40px;height:40px;border:1px solid var(--border-hi);background:var(--panel-bg-hi);color:var(--fg)}
+#card h2{padding-right:52px}
+#card.lib .card-x{position:sticky;float:right;top:0;margin:-8px -10px 0 8px}
+
+/* --- 状態の見える化: 地名ガイドのオン/オフ --- */
+#icons button[aria-pressed="true"]{opacity:1;border-color:var(--accent);box-shadow:0 0 10px rgba(59,130,246,.3) inset}
+#icons button[aria-pressed="false"]{position:relative;opacity:.55}
+#icons button[aria-pressed="false"]::after{content:"";position:absolute;left:9px;right:9px;top:50%;height:2px;background:var(--accent-hi);transform:rotate(-40deg);border-radius:1px}
+
+/* --- 全体図の入口にラベル --- */
+#mmap-small::after{content:attr(data-label);position:absolute;left:6px;bottom:4px;padding:1px 7px;font:var(--fs-min)/1.5 var(--font-jp);color:var(--fg);
+  background:var(--panel-bg-hi);border:1px solid var(--border);border-radius:var(--s1);pointer-events:none}
+
+/* --- タッチ: スティックの待機表示はやめる（触れた場所に出る） --- */
+@media (pointer:coarse){#stick:not(.on){display:none}}
