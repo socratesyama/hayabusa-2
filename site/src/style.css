@@ -257,3 +257,43 @@ body.mascot-on #tslider{visibility:hidden}
 #mascot-pip.on{opacity:1}#mascot-pip img{display:block;width:100%;height:auto}
 #mascot-pip .cap{padding:6px 8px;font:10px/1.6 var(--font-hud);color:var(--fg-dim)}
 @media (max-width:720px){#mrp .mrl{display:none}#mrp #mr-t{min-width:5em}#mascot-pip{bottom:210px;width:min(52vw,240px)}}
+
+/* ---- 地名ガイド: 視界内ラベル（annot.ts）と、タップで開くカードの部品 ---- */
+#annot{position:fixed;inset:0;z-index:5;pointer-events:none;overflow:hidden}
+#annot .al{position:absolute;left:0;top:0;display:flex;align-items:center;gap:6px;min-height:28px;margin:-14px 0 0 -12px;padding:2px 10px 2px 6px;
+  font:12px/1.4 var(--font-jp);color:var(--fg);white-space:nowrap;pointer-events:auto;cursor:pointer;
+  background:rgba(11,11,16,.74);border:1px solid var(--border-hi);border-left:3px solid var(--c,var(--accent));border-radius:var(--radius);
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-shadow:0 1px 3px rgba(0,0,0,.7);will-change:transform;
+  transition:box-shadow var(--t-fast) var(--ease),background var(--t-fast) var(--ease)}
+#annot .al::after{content:"";position:absolute;inset:-8px -4px}          /* タップ領域を約44pxに広げる */
+#annot .al.off{display:none}
+#annot .al:hover,#annot .al:focus-visible{background:rgba(30,30,38,.92);box-shadow:0 0 12px var(--c,var(--accent))}
+#annot .al.future{border-style:dashed;opacity:.85}
+#annot .al.sel{box-shadow:0 0 0 2px var(--c),0 0 18px var(--c);z-index:2}
+#annot .al.in .an{font-weight:700}
+#annot .ag{font-style:normal;font-size:14px;line-height:1;width:14px;text-align:center}
+#annot .ad{font:11px var(--font-hud);color:var(--fg-dim)}
+#annot .ac{font-size:10px;padding:0 6px;border:1px solid var(--border-hi);border-radius:9px;color:var(--fg-dim)}
+body:has(#mmap-full[style*="block"]) #annot{opacity:0;pointer-events:none}
+body.mascot-on #annot{display:none}
+#card .fchips{display:flex;flex-wrap:wrap;gap:6px;margin:.2em 0 .6em}
+#card .fchip{font:11px/1.6 var(--font-body);padding:1px 9px;border:1px solid var(--border-hi);border-radius:11px;color:var(--fg-dim)}
+#card .fchip.k{border-color:var(--c,var(--accent));color:var(--fg)}
+#card .fchip.past{color:#86EFAC;border-color:#166534}
+#card .fchip.future{color:#FCD34D;border-color:#92400E}
+#card .fchip.later{color:var(--muted)}
+#card .fev{margin:.5em 0;padding:6px 10px;border-left:2px solid var(--border-hi);background:rgba(59,130,246,.05)}
+#card .fevh{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font:12px var(--font-hud);color:var(--accent-hi);margin-bottom:2px}
+#card .fact{display:flex;flex-wrap:wrap;gap:8px;margin-top:var(--s3)}
+#card .fbtn{min-height:44px;padding:0 14px;border:1px solid var(--border-hi);border-radius:var(--radius);background:rgba(59,130,246,.1);color:var(--fg);font:12px var(--font-body);cursor:pointer;
+  transition:background var(--t-fast) var(--ease),border-color var(--t-fast) var(--ease)}
+#card .fbtn:hover,#card .fbtn:focus-visible{background:rgba(59,130,246,.22);border-color:var(--accent)}
+#card .ftab{border-collapse:collapse;font:12px/1.6 var(--font-body);margin:.5em 0;width:100%}
+#card .ftab th,#card .ftab td{padding:.25em .7em;border:1px solid var(--border);text-align:left;vertical-align:top}
+#card .ftab th{color:var(--muted);font-weight:400;white-space:nowrap}
+#card .lrow .ag{font-style:normal;display:inline-block;width:1.2em;text-align:center}
+@media (max-height:520px){#icons{flex-wrap:wrap;justify-content:flex-end;max-width:calc(100vw - 32px)}}
+#annot .al.hid{opacity:.72;border-style:dashed}
+#annot .al.edge{margin:-14px 0 0 -4px;border-left-width:1px;opacity:.9}
+#annot .al.edge.rt{translate:-100% 0;margin-left:4px}
+#annot .ar{font-style:normal;font-size:16px;line-height:1;display:inline-block;width:18px;text-align:center}

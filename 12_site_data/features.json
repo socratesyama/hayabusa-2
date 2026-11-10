@@ -1,0 +1,1054 @@
+{
+ "schema": 1,
+ "generated_by": "tools/precompute/build_features.py",
+ "frame": "IAU_RYUGU（リュウグウ固定座標）。緯度は北が+、経度は東経0〜360度。半径の基準は平均半径448.8m。",
+ "naming_rule_ja": "リュウグウの地形名は、昔話・童話・伝説に登場する人物や場所から選ばれている（IAU承認、USGS Planetary Nomenclature）。着陸地点の愛称（たまてばこ等）はIAU非公式。",
+ "kind_labels": {
+  "crater": "クレーター",
+  "dorsum": "尾根（ドールスム）",
+  "fossa": "溝（フォッサ）",
+  "saxum": "岩塊（サクスム）",
+  "touchdown": "タッチダウン地点",
+  "impact": "人工クレーター",
+  "lander": "着陸機の地点",
+  "marker": "ターゲットマーカ",
+  "rover": "ローバの着陸域",
+  "candidate": "候補地点・目標領域"
+ },
+ "frame_check": {
+  "point_cloud": "SfM 3M v20180804（157万点, IAU_RYUGU）",
+  "height_map": "SPC v20200323 から作ったサイト用高さ地図（2048x1024）",
+  "n_points": 1579014,
+  "median_diff_m": -1.03,
+  "std_diff_m": 2.58,
+  "p95_abs_diff_m": 3.83,
+  "note": "同じ緯度経度での半径の差。数m以内なので、点群で確かめた緯度経度はサイトの地形にそのまま当てはまる。"
+ },
+ "ridge": {
+  "method": "緯度1度ごとの平均半径を南北で平均し、ピーク(|lat|<1°)とベース(|lat| 26〜30°)の中間値になる緯度を半値幅とする",
+  "peak_radius_m": 501.1,
+  "base_radius_m": 435.6,
+  "half_max_radius_m": 468.4,
+  "half_width_lat_deg": 12.3,
+  "profile_every_2deg": {
+   "0": 501.1,
+   "2": 498.8,
+   "4": 494.4,
+   "6": 488.2,
+   "8": 481.4,
+   "10": 474.3,
+   "12": 467.6,
+   "14": 461.6,
+   "16": 456.3,
+   "18": 451.8,
+   "20": 448.0,
+   "22": 444.2,
+   "24": 440.7,
+   "26": 437.7,
+   "28": 435.0,
+   "30": 432.2,
+   "32": 429.9,
+   "34": 427.8,
+   "36": 426.1,
+   "38": 424.6,
+   "40": 423.3
+  }
+ },
+ "features": [
+  {
+   "id": "td1",
+   "kind": "touchdown",
+   "short_ja": "TD1 たまてばこ",
+   "priority": 3,
+   "radius_m": 3,
+   "extent_note": "表示範囲は半径3m。公表値「直径6mの領域L08-E1に着地（半径3m以内）」に基づく。",
+   "origin_ja": "愛称「たまてばこ（玉手箱）」は、浦島太郎が乙姫から別れの贈り物として受け取った玉手箱にちなむ（IAU非公式）。",
+   "summary_ja": "はやぶさ2が初めてリュウグウの地表に触れた場所。直径6mの狙いの領域L08-E1の中に降りた。",
+   "event_ids": [
+    "td1"
+   ],
+   "events": [
+    {
+     "utc": "2019-02-21T22:29:10Z",
+     "precision": "second",
+     "title": "第1回タッチダウン（2019-02-22 07:29:10 JST）",
+     "text": "半径3m以内に着地（誘導制御精度は1m）。弾丸を発射して表面物質を採取し、試料チャンバーAに格納した。CAM-Hが舞い上がる表面粒子を撮影し、「リュウグウの花吹雪」と呼ばれた。"
+    },
+    {
+     "utc": "2019-03-07T00:00:00Z",
+     "precision": "date",
+     "title": "TD1後の観測",
+     "text": "採取跡を確認し、次のSCI（人工クレーター実験）の目標地点S01の検討を行った。"
+    },
+    {
+     "utc": "2020-12-06T00:00:00Z",
+     "precision": "date",
+     "title": "試料が地球へ",
+     "text": "チャンバーAの試料は、2020年12月6日に回収された帰還カプセルで地球に届いた。"
+    }
+   ],
+   "name_ja": "第1回タッチダウン地点(たまてばこ / L08-E1)",
+   "name_en": "TD1 site (Tamatebako, L08-E1)",
+   "nickname": "たまてばこ(玉手箱)",
+   "coord_note": "半径3m以内に着地、誘導制御精度1m",
+   "lat": 4.3,
+   "lon": 206.47,
+   "sources": [
+    {
+     "label": "JAXA記者説明会資料(2019-03-05) タッチダウン時刻・精度",
+     "url": "https://www.hayabusa2.jaxa.jp/en/enjoy/material/press/Hayabusa2_Press20190305_ver9_en.pdf"
+    },
+    {
+     "label": "ISAS: 第1回タッチダウン成功について",
+     "url": "https://www.isas.jaxa.jp/topics/002050.html"
+    },
+    {
+     "label": "JAXA: タッチダウン地点の選定経緯(L08-E1)",
+     "url": "https://www.hayabusa2.jaxa.jp/en/topics/20190220e_TDPoint/"
+    },
+    {
+     "label": "Nakamura et al. 2022, Proc. Jpn. Acad. Ser. B 98, 277-314 (TD1座標)",
+     "url": "https://doi.org/10.2183/pjab.98.015"
+    }
+   ],
+   "placed": true,
+   "shape": "cap",
+   "evidence": {
+    "elevation_m": 58.0,
+    "n_points_near_centre": 116
+   },
+   "evidence_ja": "点群（約3m間隔）より小さい範囲のため、形状の検証は行っていない。　点群での標高は約58m（平均半径448.8m基準）。"
+  },
+  {
+   "id": "td2",
+   "kind": "touchdown",
+   "short_ja": "TD2 うちでのこづち",
+   "priority": 3,
+   "radius_m": 3,
+   "extent_note": "表示範囲は半径3mの目安（公式の領域径は本データセット未収録）。実際の着陸精度は目標領域中心から60cm。",
+   "origin_ja": "愛称「うちでのこづち（打出の小槌）」は、昔話に登場する、振ると望みの物が出てくる宝の小槌にちなむ（IAU非公式）。",
+   "summary_ja": "人工クレーター「おむすびころりん」の北約20mに降りた、2回目のタッチダウン地点。",
+   "event_ids": [
+    "td2"
+   ],
+   "events": [
+    {
+     "utc": "2019-07-11T01:06:18Z",
+     "precision": "second",
+     "title": "第2回タッチダウン（2019-07-11 10:06:18 JST）",
+     "text": "人工クレーターの北約20m（クレーター半径の約3倍）に着陸し、地下の物質を採取して試料チャンバーCに格納した。採取物の多くは地下1.5mより浅い層に由来すると推定されている。"
+    }
+   ],
+   "name_ja": "第2回タッチダウン地点(うちでのこづち / C01-Cb)",
+   "name_en": "TD2 site (Uchide-no-kozuchi, C01-Cb)",
+   "nickname": "うちでのこづち(打出の小槌)",
+   "coord_note": "目標領域中心から60cmの精度",
+   "lat": 10.13,
+   "lon": 300.595,
+   "sources": [
+    {
+     "label": "JAXA記者説明会資料(2019-07-25) TD2時刻・精度60cm",
+     "url": "https://www.hayabusa2.jaxa.jp/en/enjoy/material/press/Hayabusa2_Press20190725_ver9_en3.pdf"
+    },
+    {
+     "label": "Hayabusa2 Project: The 2nd touchdown (10:06 JST)",
+     "url": "https://www.hayabusa2.jaxa.jp/en/topics/20190711e_PPTD_ImageBulletin/"
+    },
+    {
+     "label": "Nakamura et al. 2022 (TD2座標 10.13N, 300.595E)",
+     "url": "https://doi.org/10.2183/pjab.98.015"
+    },
+    {
+     "label": "Arakawa et al. 2020, Science 368, 67-71 (TD2座標 10.04N, 300.60E としても報告)",
+     "url": "https://doi.org/10.1126/science.aaz1701"
+    },
+    {
+     "label": "JAXA: 記者説明会(2019-06-11) C01-Cb選定とTM着地位置",
+     "url": "https://www.hayabusa2.jaxa.jp/en/enjoy/material/press/Hayabusa2_Press20190611_ver6a.pdf"
+    }
+   ],
+   "placed": true,
+   "shape": "cap",
+   "evidence": {
+    "elevation_m": 33.0,
+    "n_points_near_centre": 117
+   },
+   "evidence_ja": "点群（約3m間隔）より小さい範囲のため、形状の検証は行っていない。　点群での標高は約33m（平均半径448.8m基準）。"
+  },
+  {
+   "id": "sci_crater",
+   "kind": "impact",
+   "short_ja": "人工クレーター おむすびころりん",
+   "priority": 3,
+   "radius_m": 7.25,
+   "extent_note": "表示範囲は半径7.25m（直径14.5m）。縁間の直径は17.6m、深さ1.7m（Arakawa et al. 2020）。",
+   "origin_ja": "愛称「おむすびころりん」は、転がったおむすびが穴に落ちる昔話にちなむ（IAU非公式）。目標領域の名前はS01。",
+   "summary_ja": "小型衝突装置SCIの銅弾で作られた、世界初の小惑星の人工クレーター。大きい岩の近くに着弾したため半円形になった。",
+   "event_ids": [
+    "sci_impact",
+    "sci_crater_found"
+   ],
+   "events": [
+    {
+     "utc": "2019-04-05T02:36:00Z",
+     "precision": "minute",
+     "title": "SCI衝突実験（2019-04-05 11:36 JST）",
+     "text": "2kgの銅弾を約2km/sで衝突させ、直径14.5mのクレーターを作った。小惑星の地下物質を露出させる世界初の実験。衝突点は目標から数十m以内だった。"
+    },
+    {
+     "utc": "2019-04-25T00:00:00Z",
+     "precision": "date",
+     "title": "人工クレーターの確認",
+     "text": "高度1.7kmからの観測でクレーターを確認した。"
+    },
+    {
+     "utc": "2019-07-11T01:06:18Z",
+     "precision": "second",
+     "title": "TD2 — クレーターの北約20mに着陸",
+     "text": "掘り出された地下物質の近くで、2回目のタッチダウンが行われた。"
+    }
+   ],
+   "name_ja": "人工クレーター(おむすびころりん / S01)",
+   "name_en": "SCI artificial crater (S01)",
+   "nickname": "おむすびころりん",
+   "coord_note": "目標から数十m以内(半径200m以内を目標にしていたところ命中)",
+   "lat": 7.9,
+   "lon": 313.3,
+   "sources": [
+    {
+     "label": "Arakawa et al. 2020, Science 368, 67-71 (クレーター寸法・重力支配領域)",
+     "url": "https://doi.org/10.1126/science.aaz1701"
+    },
+    {
+     "label": "ISAS: 衝突装置の作動確認(2019-04-05)",
+     "url": "https://www.isas.jaxa.jp/topics/002123.html"
+    },
+    {
+     "label": "JAXA: SCI運用スケジュール(起爆11:36 JST)",
+     "url": "https://www.hayabusa2.jaxa.jp/en/topics/20190403e_SCI_Schedule/"
+    },
+    {
+     "label": "ISAS: 人工クレーター形成実験の解説",
+     "url": "https://www.isas.jaxa.jp/feature/forefront/201127.html"
+    }
+   ],
+   "placed": true,
+   "shape": "cap",
+   "evidence": {
+    "elevation_m": 49.8,
+    "n_points_near_centre": 141
+   },
+   "evidence_ja": "点群（約3m間隔）より小さい範囲のため、形状の検証は行っていない。　点群での標高は約50m（平均半径448.8m基準）。"
+  },
+  {
+   "id": "mascot_landing",
+   "kind": "lander",
+   "short_ja": "MASCOT着陸点",
+   "priority": 3,
+   "radius_m": 3,
+   "extent_note": "最終静止位置（22.294°S, 317.161°E）。表示範囲は半径3mの目安。",
+   "origin_ja": "愛称「アリスの不思議の国（Alice's Wonderland）」はIAU非公式。",
+   "summary_ja": "DLR/CNESの小型着陸機MASCOTが、バウンドを重ねた末に止まり、約17時間の観測をした場所。",
+   "event_ids": [
+    "mascot_landing"
+   ],
+   "events": [
+    {
+     "utc": "2018-10-03T01:57:20Z",
+     "precision": "second",
+     "title": "MASCOT分離（2018-10-03 01:57 UTC）",
+     "text": "分離後に自由落下し、複数回バウンドして最初の静止点SP1（22.2065°S, 317.2991°E）を経て最終位置に止まった。MASCAMカメラ・MARA熱放射計・磁力計・MicrOmegaで地表を調べた。"
+    }
+   ],
+   "name_ja": "MASCOT着陸地点(アリスの不思議の国 / MA-9)",
+   "name_en": "MASCOT landing site (Alice's Wonderland, MA-9)",
+   "nickname": "アリスの不思議の国(Alice's Wonderland)",
+   "coord_note": "最終静止位置。最初の接触点CP1は-22.595S, 314.914E。最初の静止点SP1は-22.2065S, 317.2991E",
+   "lat": -22.294,
+   "lon": 317.161,
+   "sources": [
+    {
+     "label": "Scholten et al. 2019, A&A 632, A67 (MASCOT降下・バウンド経路・各静止点座標)",
+     "url": "https://www.aanda.org/articles/aa/full_html/2019/12/aa36757-19/aa36757-19.html"
+    },
+    {
+     "label": "Preusker et al. 2019, A&A 632, A66 (MASCOT着陸域の高解像度地形モデル)",
+     "url": "https://www.aanda.org/articles/aa/full_html/2019/12/aa36759-19/aa36759-19.html"
+    },
+    {
+     "label": "Scholten et al. 2019, A&A 632, A68 (MASCam画像のステレオ解析)",
+     "url": "https://www.aanda.org/articles/aa/full_html/2019/12/aa36760-19/aa36760-19.html"
+    },
+    {
+     "label": "DLR: MASCOT着陸シーケンス",
+     "url": "https://www.dlr.de/en/research-and-transfer/projects-and-missions/hayabusa2/mascot-landing-on-ryugu-operational-sequence"
+    },
+    {
+     "label": "JAXA: MASCOT分離・着陸(2018-10-03)",
+     "url": "https://www.hayabusa2.jaxa.jp/en/topics/20181003e/"
+    }
+   ],
+   "placed": true,
+   "shape": "cap",
+   "evidence": {
+    "elevation_m": -2.0,
+    "n_points_near_centre": 141
+   },
+   "evidence_ja": "点群（約3m間隔）より小さい範囲のため、形状の検証は行っていない。　点群での標高は約-2m（平均半径448.8m基準）。"
+  },
+  {
+   "id": "mascot_cp1",
+   "kind": "lander",
+   "short_ja": "MASCOT 最初の接触点",
+   "priority": 1,
+   "name_ja": "MASCOT 最初の接触点 CP1",
+   "name_en": "MASCOT first contact point (CP1)",
+   "radius_m": 3,
+   "extent_note": "表示範囲は半径3mの目安。",
+   "summary_ja": "分離したMASCOTが、リュウグウの地表に初めて触れた地点。ここからバウンドが始まった。",
+   "event_ids": [
+    "mascot_landing"
+   ],
+   "events": [
+    {
+     "utc": "2018-10-03T01:57:20Z",
+     "precision": "second",
+     "title": "MASCOT分離後の最初の接触",
+     "text": "Scholten et al. 2019 による最初の接触点CP1。最終静止位置（22.294°S, 317.161°E）は、ここから北東へ十数mの場所。"
+    }
+   ],
+   "coord_note": "Scholten et al. 2019 (A&A 632, A67) の座標（poi_master の記述と照合済み）。",
+   "lat": -22.595,
+   "lon": 314.914,
+   "sources": [
+    {
+     "label": "Scholten et al. 2019, A&A 632, A67 (MASCOT降下・バウンド経路・各静止点座標)",
+     "url": "https://www.aanda.org/articles/aa/full_html/2019/12/aa36757-19/aa36757-19.html"
+    },
+    {
+     "label": "Scholten et al. 2019, A&A 632, A68 (MASCam画像のステレオ解析)",
+     "url": "https://www.aanda.org/articles/aa/full_html/2019/12/aa36760-19/aa36760-19.html"
+    }
+   ],
+   "placed": true,
+   "shape": "cap",
+   "evidence": {
+    "elevation_m": -1.9,
+    "n_points_near_centre": 125
+   },
+   "evidence_ja": "点群（約3m間隔）より小さい範囲のため、形状の検証は行っていない。　点群での標高は約-2m（平均半径448.8m基準）。"
+  },
+  {
+   "id": "tm_b",
+   "kind": "marker",
+   "short_ja": "TM-B 目印",
+   "priority": 1,
+   "radius_m": 10,
+   "extent_note": "表示範囲は半径10m。投下目標L08-B（半径10mの円）に基づく。実際の着地点は目標の南東方向にわずかに逸れた。",
+   "summary_ja": "TD1本番の目印にした反射マーカ。表面には約55万人分のメッセージが刻まれている。",
+   "event_ids": [
+    "tm_b_deploy"
+   ],
+   "events": [
+    {
+     "utc": "2018-10-24T00:00:00Z",
+     "precision": "date",
+     "title": "ターゲットマーカTM-B投下",
+     "text": "TD1-R3運用（2018-10-23〜25）で高度約13mから投下された。TD1本番では、これを目印にピンポイント誘導が行われた。"
+    }
+   ],
+   "name_ja": "ターゲットマーカTM-B投下地点(L08-B)",
+   "name_en": "Target marker TM-B landing point (L08-B)",
+   "coord_note": "投下目標L08-B(半径10m円)の南東方向に僅かに逸れて着地",
+   "lat": 4.04,
+   "lon": 206.01,
+   "sources": [
+    {
+     "label": "Yoshimitsu et al. 2021, Icarus 368, 114592 (TM投下地点の座標 φ=4.04, λ=206.01)",
+     "url": "https://www.sciencedirect.com/science/article/pii/S0019103520305509"
+    },
+    {
+     "label": "JAXA: タッチダウン地点の選定(L08-B1とL08-E1)",
+     "url": "https://www.hayabusa2.jaxa.jp/en/topics/20190220e_TDPoint/"
+    }
+   ],
+   "placed": true,
+   "shape": "cap",
+   "evidence": {
+    "elevation_m": 58.7,
+    "n_points_near_centre": 116
+   },
+   "evidence_ja": "点群（約3m間隔）より小さい範囲のため、形状の検証は行っていない。　点群での標高は約59m（平均半径448.8m基準）。"
+  },
+  {
+   "id": "tm_a",
+   "kind": "marker",
+   "short_ja": "TM-A 目印",
+   "priority": 1,
+   "radius_m": 3,
+   "extent_note": "表示範囲は半径3mの目安。TD2候補地点C01-Cの中心から3m以内に着地した。",
+   "summary_ja": "TD2本番の目印にした2つ目のターゲットマーカ。",
+   "event_ids": [
+    "td2"
+   ],
+   "events": [
+    {
+     "utc": "2019-05-30T02:18:00Z",
+     "precision": "minute",
+     "title": "ターゲットマーカTM-A分離（2019-05-30 11:18 JST）",
+     "text": "PPTD-TM1A運用（2019-05-28〜30）で投下。TD2本番ではTM-Aを目印に、人工クレーター北のC01-Cbへ60cmの精度で着陸した。"
+    }
+   ],
+   "name_ja": "ターゲットマーカTM-A投下地点(C01-C)",
+   "name_en": "Target marker TM-A landing point (C01-C)",
+   "coord_note": "TD2候補地点C01-Cの中心から3m以内に着地",
+   "lat": 10.23,
+   "lon": 300.89,
+   "sources": [
+    {
+     "label": "Yoshimitsu et al. 2021, Icarus 368, 114592 (TM-A着地点の座標 φ=10.23, λ=300.89)",
+     "url": "https://www.sciencedirect.com/science/article/pii/S0019103520305509"
+    },
+    {
+     "label": "JAXA: 記者説明会(2019-06-11) PPTD-TM1Aの結果",
+     "url": "https://www.hayabusa2.jaxa.jp/en/enjoy/material/press/Hayabusa2_Press20190611_ver6a.pdf"
+    }
+   ],
+   "placed": true,
+   "shape": "cap",
+   "evidence": {
+    "elevation_m": 33.0,
+    "n_points_near_centre": 118
+   },
+   "evidence_ja": "点群（約3m間隔）より小さい範囲のため、形状の検証は行っていない。　点群での標高は約33m（平均半径448.8m基準）。"
+  },
+  {
+   "id": "minerva_ii1",
+   "kind": "rover",
+   "short_ja": "MINERVA-II1 トリトニス",
+   "priority": 1,
+   "radius_m": 0,
+   "extent_note": "精密な公開座標がないため地図上には置かない。",
+   "origin_ja": "愛称「トリトニス（Tritonis）」はIAU非公式（当初「トリニトス」と発表されたが2019年2月に訂正）。",
+   "summary_ja": "ローバ2機（イブー・アウル）が降りた北半球の候補領域N6。世界初の小惑星表面でのローバの自律移動に成功した。",
+   "event_ids": [
+    "minerva_ii1_landing"
+   ],
+   "events": [
+    {
+     "utc": "2018-09-21T04:06:00Z",
+     "precision": "minute",
+     "title": "MINERVA-II1分離（2018-09-21 13:06 JST、高度55m）",
+     "text": "リュウグウ北半球の候補領域N6内に着陸し、ホッピングによる移動と撮影に成功した。"
+    }
+   ],
+   "name_ja": "MINERVA-II1着陸地点(トリトニス / N6)",
+   "name_en": "MINERVA-II1 landing site (Tritonis, N6)",
+   "nickname": "トリトニス(Tritonis)",
+   "coord_note": "精密な公開座標なし。着陸候補領域N6は北半球(赤道の北側100m以上離れた領域)に設定されていた",
+   "lat": null,
+   "lon": null,
+   "sources": [
+    {
+     "label": "ISAS: MINERVA-II1のリュウグウ着陸成功(2018-09-22)",
+     "url": "https://www.isas.jaxa.jp/topics/001886.html"
+    },
+    {
+     "label": "JAXA: MINERVA-II1の命名(イブー・アウル)",
+     "url": "https://www.isas.jaxa.jp/en/topics/001996.html"
+    },
+    {
+     "label": "JAXA: 着地候補地点N6の選定(北半球・分離条件)",
+     "url": "https://fanfun.jaxa.jp/jaxatv/files/20180927_hayabusa2_e.pdf"
+    },
+    {
+     "label": "JAXA: MINERVA-II1着地点名の訂正(トリニトス→トリトニス)",
+     "url": "https://global.jaxa.jp/projects/sas/hayabusa2/topics.html"
+    },
+    {
+     "label": "JAXA: MINERVA-II1運用資料(分離時刻13:06 JST)",
+     "url": "https://www.hayabusa2.jaxa.jp/en/topics/20180922e/"
+    }
+   ],
+   "placed": false,
+   "shape": "cap",
+   "evidence": {},
+   "evidence_ja": "座標を持たない（または公表されていない）ため、点群での検証は行っていない。"
+  },
+  {
+   "id": "candidate_l08",
+   "kind": "candidate",
+   "short_ja": "TD1候補 L08",
+   "priority": 1,
+   "radius_m": 0,
+   "extent_note": "領域の座標を本データセットは持たないため地図上には置かない。",
+   "summary_ja": "TD1の第一候補に選ばれた低緯度の領域。岩の被覆率が低く、安全性と科学価値を両立するとして決まった。",
+   "event_ids": [],
+   "events": [
+    {
+     "utc": "2018-08-17T00:00:00Z",
+     "precision": "date",
+     "title": "着陸地点選定（LSS）会議",
+     "text": "低緯度（L）13か所・中緯度（M）4か所の候補から、L08が第一候補（バックアップはL07、M04）に決まった。"
+    }
+   ],
+   "name_ja": "TD1候補地点L08(バックアップ: L07, M04)",
+   "name_en": "TD1 candidate site L08 (backups: L07, M04)",
+   "coord_note": "低緯度(L)候補13か所から選定",
+   "lat": null,
+   "lon": null,
+   "sources": [
+    {
+     "label": "ISAS: 着地候補地点の決定について(2018-08-17)",
+     "url": "https://www.isas.jaxa.jp/topics/001826.html"
+    },
+    {
+     "label": "ISAS(英文): Determination of landing site candidates",
+     "url": "https://www.isas.jaxa.jp/en/topics/001848.html"
+    }
+   ],
+   "placed": false,
+   "shape": "cap",
+   "evidence": {},
+   "evidence_ja": "座標を持たない（または公表されていない）ため、点群での検証は行っていない。"
+  },
+  {
+   "id": "candidate_s01",
+   "kind": "candidate",
+   "short_ja": "SCI目標 S01",
+   "priority": 1,
+   "radius_m": 0,
+   "extent_note": "領域の座標を本データセットは持たないため地図上には置かない（実際の衝突点は人工クレーターの項を参照）。",
+   "summary_ja": "SCIの衝突目標領域。赤道の尾根の上で、L08から経度でおよそ90度東にあった。",
+   "event_ids": [
+    "sci_impact"
+   ],
+   "events": [
+    {
+     "utc": "2019-03-07T00:00:00Z",
+     "precision": "date",
+     "title": "S01の詳細検討",
+     "text": "直径約400mの領域のどこかに当てる計画。実際の衝突点は目標から数十m以内だった。"
+    }
+   ],
+   "name_ja": "SCI衝突目標領域S01",
+   "name_en": "SCI impact target area S01",
+   "coord_note": "赤道尾根上、L08から東に約90度(経度で約4分の1周)。直径約400mの領域のどこかに命中させる計画",
+   "lat": null,
+   "lon": null,
+   "sources": [
+    {
+     "label": "JAXA: 記者説明会(2019-06-11) 候補地マップ(L14・C01・S01)",
+     "url": "https://www.hayabusa2.jaxa.jp/en/enjoy/material/press/Hayabusa2_Press20190611_ver6a.pdf"
+    },
+    {
+     "label": "Planetary Society: TD1とS01の位置関係(経度で約4分の1周東)",
+     "url": "https://www.planetary.org/articles/hayabusa2-touchdown-recap"
+    }
+   ],
+   "placed": false,
+   "shape": "cap",
+   "evidence": {},
+   "evidence_ja": "座標を持たない（または公表されていない）ため、点群での検証は行っていない。"
+  },
+  {
+   "id": "cendrillon",
+   "kind": "crater",
+   "name_ja": "センドリヨン",
+   "short_ja": "センドリヨン",
+   "priority": 2,
+   "origin_ja": "ペローの童話『シンデレラ（Cendrillon）』の主人公（フランス）。",
+   "summary_ja": "北半球の中緯度にあるクレーター。",
+   "event_ids": [],
+   "events": [],
+   "name_en": "Cendrillon",
+   "iau": {
+    "approved": "2018-12-19",
+    "diameter_km": 0.22,
+    "type": "Crater"
+   },
+   "coord_note": "IAU承認地名の中心座標（USGS Gazetteer、度単位の概略位置）。",
+   "lat": 31.9,
+   "lon": 350.5,
+   "sources": [
+    {
+     "label": "USGS Astrogeology: Ryugu Nomenclature",
+     "url": "https://planetarynames.wr.usgs.gov/SearchResults?Target=Ryugu"
+    }
+   ],
+   "radius_m": 110.0,
+   "placed": true,
+   "extent_note": "IAU表の直径（0.22 km）の半分を半径として表示。",
+   "shape": "cap",
+   "evidence": {
+    "elevation_m": -32.5,
+    "n_points_near_centre": 5732,
+    "centre_residual_m": -22.5,
+    "rim_residual_m": 1.4,
+    "rim_minus_centre_m": 23.9
+   },
+   "evidence_ja": "点群（SfM 約158万点）で測ると、縁が中心より約24m高い（局所2次曲面を差し引いた残差）。カタログ座標は窪地と整合する。"
+  },
+  {
+   "id": "kintaro",
+   "kind": "crater",
+   "name_ja": "キンタロウ",
+   "short_ja": "キンタロウ",
+   "priority": 2,
+   "origin_ja": "日本の昔話の金太郎。足柄山で育ち、怪力を持つ「金色の童子」。",
+   "summary_ja": "赤道の尾根の上、経度およそ158度にあるクレーター。",
+   "event_ids": [],
+   "events": [],
+   "name_en": "Kintaro",
+   "iau": {
+    "approved": "2018-12-19",
+    "diameter_km": 0.17,
+    "type": "Crater"
+   },
+   "coord_note": "IAU承認地名の中心座標（USGS Gazetteer、度単位の概略位置）。",
+   "lat": 0.4,
+   "lon": 157.8,
+   "sources": [
+    {
+     "label": "USGS Astrogeology: Ryugu Nomenclature",
+     "url": "https://planetarynames.wr.usgs.gov/SearchResults?Target=Ryugu"
+    }
+   ],
+   "radius_m": 85.0,
+   "placed": true,
+   "extent_note": "IAU表の直径（0.17 km）の半分を半径として表示。",
+   "shape": "cap",
+   "evidence": {
+    "elevation_m": 34.9,
+    "n_points_near_centre": 3793,
+    "centre_residual_m": 4.1,
+    "rim_residual_m": 7.4,
+    "rim_minus_centre_m": 3.3
+   },
+   "evidence_ja": "点群（SfM 約158万点）で測ると、縁が中心より約3m高い（局所2次曲面を差し引いた残差）。カタログ座標は窪地と整合する。"
+  },
+  {
+   "id": "urashima",
+   "kind": "crater",
+   "name_ja": "ウラシマ",
+   "short_ja": "ウラシマ",
+   "priority": 2,
+   "origin_ja": "浦島太郎。亀を助けて竜宮城（リュウグウ）へ渡った漁師。",
+   "summary_ja": "リュウグウ最大級のクレーターで、表面の古さ（クレーターの少なさ）を考えるうえで貴重な年代の手がかり（Sugita et al. 2019）。",
+   "event_ids": [],
+   "events": [],
+   "name_en": "Urashima",
+   "iau": {
+    "approved": "2018-12-19",
+    "diameter_km": 0.29,
+    "type": "Crater"
+   },
+   "coord_note": "IAU承認地名の中心座標（USGS Gazetteer、度単位の概略位置）。",
+   "lat": -8.1,
+   "lon": 92.9,
+   "sources": [
+    {
+     "label": "USGS Astrogeology: Ryugu Nomenclature",
+     "url": "https://planetarynames.wr.usgs.gov/SearchResults?Target=Ryugu"
+    }
+   ],
+   "radius_m": 145.0,
+   "placed": true,
+   "extent_note": "IAU表の直径（0.29 km）の半分を半径として表示。",
+   "shape": "cap",
+   "evidence": {
+    "elevation_m": 14.3,
+    "n_points_near_centre": 8788,
+    "centre_residual_m": -1.7,
+    "rim_residual_m": 20.0,
+    "rim_minus_centre_m": 21.7
+   },
+   "evidence_ja": "点群（SfM 約158万点）で測ると、縁が中心より約22m高い（局所2次曲面を差し引いた残差）。カタログ座標は窪地と整合する。"
+  },
+  {
+   "id": "brabo",
+   "kind": "crater",
+   "name_ja": "ブラボ",
+   "short_ja": "ブラボ",
+   "priority": 2,
+   "origin_ja": "オランダの童話に登場する、巨人を倒した勇敢な若者。",
+   "summary_ja": "赤道付近、経度およそ230度のクレーター。TD1地点（経度206度）の東にある。",
+   "event_ids": [],
+   "events": [],
+   "name_en": "Brabo",
+   "iau": {
+    "approved": "2018-12-19",
+    "diameter_km": 0.14,
+    "type": "Crater"
+   },
+   "coord_note": "IAU承認地名の中心座標（USGS Gazetteer、度単位の概略位置）。",
+   "lat": 4.5,
+   "lon": 229.7,
+   "sources": [
+    {
+     "label": "USGS Astrogeology: Ryugu Nomenclature",
+     "url": "https://planetarynames.wr.usgs.gov/SearchResults?Target=Ryugu"
+    }
+   ],
+   "radius_m": 70.0,
+   "placed": true,
+   "extent_note": "IAU表の直径（0.14 km）の半分を半径として表示。",
+   "shape": "cap",
+   "evidence": {
+    "elevation_m": 49.9,
+    "n_points_near_centre": 2326,
+    "centre_residual_m": -1.5,
+    "rim_residual_m": 6.2,
+    "rim_minus_centre_m": 7.7
+   },
+   "evidence_ja": "点群（SfM 約158万点）で測ると、縁が中心より約8m高い（局所2次曲面を差し引いた残差）。カタログ座標は窪地と整合する。"
+  },
+  {
+   "id": "kolobok",
+   "kind": "crater",
+   "name_ja": "コロボク",
+   "short_ja": "コロボク",
+   "priority": 2,
+   "origin_ja": "ロシアの童話の主人公。家を飛び出して転がり逃げた丸いパン。",
+   "summary_ja": "赤道のすぐ南、経度およそ333度のクレーター。",
+   "event_ids": [],
+   "events": [],
+   "name_en": "Kolobok",
+   "iau": {
+    "approved": "2018-12-19",
+    "diameter_km": 0.18,
+    "type": "Crater"
+   },
+   "coord_note": "IAU承認地名の中心座標（USGS Gazetteer、度単位の概略位置）。",
+   "lat": -1.5,
+   "lon": 333.5,
+   "sources": [
+    {
+     "label": "USGS Astrogeology: Ryugu Nomenclature",
+     "url": "https://planetarynames.wr.usgs.gov/SearchResults?Target=Ryugu"
+    }
+   ],
+   "radius_m": 90.0,
+   "placed": true,
+   "extent_note": "IAU表の直径（0.18 km）の半分を半径として表示。",
+   "shape": "cap",
+   "evidence": {
+    "elevation_m": 37.9,
+    "n_points_near_centre": 4075,
+    "centre_residual_m": -5.8,
+    "rim_residual_m": 4.1,
+    "rim_minus_centre_m": 9.9
+   },
+   "evidence_ja": "点群（SfM 約158万点）で測ると、縁が中心より約10m高い（局所2次曲面を差し引いた残差）。カタログ座標は窪地と整合する。"
+  },
+  {
+   "id": "momotaro",
+   "kind": "crater",
+   "name_ja": "モモタロウ",
+   "short_ja": "モモタロウ",
+   "priority": 2,
+   "origin_ja": "桃太郎。桃から生まれ、遠くの島の鬼退治に旅をした。",
+   "summary_ja": "南半球、経度およそ52度のクレーター。すぐ南にキビダンゴがある。",
+   "event_ids": [],
+   "events": [],
+   "name_en": "Momotaro",
+   "iau": {
+    "approved": "2018-12-19",
+    "diameter_km": 0.19,
+    "type": "Crater"
+   },
+   "coord_note": "IAU承認地名の中心座標（USGS Gazetteer、度単位の概略位置）。",
+   "lat": -12.5,
+   "lon": 51.9,
+   "sources": [
+    {
+     "label": "USGS Astrogeology: Ryugu Nomenclature",
+     "url": "https://planetarynames.wr.usgs.gov/SearchResults?Target=Ryugu"
+    }
+   ],
+   "radius_m": 95.0,
+   "placed": true,
+   "extent_note": "IAU表の直径（0.19 km）の半分を半径として表示。",
+   "shape": "cap",
+   "evidence": {
+    "elevation_m": 15.3,
+    "n_points_near_centre": 5076,
+    "centre_residual_m": -11.4,
+    "rim_residual_m": 6.5,
+    "rim_minus_centre_m": 17.8
+   },
+   "evidence_ja": "点群（SfM 約158万点）で測ると、縁が中心より約18m高い（局所2次曲面を差し引いた残差）。カタログ座標は窪地と整合する。"
+  },
+  {
+   "id": "kibidango",
+   "kind": "crater",
+   "name_ja": "キビダンゴ",
+   "short_ja": "キビダンゴ",
+   "priority": 2,
+   "origin_ja": "きびだんご。桃太郎が旅に持った、長く柔らかいままの丸いお菓子。",
+   "summary_ja": "南半球の中緯度にある小さなクレーター。名前のとおり桃太郎の近くにある。",
+   "event_ids": [],
+   "events": [],
+   "name_en": "Kibidango",
+   "iau": {
+    "approved": "2018-12-19",
+    "diameter_km": 0.13,
+    "type": "Crater"
+   },
+   "coord_note": "IAU承認地名の中心座標（USGS Gazetteer、度単位の概略位置）。",
+   "lat": -31.2,
+   "lon": 50.0,
+   "sources": [
+    {
+     "label": "USGS Astrogeology: Ryugu Nomenclature",
+     "url": "https://planetarynames.wr.usgs.gov/SearchResults?Target=Ryugu"
+    }
+   ],
+   "radius_m": 65.0,
+   "placed": true,
+   "extent_note": "IAU表の直径（0.13 km）の半分を半径として表示。",
+   "shape": "cap",
+   "evidence": {
+    "elevation_m": -12.6,
+    "n_points_near_centre": 2425,
+    "centre_residual_m": -11.5,
+    "rim_residual_m": 2.7,
+    "rim_minus_centre_m": 14.2
+   },
+   "evidence_ja": "点群（SfM 約158万点）で測ると、縁が中心より約14m高い（局所2次曲面を差し引いた残差）。カタログ座標は窪地と整合する。"
+  },
+  {
+   "id": "ryujin_dorsum",
+   "kind": "dorsum",
+   "name_ja": "リュウジン・ドールスム",
+   "short_ja": "リュウジン・ドールスム",
+   "priority": 2,
+   "origin_ja": "竜神。海の支配者で乙姫の父。浦島太郎が客となった海底の竜宮城の主。",
+   "summary_ja": "赤道を取り囲む尾根（全長約3.2km）。リュウグウの赤道半径は約502m、極半径は約438mと、そろばんの珠のように扁平。高速自転による変形を考えるうえで最も重要な地形。",
+   "event_ids": [],
+   "events": [],
+   "name_en": "Ryujin Dorsum",
+   "coord_note": "赤道帯を周回する地形のため、中心の緯度経度（0°, 180°）に意味はなく、帯として扱う。",
+   "iau": {
+    "approved": "2018-12-18",
+    "diameter_km": 3.2,
+    "type": "Dorsum"
+   },
+   "lat": 0.0,
+   "lon": 180.0,
+   "sources": [
+    {
+     "label": "USGS Astrogeology: Planetary Nomenclature - Ryugu",
+     "url": "https://planetarynames.wr.usgs.gov/Page/Ryugu/target"
+    },
+    {
+     "label": "Watanabe et al. 2019, Nature Astron. 3, 898-903 (形状・自転)",
+     "url": "https://doi.org/10.1038/s41550-019-0932-0"
+    },
+    {
+     "label": "USGS Astrogeology: Ryugu Nomenclature",
+     "url": "https://planetarynames.wr.usgs.gov/SearchResults?Target=Ryugu"
+    }
+   ],
+   "radius_m": 97.9,
+   "placed": true,
+   "shape": "band",
+   "band_half_lat_deg": 12.5,
+   "extent_note": "赤道を挟む緯度±12.5°の帯（点群の半径プロファイルの半値幅から決定。IAU表の3.2kmは尾根の全長）。",
+   "evidence": {},
+   "evidence_ja": "点群（SfM 約158万点）の半径は赤道で約501m、緯度±12°あたりで約468mまで下がる。尾根の帯の幅はこの半値幅から決めた。"
+  },
+  {
+   "id": "tokoyo_fossa",
+   "kind": "fossa",
+   "name_ja": "トコヨ・フォッサ",
+   "short_ja": "トコヨ・フォッサ",
+   "priority": 1,
+   "origin_ja": "常世。日本神話の不死・不老の国で、乙姫の住む海の彼方の世界。",
+   "summary_ja": "南半球の高緯度にある細長い溝。",
+   "event_ids": [],
+   "events": [],
+   "name_en": "Tokoyo Fossa",
+   "iau": {
+    "approved": "2018-12-19",
+    "diameter_km": 0.56,
+    "type": "Fossa"
+   },
+   "coord_note": "IAU承認地名の中心座標（USGS Gazetteer、度単位の概略位置）。",
+   "lat": -49.4,
+   "lon": 166.2,
+   "sources": [
+    {
+     "label": "USGS Astrogeology: Ryugu Nomenclature",
+     "url": "https://planetarynames.wr.usgs.gov/SearchResults?Target=Ryugu"
+    }
+   ],
+   "radius_m": 280.0,
+   "placed": true,
+   "extent_note": "IAU表の直径（0.56 km）の半分を半径として表示。溝は細長い地形で、直径欄は長さ。円形の強調は目安。",
+   "shape": "cap",
+   "evidence": {
+    "elevation_m": -37.2,
+    "n_points_near_centre": 38412
+   },
+   "evidence_ja": "線状の地形のため、円形に区切った点群検証は行っていない。強調表示は目安。"
+  },
+  {
+   "id": "horai_fossa",
+   "kind": "fossa",
+   "name_ja": "ホウライ・フォッサ",
+   "short_ja": "ホウライ・フォッサ",
+   "priority": 1,
+   "origin_ja": "蓬莱。仙人の楽土とされる伝説上の山。",
+   "summary_ja": "北半球の中緯度にある細長い溝。",
+   "event_ids": [],
+   "events": [],
+   "name_en": "Horai Fossa",
+   "iau": {
+    "approved": "2018-12-19",
+    "diameter_km": 0.33,
+    "type": "Fossa"
+   },
+   "coord_note": "IAU承認地名の中心座標（USGS Gazetteer、度単位の概略位置）。",
+   "lat": 32.1,
+   "lon": 296.6,
+   "sources": [
+    {
+     "label": "USGS Astrogeology: Ryugu Nomenclature",
+     "url": "https://planetarynames.wr.usgs.gov/SearchResults?Target=Ryugu"
+    }
+   ],
+   "radius_m": 165.0,
+   "placed": true,
+   "extent_note": "IAU表の直径（0.33 km）の半分を半径として表示。溝は細長い地形で、直径欄は長さ。円形の強調は目安。",
+   "shape": "cap",
+   "evidence": {
+    "elevation_m": -8.2,
+    "n_points_near_centre": 12320
+   },
+   "evidence_ja": "線状の地形のため、円形に区切った点群検証は行っていない。強調表示は目安。"
+  },
+  {
+   "id": "ejima_saxum",
+   "kind": "saxum",
+   "name_ja": "エジマ・サクスム",
+   "short_ja": "エジマ・サクスム",
+   "priority": 1,
+   "origin_ja": "江島。浦島太郎が亀を助け、竜宮城への旅を始めた海岸。",
+   "summary_ja": "南半球の中緯度にある岩塊。",
+   "event_ids": [],
+   "events": [],
+   "name_en": "Ejima Saxum",
+   "iau": {
+    "approved": "2018-12-19",
+    "diameter_km": 0.07,
+    "type": "Saxum"
+   },
+   "coord_note": "IAU承認地名の中心座標（USGS Gazetteer、度単位の概略位置）。",
+   "lat": -32.0,
+   "lon": 101.1,
+   "sources": [
+    {
+     "label": "USGS Astrogeology: Ryugu Nomenclature",
+     "url": "https://planetarynames.wr.usgs.gov/SearchResults?Target=Ryugu"
+    }
+   ],
+   "radius_m": 35.0,
+   "placed": true,
+   "extent_note": "IAU表の直径（0.07 km）の半分を半径として表示。",
+   "shape": "cap",
+   "evidence": {
+    "elevation_m": 29.5,
+    "n_points_near_centre": 522,
+    "centre_residual_m": 22.1,
+    "rim_residual_m": 8.8,
+    "rim_minus_centre_m": -13.3
+   },
+   "evidence_ja": "点群で測ると、中心が周囲より約13m高く、岩塊の突起と整合する。"
+  },
+  {
+   "id": "catafo_saxum",
+   "kind": "saxum",
+   "name_ja": "カタフォ・サクスム",
+   "short_ja": "カタフォ・サクスム",
+   "priority": 1,
+   "origin_ja": "米国ケイジャンの民話に登場する、粉で森に目印を付けた賢い少年。",
+   "summary_ja": "経度0度の子午線上、赤道のやや南にある岩塊。",
+   "event_ids": [],
+   "events": [],
+   "name_en": "Catafo Saxum",
+   "iau": {
+    "approved": "2018-12-19",
+    "diameter_km": 0.05,
+    "type": "Saxum"
+   },
+   "coord_note": "IAU承認地名の中心座標（USGS Gazetteer、度単位の概略位置）。",
+   "lat": -5.5,
+   "lon": 0.0,
+   "sources": [
+    {
+     "label": "USGS Astrogeology: Ryugu Nomenclature",
+     "url": "https://planetarynames.wr.usgs.gov/SearchResults?Target=Ryugu"
+    }
+   ],
+   "radius_m": 25.0,
+   "placed": true,
+   "extent_note": "IAU表の直径（0.05 km）の半分を半径として表示。",
+   "shape": "cap",
+   "evidence": {
+    "elevation_m": 61.0,
+    "n_points_near_centre": 361,
+    "centre_residual_m": 12.6,
+    "rim_residual_m": 1.0,
+    "rim_minus_centre_m": -11.7
+   },
+   "evidence_ja": "点群で測ると、中心が周囲より約12m高く、岩塊の突起と整合する。"
+  },
+  {
+   "id": "otohime_saxum",
+   "kind": "saxum",
+   "name_ja": "オトヒメ・サクスム",
+   "short_ja": "オトヒメ・サクスム",
+   "priority": 1,
+   "origin_ja": "乙姫。浦島太郎を海底の竜宮城に迎え、別れの贈り物（玉手箱）を与えた姫。",
+   "summary_ja": "リュウグウ最大級の単一の岩（ボルダー）。巨大な岩の起源（親天体の破片か、リュウグウ自身の再集積か）は科学的な検討課題（Michikami et al. 2019）。",
+   "event_ids": [],
+   "events": [],
+   "name_en": "Otohime Saxum",
+   "coord_note": "IAU承認地名の中心座標（USGS Gazetteer、度単位の概略位置）。",
+   "iau": {
+    "approved": "2018-12-19",
+    "diameter_km": 0.16,
+    "type": "Saxum"
+   },
+   "lat": -69.8,
+   "lon": 274.4,
+   "sources": [
+    {
+     "label": "USGS Astrogeology: Planetary Nomenclature - Ryugu",
+     "url": "https://planetarynames.wr.usgs.gov/Page/Ryugu/target"
+    },
+    {
+     "label": "Michikami et al. 2019, Icarus 331, 179 (ボルダーのサイズ頻度分布)",
+     "url": "https://doi.org/10.1016/j.icarus.2019.05.019"
+    },
+    {
+     "label": "USGS Astrogeology: Ryugu Nomenclature",
+     "url": "https://planetarynames.wr.usgs.gov/SearchResults?Target=Ryugu"
+    }
+   ],
+   "radius_m": 80.0,
+   "placed": true,
+   "extent_note": "IAU表の直径（0.16 km）の半分を半径として表示。",
+   "shape": "cap",
+   "evidence": {
+    "elevation_m": 29.2,
+    "n_points_near_centre": 2483,
+    "centre_residual_m": 52.5,
+    "rim_residual_m": 6.7,
+    "rim_minus_centre_m": -45.7
+   },
+   "evidence_ja": "点群で測ると、中心が周囲より約46m高く、岩塊の突起と整合する。"
+  }
+ ]
+}

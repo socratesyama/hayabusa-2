@@ -10,7 +10,8 @@
     "dev": "vite",
     "build": "npm run check-assets && tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:features": "node ./tests/features_core.test.mjs"
   },
   "dependencies": {
     "three": "^0.160.1"

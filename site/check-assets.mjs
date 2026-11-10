@@ -7,6 +7,7 @@ const required = [
   'public/data/sun_table.json',
   'public/data/gravity_763.json',
   'public/data/gravity_340.json',
+  'public/data/features.json',
   'public/assets/generated/ryugu_lod3_5k.obj',
   'public/assets/generated/ryugu_heightmap_2048.png',
 ];

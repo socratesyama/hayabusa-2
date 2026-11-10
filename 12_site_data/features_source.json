@@ -1,0 +1,419 @@
+{
+  "description": "走行中の視界に重ねる「地名・イベント注釈」の手書きマスタ（由来・出来事・表示範囲の根拠）。座標・直径はここに重複して書かず、poi_master.json（poi_id）と06_timeline_text/ryugu_surface_points.json（iau_name）から tools/precompute/build_features.py が引く。点群による検証値も同スクリプトが付与し 12_site_data/features.json を生成する。",
+  "naming_rule_ja": "リュウグウの地形名は、昔話・童話・伝説に登場する人物や場所から選ばれている（IAU承認、USGS Planetary Nomenclature）。着陸地点の愛称（たまてばこ等）はIAU非公式。",
+  "kind_labels": {
+    "crater": "クレーター",
+    "dorsum": "尾根（ドールスム）",
+    "fossa": "溝（フォッサ）",
+    "saxum": "岩塊（サクスム）",
+    "touchdown": "タッチダウン地点",
+    "impact": "人工クレーター",
+    "lander": "着陸機の地点",
+    "marker": "ターゲットマーカ",
+    "rover": "ローバの着陸域",
+    "candidate": "候補地点・目標領域"
+  },
+  "features": [
+    {
+      "id": "td1",
+      "kind": "touchdown",
+      "poi_id": "td1",
+      "short_ja": "TD1 たまてばこ",
+      "priority": 3,
+      "radius_m": 3,
+      "extent_note": "表示範囲は半径3m。公表値「直径6mの領域L08-E1に着地（半径3m以内）」に基づく。",
+      "origin_ja": "愛称「たまてばこ（玉手箱）」は、浦島太郎が乙姫から別れの贈り物として受け取った玉手箱にちなむ（IAU非公式）。",
+      "summary_ja": "はやぶさ2が初めてリュウグウの地表に触れた場所。直径6mの狙いの領域L08-E1の中に降りた。",
+      "event_ids": [
+        "td1"
+      ],
+      "events": [
+        {
+          "utc": "2019-02-21T22:29:10Z",
+          "precision": "second",
+          "title": "第1回タッチダウン（2019-02-22 07:29:10 JST）",
+          "text": "半径3m以内に着地（誘導制御精度は1m）。弾丸を発射して表面物質を採取し、試料チャンバーAに格納した。CAM-Hが舞い上がる表面粒子を撮影し、「リュウグウの花吹雪」と呼ばれた。"
+        },
+        {
+          "utc": "2019-03-07T00:00:00Z",
+          "precision": "date",
+          "title": "TD1後の観測",
+          "text": "採取跡を確認し、次のSCI（人工クレーター実験）の目標地点S01の検討を行った。"
+        },
+        {
+          "utc": "2020-12-06T00:00:00Z",
+          "precision": "date",
+          "title": "試料が地球へ",
+          "text": "チャンバーAの試料は、2020年12月6日に回収された帰還カプセルで地球に届いた。"
+        }
+      ]
+    },
+    {
+      "id": "td2",
+      "kind": "touchdown",
+      "poi_id": "td2",
+      "short_ja": "TD2 うちでのこづち",
+      "priority": 3,
+      "radius_m": 3,
+      "extent_note": "表示範囲は半径3mの目安（公式の領域径は本データセット未収録）。実際の着陸精度は目標領域中心から60cm。",
+      "origin_ja": "愛称「うちでのこづち（打出の小槌）」は、昔話に登場する、振ると望みの物が出てくる宝の小槌にちなむ（IAU非公式）。",
+      "summary_ja": "人工クレーター「おむすびころりん」の北約20mに降りた、2回目のタッチダウン地点。",
+      "event_ids": [
+        "td2"
+      ],
+      "events": [
+        {
+          "utc": "2019-07-11T01:06:18Z",
+          "precision": "second",
+          "title": "第2回タッチダウン（2019-07-11 10:06:18 JST）",
+          "text": "人工クレーターの北約20m（クレーター半径の約3倍）に着陸し、地下の物質を採取して試料チャンバーCに格納した。採取物の多くは地下1.5mより浅い層に由来すると推定されている。"
+        }
+      ]
+    },
+    {
+      "id": "sci_crater",
+      "kind": "impact",
+      "poi_id": "sci_crater",
+      "short_ja": "人工クレーター おむすびころりん",
+      "priority": 3,
+      "radius_m": 7.25,
+      "extent_note": "表示範囲は半径7.25m（直径14.5m）。縁間の直径は17.6m、深さ1.7m（Arakawa et al. 2020）。",
+      "origin_ja": "愛称「おむすびころりん」は、転がったおむすびが穴に落ちる昔話にちなむ（IAU非公式）。目標領域の名前はS01。",
+      "summary_ja": "小型衝突装置SCIの銅弾で作られた、世界初の小惑星の人工クレーター。大きい岩の近くに着弾したため半円形になった。",
+      "event_ids": [
+        "sci_impact",
+        "sci_crater_found"
+      ],
+      "events": [
+        {
+          "utc": "2019-04-05T02:36:00Z",
+          "precision": "minute",
+          "title": "SCI衝突実験（2019-04-05 11:36 JST）",
+          "text": "2kgの銅弾を約2km/sで衝突させ、直径14.5mのクレーターを作った。小惑星の地下物質を露出させる世界初の実験。衝突点は目標から数十m以内だった。"
+        },
+        {
+          "utc": "2019-04-25T00:00:00Z",
+          "precision": "date",
+          "title": "人工クレーターの確認",
+          "text": "高度1.7kmからの観測でクレーターを確認した。"
+        },
+        {
+          "utc": "2019-07-11T01:06:18Z",
+          "precision": "second",
+          "title": "TD2 — クレーターの北約20mに着陸",
+          "text": "掘り出された地下物質の近くで、2回目のタッチダウンが行われた。"
+        }
+      ]
+    },
+    {
+      "id": "mascot_landing",
+      "kind": "lander",
+      "poi_id": "mascot_landing",
+      "short_ja": "MASCOT着陸点",
+      "priority": 3,
+      "radius_m": 3,
+      "extent_note": "最終静止位置（22.294°S, 317.161°E）。表示範囲は半径3mの目安。",
+      "origin_ja": "愛称「アリスの不思議の国（Alice's Wonderland）」はIAU非公式。",
+      "summary_ja": "DLR/CNESの小型着陸機MASCOTが、バウンドを重ねた末に止まり、約17時間の観測をした場所。",
+      "event_ids": [
+        "mascot_landing"
+      ],
+      "events": [
+        {
+          "utc": "2018-10-03T01:57:20Z",
+          "precision": "second",
+          "title": "MASCOT分離（2018-10-03 01:57 UTC）",
+          "text": "分離後に自由落下し、複数回バウンドして最初の静止点SP1（22.2065°S, 317.2991°E）を経て最終位置に止まった。MASCAMカメラ・MARA熱放射計・磁力計・MicrOmegaで地表を調べた。"
+        }
+      ]
+    },
+    {
+      "id": "mascot_cp1",
+      "kind": "lander",
+      "short_ja": "MASCOT 最初の接触点",
+      "priority": 1,
+      "name_ja": "MASCOT 最初の接触点 CP1",
+      "name_en": "MASCOT first contact point (CP1)",
+      "lat": -22.595,
+      "lon": 314.914,
+      "coord_source_poi": "mascot_landing",
+      "coord_source_text": "-22.595S, 314.914E",
+      "radius_m": 3,
+      "extent_note": "表示範囲は半径3mの目安。",
+      "summary_ja": "分離したMASCOTが、リュウグウの地表に初めて触れた地点。ここからバウンドが始まった。",
+      "event_ids": [
+        "mascot_landing"
+      ],
+      "events": [
+        {
+          "utc": "2018-10-03T01:57:20Z",
+          "precision": "second",
+          "title": "MASCOT分離後の最初の接触",
+          "text": "Scholten et al. 2019 による最初の接触点CP1。最終静止位置（22.294°S, 317.161°E）は、ここから北東へ十数mの場所。"
+        }
+      ]
+    },
+    {
+      "id": "tm_b",
+      "kind": "marker",
+      "poi_id": "tm_b",
+      "short_ja": "TM-B 目印",
+      "priority": 1,
+      "radius_m": 10,
+      "extent_note": "表示範囲は半径10m。投下目標L08-B（半径10mの円）に基づく。実際の着地点は目標の南東方向にわずかに逸れた。",
+      "summary_ja": "TD1本番の目印にした反射マーカ。表面には約55万人分のメッセージが刻まれている。",
+      "event_ids": [
+        "tm_b_deploy"
+      ],
+      "events": [
+        {
+          "utc": "2018-10-24T00:00:00Z",
+          "precision": "date",
+          "title": "ターゲットマーカTM-B投下",
+          "text": "TD1-R3運用（2018-10-23〜25）で高度約13mから投下された。TD1本番では、これを目印にピンポイント誘導が行われた。"
+        }
+      ]
+    },
+    {
+      "id": "tm_a",
+      "kind": "marker",
+      "poi_id": "tm_a",
+      "short_ja": "TM-A 目印",
+      "priority": 1,
+      "radius_m": 3,
+      "extent_note": "表示範囲は半径3mの目安。TD2候補地点C01-Cの中心から3m以内に着地した。",
+      "summary_ja": "TD2本番の目印にした2つ目のターゲットマーカ。",
+      "event_ids": [
+        "td2"
+      ],
+      "events": [
+        {
+          "utc": "2019-05-30T02:18:00Z",
+          "precision": "minute",
+          "title": "ターゲットマーカTM-A分離（2019-05-30 11:18 JST）",
+          "text": "PPTD-TM1A運用（2019-05-28〜30）で投下。TD2本番ではTM-Aを目印に、人工クレーター北のC01-Cbへ60cmの精度で着陸した。"
+        }
+      ]
+    },
+    {
+      "id": "minerva_ii1",
+      "kind": "rover",
+      "poi_id": "minerva_ii1",
+      "short_ja": "MINERVA-II1 トリトニス",
+      "priority": 1,
+      "radius_m": 0,
+      "extent_note": "精密な公開座標がないため地図上には置かない。",
+      "origin_ja": "愛称「トリトニス（Tritonis）」はIAU非公式（当初「トリニトス」と発表されたが2019年2月に訂正）。",
+      "summary_ja": "ローバ2機（イブー・アウル）が降りた北半球の候補領域N6。世界初の小惑星表面でのローバの自律移動に成功した。",
+      "event_ids": [
+        "minerva_ii1_landing"
+      ],
+      "events": [
+        {
+          "utc": "2018-09-21T04:06:00Z",
+          "precision": "minute",
+          "title": "MINERVA-II1分離（2018-09-21 13:06 JST、高度55m）",
+          "text": "リュウグウ北半球の候補領域N6内に着陸し、ホッピングによる移動と撮影に成功した。"
+        }
+      ]
+    },
+    {
+      "id": "candidate_l08",
+      "kind": "candidate",
+      "poi_id": "candidate_l08",
+      "short_ja": "TD1候補 L08",
+      "priority": 1,
+      "radius_m": 0,
+      "extent_note": "領域の座標を本データセットは持たないため地図上には置かない。",
+      "summary_ja": "TD1の第一候補に選ばれた低緯度の領域。岩の被覆率が低く、安全性と科学価値を両立するとして決まった。",
+      "event_ids": [],
+      "events": [
+        {
+          "utc": "2018-08-17T00:00:00Z",
+          "precision": "date",
+          "title": "着陸地点選定（LSS）会議",
+          "text": "低緯度（L）13か所・中緯度（M）4か所の候補から、L08が第一候補（バックアップはL07、M04）に決まった。"
+        }
+      ]
+    },
+    {
+      "id": "candidate_s01",
+      "kind": "candidate",
+      "poi_id": "candidate_s01",
+      "short_ja": "SCI目標 S01",
+      "priority": 1,
+      "radius_m": 0,
+      "extent_note": "領域の座標を本データセットは持たないため地図上には置かない（実際の衝突点は人工クレーターの項を参照）。",
+      "summary_ja": "SCIの衝突目標領域。赤道の尾根の上で、L08から経度でおよそ90度東にあった。",
+      "event_ids": [
+        "sci_impact"
+      ],
+      "events": [
+        {
+          "utc": "2019-03-07T00:00:00Z",
+          "precision": "date",
+          "title": "S01の詳細検討",
+          "text": "直径約400mの領域のどこかに当てる計画。実際の衝突点は目標から数十m以内だった。"
+        }
+      ]
+    },
+    {
+      "id": "cendrillon",
+      "kind": "crater",
+      "iau_name": "Cendrillon",
+      "name_ja": "センドリヨン",
+      "short_ja": "センドリヨン",
+      "priority": 2,
+      "origin_ja": "ペローの童話『シンデレラ（Cendrillon）』の主人公（フランス）。",
+      "summary_ja": "北半球の中緯度にあるクレーター。",
+      "event_ids": [],
+      "events": []
+    },
+    {
+      "id": "kintaro",
+      "kind": "crater",
+      "iau_name": "Kintaro",
+      "name_ja": "キンタロウ",
+      "short_ja": "キンタロウ",
+      "priority": 2,
+      "origin_ja": "日本の昔話の金太郎。足柄山で育ち、怪力を持つ「金色の童子」。",
+      "summary_ja": "赤道の尾根の上、経度およそ158度にあるクレーター。",
+      "event_ids": [],
+      "events": []
+    },
+    {
+      "id": "urashima",
+      "kind": "crater",
+      "iau_name": "Urashima",
+      "name_ja": "ウラシマ",
+      "short_ja": "ウラシマ",
+      "priority": 2,
+      "origin_ja": "浦島太郎。亀を助けて竜宮城（リュウグウ）へ渡った漁師。",
+      "summary_ja": "リュウグウ最大級のクレーターで、表面の古さ（クレーターの少なさ）を考えるうえで貴重な年代の手がかり（Sugita et al. 2019）。",
+      "event_ids": [],
+      "events": []
+    },
+    {
+      "id": "brabo",
+      "kind": "crater",
+      "iau_name": "Brabo",
+      "name_ja": "ブラボ",
+      "short_ja": "ブラボ",
+      "priority": 2,
+      "origin_ja": "オランダの童話に登場する、巨人を倒した勇敢な若者。",
+      "summary_ja": "赤道付近、経度およそ230度のクレーター。TD1地点（経度206度）の東にある。",
+      "event_ids": [],
+      "events": []
+    },
+    {
+      "id": "kolobok",
+      "kind": "crater",
+      "iau_name": "Kolobok",
+      "name_ja": "コロボク",
+      "short_ja": "コロボク",
+      "priority": 2,
+      "origin_ja": "ロシアの童話の主人公。家を飛び出して転がり逃げた丸いパン。",
+      "summary_ja": "赤道のすぐ南、経度およそ333度のクレーター。",
+      "event_ids": [],
+      "events": []
+    },
+    {
+      "id": "momotaro",
+      "kind": "crater",
+      "iau_name": "Momotaro",
+      "name_ja": "モモタロウ",
+      "short_ja": "モモタロウ",
+      "priority": 2,
+      "origin_ja": "桃太郎。桃から生まれ、遠くの島の鬼退治に旅をした。",
+      "summary_ja": "南半球、経度およそ52度のクレーター。すぐ南にキビダンゴがある。",
+      "event_ids": [],
+      "events": []
+    },
+    {
+      "id": "kibidango",
+      "kind": "crater",
+      "iau_name": "Kibidango",
+      "name_ja": "キビダンゴ",
+      "short_ja": "キビダンゴ",
+      "priority": 2,
+      "origin_ja": "きびだんご。桃太郎が旅に持った、長く柔らかいままの丸いお菓子。",
+      "summary_ja": "南半球の中緯度にある小さなクレーター。名前のとおり桃太郎の近くにある。",
+      "event_ids": [],
+      "events": []
+    },
+    {
+      "id": "ryujin_dorsum",
+      "kind": "dorsum",
+      "iau_name": "Ryujin Dorsum",
+      "poi_id": "ryujin_dorsum",
+      "name_ja": "リュウジン・ドールスム",
+      "short_ja": "リュウジン・ドールスム",
+      "priority": 2,
+      "origin_ja": "竜神。海の支配者で乙姫の父。浦島太郎が客となった海底の竜宮城の主。",
+      "summary_ja": "赤道を取り囲む尾根（全長約3.2km）。リュウグウの赤道半径は約502m、極半径は約438mと、そろばんの珠のように扁平。高速自転による変形を考えるうえで最も重要な地形。",
+      "event_ids": [],
+      "events": []
+    },
+    {
+      "id": "tokoyo_fossa",
+      "kind": "fossa",
+      "iau_name": "Tokoyo Fossa",
+      "name_ja": "トコヨ・フォッサ",
+      "short_ja": "トコヨ・フォッサ",
+      "priority": 1,
+      "origin_ja": "常世。日本神話の不死・不老の国で、乙姫の住む海の彼方の世界。",
+      "summary_ja": "南半球の高緯度にある細長い溝。",
+      "event_ids": [],
+      "events": []
+    },
+    {
+      "id": "horai_fossa",
+      "kind": "fossa",
+      "iau_name": "Horai Fossa",
+      "name_ja": "ホウライ・フォッサ",
+      "short_ja": "ホウライ・フォッサ",
+      "priority": 1,
+      "origin_ja": "蓬莱。仙人の楽土とされる伝説上の山。",
+      "summary_ja": "北半球の中緯度にある細長い溝。",
+      "event_ids": [],
+      "events": []
+    },
+    {
+      "id": "ejima_saxum",
+      "kind": "saxum",
+      "iau_name": "Ejima Saxum",
+      "name_ja": "エジマ・サクスム",
+      "short_ja": "エジマ・サクスム",
+      "priority": 1,
+      "origin_ja": "江島。浦島太郎が亀を助け、竜宮城への旅を始めた海岸。",
+      "summary_ja": "南半球の中緯度にある岩塊。",
+      "event_ids": [],
+      "events": []
+    },
+    {
+      "id": "catafo_saxum",
+      "kind": "saxum",
+      "iau_name": "Catafo Saxum",
+      "name_ja": "カタフォ・サクスム",
+      "short_ja": "カタフォ・サクスム",
+      "priority": 1,
+      "origin_ja": "米国ケイジャンの民話に登場する、粉で森に目印を付けた賢い少年。",
+      "summary_ja": "経度0度の子午線上、赤道のやや南にある岩塊。",
+      "event_ids": [],
+      "events": []
+    },
+    {
+      "id": "otohime_saxum",
+      "kind": "saxum",
+      "iau_name": "Otohime Saxum",
+      "poi_id": "otohime_saxum",
+      "name_ja": "オトヒメ・サクスム",
+      "short_ja": "オトヒメ・サクスム",
+      "priority": 1,
+      "origin_ja": "乙姫。浦島太郎を海底の竜宮城に迎え、別れの贈り物（玉手箱）を与えた姫。",
+      "summary_ja": "リュウグウ最大級の単一の岩（ボルダー）。巨大な岩の起源（親天体の破片か、リュウグウ自身の再集積か）は科学的な検討課題（Michikami et al. 2019）。",
+      "event_ids": [],
+      "events": []
+    }
+  ]
+}

@@ -5,12 +5,16 @@ import { url, HeightMap } from './data';
 import { V3, v3, bodyToThree, threeToBody, bodyToGeo, geoToBody, DEG } from './geo';
 import { regolithOffset } from './regolith';
 
+/** シェーダ内の注釈スロット数（frag の FMAX と一致させる） */
+export const FEAT_MAX = 32;
 const TILE_DIR = 'assets/generated/tiles/01_ONC_v-band_Basemap1';
 // Terrain shader: NO ambient light; N.L with a mild Oren-Nayar-like retro term (strong backscatter), no specular (§4.6).
 const vert = `varying vec3 vP; varying vec3 vN; void main(){ vP=position; vN=normal; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
 const frag = `
 precision highp float; varying vec3 vP; varying vec3 vN;
 uniform sampler2D map; uniform sampler2D nmap; uniform sampler2D dmap; uniform vec3 sunDir; uniform vec3 camPos; uniform float shadowOn; uniform float useNmap; uniform float useD; uniform float dLevels;
+#define FMAX 32
+uniform int fN; uniform vec4 fA[FMAX]; uniform vec4 fB[FMAX]; uniform vec4 fC[FMAX];
 // --- MASCAM-derived cm-scale detail (§4.6 stage 4, D): 7-level contrast-preserving atlas ---
 // Each level keeps the base grain std; the shader picks the level by screen-space texel density
 // (fwidth of the surface uv), so the grain reads as unresolved regolith speckle at any distance.
@@ -110,6 +114,26 @@ void main(){
     if(haveD > 0.5) alb *= mix(1.0, 0.86 + 0.28 * dTexG(duvD / 16.0 + vec2(0.11, 0.53), min(dLvl, dLevels - 1.0)), 0.75 * (1.0 - smoothstep(60.0, 220.0, dist)));  // MASCAM mottling ~8 m scale (bridges to the 22 m procedural mottling)
   }
   vec3 col = alb * vec3(1.0,0.94,0.9) * on * 1.35;   // slight reddish dark grey (Cb-type)
+  // --- 地名・イベント注釈（features.json）: 本体固定系の角半径(cap)／赤道を挟む緯度帯(band)に色を重ねる。
+  //     塗りは陰影(lumi)を残して色味だけ変え、縁の線は発光させて影の側でも読めるようにする。線の太さは画面上でほぼ一定。
+  {
+    vec3 dB = normalize(b);
+    float lumi = dot(col, vec3(0.2126, 0.7152, 0.0722));
+    for(int i=0;i<FMAX;i++){
+      if(i>=fN) break;
+      vec4 A=fA[i]; vec4 B=fB[i]; vec4 C=fC[i];
+      if(B.a<0.003) continue;
+      float R0=C.x; float d;
+      if(C.z>0.5){ d=abs(asin(clamp(dB.z,-1.0,1.0))); }
+      else { float cc=dot(dB,A.xyz); if(cc<cos(min(R0*1.6+0.01,3.0))) continue; d=acos(clamp(cc,-1.0,1.0)); }
+      float rw=clamp(dist*0.0035, 0.12, max(0.12, 0.10*R0*448.8))/448.8;   // 線の半幅（rad）
+      float inside=1.0-smoothstep(R0-rw*0.5, R0+rw*0.5, d);
+      float ring=1.0-smoothstep(rw*0.5, rw, abs(d-R0));
+      vec3 hue=B.rgb;
+      col=mix(col, hue*(0.18+1.25*lumi)+hue*0.02, inside*0.42*B.a);
+      col=mix(col, hue*1.15, ring*0.92*B.a);
+    }
+  }
   gl_FragColor = vec4(pow(col, vec3(1.0/2.2)), 1.0);
 }`;
 
@@ -130,7 +154,8 @@ export class Terrain {
       g.deleteAttribute('normal'); g.deleteAttribute('uv');   // uvはシェーダ内でワールド座標から作るので不要
       const mg = mergeVertices(g, 1e-3); mg.computeVertexNormals(); mg.computeBoundingSphere(); return mg; };   // 頂点を統合して法線を滑らかにする（面ごとの法線だと三角形が見える）
     this.tex = new THREE.CanvasTexture(await this.composite(1)); this.tex.colorSpace = THREE.SRGBColorSpace; this.tex.anisotropy = 4;
-    this.mat = new THREE.ShaderMaterial({ vertexShader: vert, fragmentShader: frag, uniforms: { map: { value: this.tex }, nmap: { value: null }, dmap: { value: null }, sunDir: { value: new THREE.Vector3(1, 0, 0) }, camPos: { value: new THREE.Vector3() }, shadowOn: { value: 0 }, useNmap: { value: 0 }, useD: { value: 0 }, dLevels: { value: 7 } } });
+    this.mat = new THREE.ShaderMaterial({ vertexShader: vert, fragmentShader: frag, uniforms: { map: { value: this.tex }, nmap: { value: null }, dmap: { value: null }, sunDir: { value: new THREE.Vector3(1, 0, 0) }, camPos: { value: new THREE.Vector3() }, shadowOn: { value: 0 }, useNmap: { value: 0 }, useD: { value: 0 }, dLevels: { value: 7 },
+      fN: { value: 0 }, fA: { value: Array.from({ length: FEAT_MAX }, () => new THREE.Vector4()) }, fB: { value: Array.from({ length: FEAT_MAX }, () => new THREE.Vector4()) }, fC: { value: Array.from({ length: FEAT_MAX }, () => new THREE.Vector4()) } } });
     this.initPatch();   // after mat: the patch clones it (with polygonOffset) and shares its textures
     // lod3 immediately, then 49k
     const g0 = toThree(await parse('assets/generated/ryugu_lod3_5k.obj')); this.mesh = new THREE.Mesh(g0, this.mat); this.group.add(this.mesh);
@@ -164,6 +189,18 @@ export class Terrain {
     const t = bodyToThree(dirBody); const d = new THREE.Vector3(t[0], t[1], t[2]);
     this.mat.uniforms.sunDir.value.copy(d); this.mat.uniforms.camPos.value.copy(cam);
     if (this.patchMat) { this.patchMat.uniforms.sunDir.value.copy(d); this.patchMat.uniforms.camPos.value.copy(cam); }
+  }
+  /** 地名・イベント注釈の色付け。全球メッシュと近傍パッチの両方に同じ内容を設定する。 */
+  setFeatures(items: { dir: V3; angR: number; band: boolean; rgb: [number, number, number]; alpha: number }[]) {
+    const n = Math.min(FEAT_MAX, items.length);
+    for (const m of [this.mat, this.patchMat]) {
+      if (!m) continue; const u = m.uniforms;
+      u.fN.value = n;
+      for (let i = 0; i < n; i++) { const it = items[i];
+        u.fA.value[i].set(it.dir[0], it.dir[1], it.dir[2], Math.cos(it.angR));
+        u.fB.value[i].set(it.rgb[0], it.rgb[1], it.rgb[2], it.alpha);
+        u.fC.value[i].set(it.angR, 0, it.band ? 1 : 0, 0); }
+    }
   }
   // ---------------- near-field displacement patch (§4.6 stage 2, E演出) ----------------
   /** 30-50 cm fBm relief on a local grid around the player; deterministic; collision-matched via dispAt() */
@@ -225,6 +262,13 @@ export class Terrain {
     if (!this.collision) return null; const d = bodyToThree(dirBody);
     this.ray.set(new THREE.Vector3(d[0] * (near + 60), d[1] * (near + 60), d[2] * (near + 60)), new THREE.Vector3(-d[0], -d[1], -d[2]));
     (this.ray as any).firstHitOnly = true; const h = this.ray.intersectObject(this.collision, false); return h.length ? near + 60 - h[0].distance : null;
+  }
+  /** 画面の点（NDC）が指す地面の方向。衝突メッシュとの交点を単位ベクトル(本体固定系)と距離(m)で返す。タップで地名を調べるために使う。 */
+  pickDir(camera: THREE.Camera, ndc: THREE.Vector2): { dir: V3; dist: number } | null {
+    if (!this.collision) return null;
+    this.ray.setFromCamera(ndc, camera); (this.ray as any).firstHitOnly = true;
+    const h = this.ray.intersectObject(this.collision, false); if (!h.length) return null;
+    return { dir: v3.norm(threeToBody([h[0].point.x, h[0].point.y, h[0].point.z])), dist: h[0].distance };
   }
   /** ground radius = max of (collision mesh, heightmap) — rocks are added by caller (§4.2 order) */
   groundRadius(dirBody: V3): number {

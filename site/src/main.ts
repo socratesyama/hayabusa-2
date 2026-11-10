@@ -20,6 +20,8 @@ import { TimeSlider } from './timeslider';
 import { buildEvents, EventUi, nextEvent, fmtCountdown, REvent, FOLDER_NOTE, SCI_MS } from './events';
 import { SpaceButton } from './spacebtn';
 import { MiniMap } from './minimap';
+import { Annotator, featureCard, placesListHtml } from './annot';
+import { prepare, FeatureFile, PFeature, regionsAt } from './features_core';
 
 const $ = (id: string) => document.getElementById(id)!;
 const canvas = $('gl') as HTMLCanvasElement;
@@ -45,6 +47,7 @@ let earthDot!: THREE.Mesh; let earthHalo!: THREE.Mesh;
 let craterDir: V3 = [0, 0, 1]; let craterSnap: number | null = null;
 let nearHits: ReturnType<typeof nearby> = []; let mascotImg: HTMLImageElement | null = null; let mascotImgId = '';
 let events: REvent[] = []; let eventUi!: EventUi; let slider!: TimeSlider; let minimap!: MiniMap;
+let annot: Annotator | null = null; let annotOn = true; let lastInside = '';   // 地名・イベント注釈（視界内ラベル＋地形の色付け）
 let bgK = 1; let skyWhite = 1;            // P1-4: 空の白さ 0..1（1=白い空/歩行の昼, 0=星空）1.5秒で線形遷移
 let compress = 1;            // P1-4: 弾道飛行の無操作時間圧縮（演出E）
 
@@ -114,6 +117,13 @@ async function boot() {
     openEventFor: (poiId) => { const e = events.find(x => x.poiIds.includes(poiId)); if (e) eventUi.detail(e.id); else { const p = world.pois.find(x => x.id === poiId); if (p) openPoi(p as Poi); } },
     openPoi: (poiId) => { const p = world.pois.find(x => x.id === poiId); if (p) openPoi(p as Poi); },
   }, { lat: () => bodyToGeo(P.dir).lat, lon: () => bodyToGeo(P.dir).lon, fwd: () => P.fwd, sunDir: () => sunNow().dir, tex: () => (terrain.mat?.uniforms?.map?.value as THREE.Texture) ?? undefined, bg: () => bgColor });
+  // 地名・イベント注釈: features.json（点群で位置を検証済み）。無くてもサイトは動く。
+  try {
+    const ff = await getJSON<FeatureFile>('data/features.json');
+    annot = new Annotator(ff.features.map(prepare), { radiusAt: d => { const g = bodyToGeo(d); return hm.radius(g.lat, g.lon); }, open: id => openFeature(id) });
+    try { annotOn = localStorage.getItem('ryugu_annot') !== '0'; } catch { /* ignore */ }
+    $('b-map').classList.toggle('active', annotOn); $('b-map').setAttribute('aria-pressed', String(annotOn));
+  } catch (e) { console.warn('features', e); }
   ready = true; $('intro').querySelectorAll('.line').forEach(() => 0);
 }
 
@@ -427,6 +437,7 @@ function frame(now: number) {
   stepDust(dt); stepJet(dt);
   if (layer === 'td1') { if (scInfo) camera.lookAt(tr(scInfo.p)); else { camera.lookAt(camera.position.clone().add(tr(v3.norm(P.dir)).multiplyScalar(10))); } }
   td1Burst(); td1Caption();
+  featureFrame(eyeB!);
   nearHits = layer === 'walk' ? nearby(world, gp.lat, gp.lon, clock.ms) : [];
   hudUpdate(S, gp, upV, eB); hints(); renderer.render(scene, camera);
   updateLocator(); minimap.render(dt);   // P2-2: メイン描画後に追描画
@@ -509,7 +520,8 @@ function hudUpdate(S: { et: number; dir: V3; au: number }, gp: { lat: number; lo
   hud.set(0, l0);
   // 標高=位置の動径距離−平均半径448.8m。歩行は地面、飛行は機体中心の位置を使う（局所地表からの高度ではない）。
   const posR = layer === 'walk' ? P.stand : (orbit ? v3.len(bodyOf(orbit)) : hm.radius(gp.lat, gp.lon));
-  const elev = posR - R_MEAN; const ll = `${fmtLat(gp.lat)} ${fmtLon(gp.lon)}  ${T.elev} ${Math.round(elev)}m`; hud.set(1, ll);
+  const elev = posR - R_MEAN; const inF = annot && annotOn && layer === 'walk' ? annot.whereAmI(v3.norm(P.dir))[0] : undefined;
+  const ll = `${fmtLat(gp.lat)} ${fmtLon(gp.lon)}  ${T.elev} ${Math.round(elev)}m` + (inF ? `  いま「${inF.short_ja}」の中` : ''); hud.set(1, ll);
   let l3: string; if ((layer === 'ballistic' || layer === 'orbit') && orbit) { const a = altitude(orbit, groundAt); const spd = v3.len(velBodyOf(orbit));
     const elS = Math.max(0, (clock.ms - flightStartMs) / 1000); const elTxt = elS >= 3600 ? `${Math.floor(elS / 3600)}時間${Math.round((elS % 3600) / 60)}分` : elS >= 60 ? `${Math.round(elS / 60)}分` : `${Math.round(elS)}秒`;
     l3 = `${layer === 'orbit' ? T.esc_orbit : T.ballistic} ${a > 1000 ? (a / 1000).toFixed(1) + 'km' : a.toFixed(0) + 'm'} 速度（リュウグウ固定系） ${(spd * 100).toFixed(1)}cm/s 飛行${elTxt}（${T.pm}${mark('D')}）`;
@@ -534,6 +546,9 @@ function hints() {
   // P1-5: 視点リプレイ地点の近くでは発見性を補強
   if (layer === 'walk' && (nearHits.some(h => h.id === 'td1') || nearHits.some(h => h.id === 'mascot_landing')) && performance.now() - (hintShown['replay'] ?? 0) > 45000) {
     hintShown['replay'] = performance.now(); hint.show('E: この場所の視点を体験（TD1降下 / MASCOT リプレイ）'); lastInput = performance.now() - 15000; return;
+  }
+  if (annot && annotOn && layer === 'walk' && !used.has('annot') && (hintShown['annot'] ?? 0) < 2 && (annot.visibleIds.length || annot.guideIds.length) && performance.now() - lastInput > 12000) {
+    hintShown['annot'] = (hintShown['annot'] ?? 0) + 1; hint.show('視界の名前をタップ/クリックで、由来とそこで起きたことが開きます（地面を直接タップでも可）。N: 表示切替 / L: 地名リスト'); lastInput = performance.now() - 8000; return;
   }
   if (performance.now() - lastInput < 25000 || layer !== 'walk') { return; }
   for (const [k, i] of HINT_ORDER) { if (used.has(k) || (hintShown[k] ?? 0) >= 3) continue; const text = (k === 'inspect' && !nearHits.length) ? null : t().idle[i]; if (!text) continue;
@@ -564,6 +579,59 @@ function openPoi(p: Poi) {
   document.getElementById('mgo')?.addEventListener('click', e => { e.preventDefault(); enterMascot(); }); document.getElementById('td1go')?.addEventListener('click', e => { e.preventDefault(); enterTd1(); });
   card.node.querySelectorAll('a.smp').forEach(a => a.addEventListener('click', e => { e.preventDefault(); library.showSample({ viewer, card, lat: () => bodyToGeo(P.dir).lat, localHour: () => libLocalHour(), subsolarLat: () => libSubsolarLat() }, (a as HTMLElement).dataset.id!); }));
 }
+// ---------------- 地名・イベント注釈（走行中の視界に地図を投影）
+/** 毎フレーム: 地形の色付け（シェーダ）と視界内ラベルを更新。ラベルは歩行・飛行のみ、色付けはMASCOT視点以外。 */
+function featureFrame(eyeB: V3) {
+  if (!annot) return;
+  terrain.setFeatures(annotOn && layer !== 'mascot' ? annot.shaderItems(clock.ms) : []);
+  const labels = annotOn && (layer === 'walk' || layer === 'ballistic' || layer === 'orbit');
+  annot.update(camera, clock.ms, labels, eyeB, layer === 'walk');
+  if (labels && layer === 'walk') {   // 地物の中に入った／出たを支援技術にも伝える
+    const ins = annot.whereAmI(v3.norm(P.dir)); const key = ins.map(p => p.id).join(',');
+    if (key !== lastInside) { lastInside = key; if (ins[0]) hud.announce(`${ins[0].name_ja} の中に入りました`); }
+  }
+}
+function openFeature(id: string) {
+  if (!annot) return; const p = annot.find(id); if (!p) return;
+  session.inspected.add('feat_' + id); used.add('inspect'); used.add('annot');
+  const { title, html } = featureCard(p, { nowMs: clock.ms, mode, evTitle: eid => events.find(e => e.id === eid)?.title, canTravel: true });
+  card.show(title, html, 'poi', p.sources[0]?.label); card.node.classList.add('lib');
+  annot.select(id);   // 視界内なら色付けの縁を強調（約9秒）
+  card.node.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => {
+    const el = b as HTMLElement; if (el.dataset.act === 'go') goToFeature(p); else if (el.dataset.act === 'ev' && el.dataset.ev) eventUi.detail(el.dataset.ev);
+  }));
+}
+/** 地物の手前（南側）に立って、その方を向く（演出E）。時刻は動かさない。 */
+function goToFeature(p: PFeature) {
+  card.hide(); viewer.close(); minimap?.hideModal(); driveSpeed = 0;
+  if (layer === 'ballistic' || layer === 'orbit') returnToSurface();
+  if (layer === 'mascot') exitMascot(); if (layer === 'td1') exitTd1();
+  if (!p.placed || p.lat == null) return;
+  const center: V3 = p.shape === 'band' ? geoToBody(0, 180, 1) : p.dir; const cg = bodyToGeo(center);
+  const dM = Math.max(45, p.angR * R_MEAN * 1.8);
+  const stand = geoToBody(Math.max(-85, Math.min(85, cg.lat - dM / R_MEAN / DEG)), cg.lon, 1);
+  P.dir = stand; P.stand = groundAt(P.dir); orbit = null; layer = 'walk'; P.dip = 0.2; P.pitch = 0.05;
+  P.fwd = v3.norm(v3.sub(center, v3.mul(stand, v3.dot(center, stand))));
+  annot?.select(p.id, 12000); hint.show(`${p.short_ja} の手前 ${Math.round(dM)}m（演出E）`, false, 5000); activity();
+}
+function openPlaces() {
+  if (!annot) { hint.show('地名データを読み込み中…', false, 2000); return; }
+  const here = bodyToGeo(P.dir); const ins = new Set(annot.whereAmI(v3.norm(P.dir)).map(p => p.id));
+  used.add('annot'); card.show('地名・出来事リスト', placesListHtml(annot.feats, here, ins), 'poi'); card.node.classList.add('lib');
+  card.node.querySelectorAll('[data-feat]').forEach(b => b.addEventListener('click', () => openFeature((b as HTMLElement).dataset.feat!)));
+}
+function toggleAnnot() {
+  annotOn = !annotOn; $('b-map').classList.toggle('active', annotOn); $('b-map').setAttribute('aria-pressed', String(annotOn)); try { localStorage.setItem('ryugu_annot', annotOn ? '1' : '0'); } catch { /* ignore */ }
+  hint.show(annotOn ? '地名ガイド ON — 視界に入った地形に名前と色が重なります（Nで切替・Lで一覧）' : '地名ガイド OFF（Nで戻せます）', false, 4000);
+}
+/** 地面のタップ/クリック: 指した場所が地名・地点の範囲内ならその説明を開く（遠いほど当たりを広げる） */
+function tapAt(cx: number, cy: number) {
+  if (!annot || !annotOn || !ready || card.isOpen || viewer.isOpen || minimap?.open || layer === 'mascot' || layer === 'td1') return;
+  const hit = terrain.pickDir(camera, new THREE.Vector2(cx / innerWidth * 2 - 1, -(cy / innerHeight) * 2 + 1)); if (!hit) return;
+  const list = regionsAt(annot.feats, hit.dir, Math.max(6, hit.dist * 0.01));
+  if (list.length) openFeature(list[0].id);
+}
+
 // ---------------- data archive (§4.13): G key / archive button — every dataset reachable
 function libLocalHour() { const S = sunNow(); return sun.localTime(S.et, bodyToGeo(P.dir).lon, S.dir); }
 function libSubsolarLat() { const S = sunNow(); return Math.asin(Math.max(-1, Math.min(1, S.dir[2]))) / DEG; }
@@ -707,6 +775,7 @@ addEventListener('keydown', e => {
   if (e.code === 'KeyP') { G = G === G340 ? G763 : G340; hint.show(G === G340 ? '過去モード: 自転周期 3.40h（重力表 3.40h）' : '現在: 自転周期 7.63h', false, 3000); }
   if (e.code === 'KeyR') recordNow(); if (e.code === 'KeyB') toggleSound(); if (e.code === 'KeyM') changeMode(); if (e.code === 'KeyG') openLibrary();
   if (e.code === 'KeyV') eventUi.openList();   // イベントメニュー（Vキー）
+  if (e.code === 'KeyN') toggleAnnot(); if (e.code === 'KeyL') openPlaces();   // 地名ガイド（N: 表示切替 / L: 地名・出来事リスト）
   if (e.shiftKey && e.code === 'KeyW') used.add('dash');
 });
 addEventListener('keyup', e => keys.delete(e.code)); addEventListener('blur', () => keys.clear());
@@ -726,6 +795,14 @@ canvas.addEventListener('touchstart', e => { e.preventDefault(); activity(); for
 canvas.addEventListener('touchmove', e => { e.preventDefault(); for (const tt of Array.from(e.changedTouches)) { if (tt.identifier === touchLook) { look(tt.clientX - tlx, tt.clientY - tly); tlx = tt.clientX; tly = tt.clientY; } } }, { passive: false });
 canvas.addEventListener('touchend', e => { for (const tt of Array.from(e.changedTouches)) { if (tt.identifier === touchLook) touchLook = -1; } if (!e.touches.length) { /* tap = inspect */ } });
 canvas.addEventListener('click', e => { if ((e as any).pointerType === 'touch' || matchMedia('(pointer:coarse)').matches) { if (nearHits.length || card.isOpen || viewer.isOpen) interact(); } });
+// 地面のタップ/クリックで地名を調べる（視点操作のドラッグと区別: 5〜10px未満の移動・短時間のみ）
+let mdX = 0, mdY = 0; canvas.addEventListener('mousedown', e => { mdX = e.clientX; mdY = e.clientY; });
+canvas.addEventListener('click', e => { if (Math.hypot(e.clientX - mdX, e.clientY - mdY) < 5) tapAt(e.clientX, e.clientY); });
+const tapStart = new Map<number, { x: number; y: number; t: number }>();
+canvas.addEventListener('touchstart', e => { for (const tt of Array.from(e.changedTouches)) tapStart.set(tt.identifier, { x: tt.clientX, y: tt.clientY, t: performance.now() }); }, { passive: true });
+canvas.addEventListener('touchend', e => { for (const tt of Array.from(e.changedTouches)) { const s0 = tapStart.get(tt.identifier); tapStart.delete(tt.identifier);
+  if (s0 && Math.hypot(tt.clientX - s0.x, tt.clientY - s0.y) < 10 && performance.now() - s0.t < 500) tapAt(tt.clientX, tt.clientY); } });
+canvas.addEventListener('touchcancel', e => { for (const tt of Array.from(e.changedTouches)) tapStart.delete(tt.identifier); });
 stick.addEventListener('touchstart', e => { e.preventDefault(); joy.active = true; moveJoy(e.touches[0]); }, { passive: false });
 stick.addEventListener('touchmove', e => { e.preventDefault(); moveJoy(e.touches[0]); }, { passive: false });
 stick.addEventListener('touchend', () => { joy.active = false; joy.x = joy.y = 0; knob.style.transform = ''; });
@@ -735,6 +812,7 @@ const spaceBtn = new SpaceButton($('spacebtn') as HTMLButtonElement, () => { act
 $('viewer').addEventListener('click', e => { if (e.target === $('viewer')) viewer.close(); });
 $('b-sound').addEventListener('click', toggleSound); $('b-rec').addEventListener('click', recordNow); $('b-mode').addEventListener('click', changeMode); $('b-lib').addEventListener('click', openLibrary);
 $('b-ev').addEventListener('click', () => { activity(); eventUi.openList(); });
+$('b-map').addEventListener('click', () => { activity(); toggleAnnot(); }); $('b-places').addEventListener('click', () => { activity(); openPlaces(); });
 function toggleSound() { const on = sound.toggle(); $('b-sound').classList.toggle('active', on); if (on) hint.show(t().sound_on, false, 4000); }
 function recordNow() { exportSession(session); hint.show(t().rec_saved, false, 2500); }
 /** P1-6: モード切替（起動時の選択は廃止。最終値を記憶） */
@@ -766,4 +844,4 @@ function welcome() {
 }
 function frameStart() { requestAnimationFrame(frame); }
 // debugging / acceptance hooks (read-only state)
-(window as any).__ryugu = { get layer() { return layer; }, get orbit() { return orbit; }, get pois() { return world.pois.map((p: any) => p.id); }, get near() { return nearHits.map((h: any) => h.kind + ':' + h.id); }, get sunDir() { return terrain.mat?.uniforms?.sunDir?.value?.toArray?.() ?? null; }, get camPos() { return camera.position.toArray(); }, get camDir() { const t = new THREE.Vector3(); camera.getWorldDirection(t); return t.toArray(); }, setPast(on: boolean) { G = on ? G340 : G763; }, get past() { return G === G340; }, get patch() { return { half: terrain.patchHalf, lat: terrain.pLat, lon: terrain.pLon }; }, get mat() { const pm = (terrain as any).patchMat; return { useD: terrain.mat?.uniforms?.useD?.value, dmap: terrain.mat?.uniforms?.dmap?.value?.uuid ?? null, dmapImg: terrain.mat?.uniforms?.dmap?.value?.image?.width + 'x' + terrain.mat?.uniforms?.dmap?.value?.image?.height, useDpatch: pm?.uniforms?.useD?.value, dmapPatch: pm?.uniforms?.dmap?.value?.uuid ?? null, dmapPatchSame: pm?.uniforms?.dmap?.value === terrain.mat?.uniforms?.dmap?.value, patchVisible: terrain.patch?.visible, patchVerts: terrain.patch?.geometry?.getAttribute('position')?.count }; }, setD(on: boolean) { terrain.mat.uniforms.useD.value = on ? 1 : 0; (terrain as any).patchMat.uniforms.useD.value = on ? 1 : 0; }, setPatch(v: boolean) { terrain.patch.visible = v; }, setMesh(v: boolean) { terrain.mesh.visible = v; }, get events() { return events.map(e => e.id); }, get clockMs() { return clock.ms; }, get minimap() { const mm: any = minimap; return { open: mm?.open, mesh: !!mm?.mesh, tex: !!mm?.mat?.uniforms?.map?.value, cam: mm ? mm.camera.position.toArray() : null, fc: mm?.frameCount, canvas: mm ? [renderer.domElement.clientWidth, renderer.domElement.clientHeight, renderer.domElement.width, renderer.domElement.height] : null, meshPos: mm?.mesh ? mm.mesh.position.toArray() : null, meshScale: mm?.mesh ? mm.mesh.scale.toArray() : null, bs: mm?.mesh ? (mm.mesh.geometry.boundingSphere ? [mm.mesh.geometry.boundingSphere.center.toArray(), mm.mesh.geometry.boundingSphere.radius] : null) : null, inScene: mm ? !!mm.scene : false, nKids: mm ? mm.scene.children.length : 0 }; } };
+(window as any).__ryugu = { get layer() { return layer; }, get orbit() { return orbit; }, get pois() { return world.pois.map((p: any) => p.id); }, get near() { return nearHits.map((h: any) => h.kind + ':' + h.id); }, get sunDir() { return terrain.mat?.uniforms?.sunDir?.value?.toArray?.() ?? null; }, get camPos() { return camera.position.toArray(); }, get camDir() { const t = new THREE.Vector3(); camera.getWorldDirection(t); return t.toArray(); }, setPast(on: boolean) { G = on ? G340 : G763; }, get past() { return G === G340; }, get patch() { return { half: terrain.patchHalf, lat: terrain.pLat, lon: terrain.pLon }; }, get mat() { const pm = (terrain as any).patchMat; return { useD: terrain.mat?.uniforms?.useD?.value, dmap: terrain.mat?.uniforms?.dmap?.value?.uuid ?? null, dmapImg: terrain.mat?.uniforms?.dmap?.value?.image?.width + 'x' + terrain.mat?.uniforms?.dmap?.value?.image?.height, useDpatch: pm?.uniforms?.useD?.value, dmapPatch: pm?.uniforms?.dmap?.value?.uuid ?? null, dmapPatchSame: pm?.uniforms?.dmap?.value === terrain.mat?.uniforms?.dmap?.value, patchVisible: terrain.patch?.visible, patchVerts: terrain.patch?.geometry?.getAttribute('position')?.count }; }, setD(on: boolean) { terrain.mat.uniforms.useD.value = on ? 1 : 0; (terrain as any).patchMat.uniforms.useD.value = on ? 1 : 0; }, setPatch(v: boolean) { terrain.patch.visible = v; }, setMesh(v: boolean) { terrain.mesh.visible = v; }, get events() { return events.map(e => e.id); }, get annot() { return annot ? { on: annotOn, n: annot.feats.length, visible: annot.visibleIds, guide: annot.guideIds, inside: annot.whereAmI(v3.norm(P.dir)).map(p => p.id) } : null; }, get clockMs() { return clock.ms; }, get minimap() { const mm: any = minimap; return { open: mm?.open, mesh: !!mm?.mesh, tex: !!mm?.mat?.uniforms?.map?.value, cam: mm ? mm.camera.position.toArray() : null, fc: mm?.frameCount, canvas: mm ? [renderer.domElement.clientWidth, renderer.domElement.clientHeight, renderer.domElement.width, renderer.domElement.height] : null, meshPos: mm?.mesh ? mm.mesh.position.toArray() : null, meshScale: mm?.mesh ? mm.mesh.scale.toArray() : null, bs: mm?.mesh ? (mm.mesh.geometry.boundingSphere ? [mm.mesh.geometry.boundingSphere.center.toArray(), mm.mesh.geometry.boundingSphere.radius] : null) : null, inScene: mm ? !!mm.scene : false, nKids: mm ? mm.scene.children.length : 0 }; } };

@@ -4,7 +4,7 @@ set -euo pipefail
 R="$(cd "$(dirname "$0")/.." && pwd)"; A="$R/site/public/assets"; D="$R/site/public/data"
 mkdir -p "$A" "$D/edu" "$A/shape" "$A/gallery"
 cp -r "$R/12_site_data/generated/." "$A/generated/" 2>/dev/null || { mkdir -p "$A/generated"; cp -r "$R/12_site_data/generated/." "$A/generated/"; }
-for f in poi_master event_asset_links image_location_map samples_metadata; do cp "$R/12_site_data/$f.json" "$D/"; done
+for f in poi_master event_asset_links image_location_map samples_metadata features; do cp "$R/12_site_data/$f.json" "$D/"; done
 cp "$R/12_site_data/education/"*.json "$D/edu/"
 cp "$R/12_site_data/provenance/source_registry.csv" "$R/12_site_data/provenance/license_registry.json" "$D/"
 cp "$R/06_timeline_text/timeline.json" "$R/06_timeline_text/ryugu_surface_points.json" "$D/"
