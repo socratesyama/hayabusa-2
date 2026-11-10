@@ -9,8 +9,8 @@ export class Sound {
     this.gain.gain.linearRampToValueAtTime(0.03, c.currentTime + 1.5);
   }
   private stop() { if (this.gain && this.ctx) this.gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.4); const d = this.drone; setTimeout(() => d?.stop(), 500); this.drone = undefined; }
-  /** magnitude (nT) -> drone pitch; temperature (K) -> slight detune/brightness */
-  field(bMag: number, tempK: number | null) { if (!this.on || !this.drone || !this.ctx) return; this.drone.frequency.setTargetAtTime(40 + Math.min(80, Math.abs(bMag)), this.ctx.currentTime, 0.5); if (tempK != null) this.drone.detune.setTargetAtTime((tempK - 250) * 2, this.ctx.currentTime, 1); }
+  /** magnitude (nT) -> drone pitch only（温度との連動は廃止） */
+  field(bMag: number) { if (!this.on || !this.drone || !this.ctx) return; this.drone.frequency.setTargetAtTime(40 + Math.min(80, Math.abs(bMag)), this.ctx.currentTime, 0.5); }
   step(ti: number) {
     if (!this.on || !this.ctx) return; const c = this.ctx, o = c.createOscillator(), g = c.createGain(); o.type = 'triangle';
     o.frequency.value = 90 + Math.min(400, ti) * 0.6; g.gain.setValueAtTime(0.05, c.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.12); o.connect(g).connect(c.destination); o.start(); o.stop(c.currentTime + 0.14);

@@ -63,8 +63,15 @@ function upAt(dir: V3, lat: number, lon: number): V3 { const g = sampleGravity(G
 
 // ---------------- init
 async function boot() {
-  Intro.line('2018-03-01'); const dot = document.createElement('div'); dot.style.cssText = 'width:2px;height:2px;border-radius:50%;background:#F8FAFC;margin-top:18px;transition:all 1.2s cubic-bezier(.16,1,.3,1)'; $('intro').appendChild(dot);
-  const bump = (px: number) => { dot.style.width = dot.style.height = px + 'px'; dot.style.boxShadow = `0 0 ${px}px rgba(240,240,235,.5)`; };
+  Intro.line('2018-03-01');
+  // 読み込み中は白い点ではなく、リュウグウ（そろばん玉型・赤道の尾根）が読み込みとともに大きくなる
+  const ry = document.createElement('div'); ry.className = 'ryugu-load'; ry.setAttribute('aria-hidden', 'true');
+  ry.innerHTML = '<svg viewBox="-100 -100 200 200"><defs><radialGradient id="rg" cx=".35" cy=".3" r=".9"><stop offset="0" stop-color="#8d8a86"/><stop offset=".55" stop-color="#4a4846"/><stop offset="1" stop-color="#17161a"/></radialGradient></defs>'
+    + '<g class="spin"><path d="M0-86 C26-84 52-60 74-26 C90-12 94 6 74 26 C52 60 26 84 0 86 C-26 84 -52 60 -74 26 C-94 6 -90-12 -74-26 C-52-60 -26-84 0-86Z" fill="url(#rg)"/>'
+    + '<path d="M-90 0 C-50 -9 50 -9 90 0 C50 12 -50 12 -90 0Z" fill="#0b0b10" opacity=".28"/>'
+    + '<circle cx="-30" cy="-34" r="11" fill="none" stroke="#0b0b10" stroke-opacity=".35" stroke-width="3"/><circle cx="34" cy="38" r="7" fill="none" stroke="#0b0b10" stroke-opacity=".35" stroke-width="3"/><circle cx="40" cy="-30" r="5" fill="#0b0b10" fill-opacity=".3"/></g></svg>';
+  $('intro').appendChild(ry);
+  const bump = (px: number) => { ry.style.setProperty('--grow', String(Math.min(1, 0.06 + px / 34))); };
   bump(4);
   const [reg, rot, sunT, hmap, g763, g340, scT, tl, poi, ev, locmap, samples, mis, mis_c, gal, l2c, geo, mascam, mara, mag, mpos, sp] = await Promise.all([
     loadRegistry(), getJSON('data/rotation.json'), getJSON('data/sun_table.json'), HeightMap.load(), loadGravity('763'), loadGravity('340'), loadSc(), getJSON('data/timeline.json'),
@@ -199,6 +206,8 @@ function moveOnSurface(dist: number, side: number): V3 {
 const ground0 = () => R_MEAN;
 function slopeFactor(deg: number) { return deg <= 25 ? 1 : deg >= MAX_DRIVE_SLOPE ? 0 : 1 - 0.8 * (deg - 25) / (MAX_DRIVE_SLOPE - 25); }
 
+/** 乗り物の挙動（見た目用）: 操舵・アクセル・車体の傾き/ピッチ/揺れ/視野角のなめらかな状態 */
+const drv = { throttle: 0, steer: 0, roll: 0, pitch: 0, accel: 0, fov: 70, lastSpeed: 0, rough: 0, lastStand: 0 };
 let dashing = false; let driveSpeed = 0; let flightTarget = 0;
 let farHinted = false;
 /** P1-3: 発射速度を局所脱出速度の75%にクランプ（どこから跳んでも脱出軌道に入らない） */
@@ -233,6 +242,7 @@ function stepWalk(dt: number) {
   if (keys.has('KeyD') || keys.has('ArrowRight')) steer += 1; if (keys.has('KeyA') || keys.has('ArrowLeft')) steer -= 1;
   if (joy.active) { throttle += -joy.y; steer += joy.x; }
   throttle = Math.max(-1, Math.min(1, throttle)); steer = Math.max(-1, Math.min(1, steer));
+  drv.throttle = throttle; drv.steer = steer;
   dashing = (keys.has('ShiftLeft') || keys.has('ShiftRight')) && throttle > 0 && !keys.has('Space');
   if (joy.active && -joy.y > 0.85) dashing = true;
   const targetSpeed = throttle * (dashing ? DRIVE_BOOST : DRIVE_SPEED) * slopeFactor(gs.slope);
@@ -369,9 +379,42 @@ function stepDust(dt: number) {
   if (dustT > 7) { dustT = -1; dust.visible = false; }
 }
 
+// ---------------- 乗り物の乗り心地（カメラのバンク・ピッチ・揺れ・視野角。walk 層のみ）
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const cockpit = (() => {
+  const d = document.createElement('div'); d.id = 'cockpit'; d.setAttribute('aria-hidden', 'true');
+  d.innerHTML = '<div class="hood"></div><div class="dash"><div class="gauge"><b id="ck-v">0.0</b><small>m/s</small></div><div class="bars"><div class="bar st"><i id="ck-st"></i></div><div class="bar th"><i id="ck-th"></i></div></div></div>';
+  document.body.appendChild(d); return d;
+})();
+const ckV = document.getElementById('ck-v')!, ckSt = document.getElementById('ck-st')!, ckTh = document.getElementById('ck-th')!;
+function vehicleCamera(dt: number) {
+  const on = layer === 'walk'; cockpit.classList.toggle('on', on);
+  const k = (rate: number) => 1 - Math.exp(-rate * dt);
+  if (!on) { if (Math.abs(camera.fov - 70) > 0.01) { camera.fov = 70; camera.updateProjectionMatrix(); } drv.roll = drv.pitch = drv.accel = 0; drv.lastSpeed = driveSpeed; return; }
+  const sf = Math.min(1.4, Math.abs(driveSpeed) / DRIVE_SPEED);
+  const acc = dt > 0 ? (driveSpeed - drv.lastSpeed) / dt : 0; drv.lastSpeed = driveSpeed;
+  drv.accel += (acc - drv.accel) * k(6);
+  const mv = reduceMotion ? 0.25 : 1;
+  const tRoll = -drv.steer * Math.min(1, sf) * 0.075 * mv * Math.sign(driveSpeed || 1);   // カーブの内側へ傾く
+  const tPitch = -Math.max(-1, Math.min(1, drv.accel / DRIVE_ACCEL)) * 0.035 * mv;        // 加速でノーズ上げ、制動でノーズ下げ
+  drv.roll += (tRoll - drv.roll) * k(5); drv.pitch += (tPitch - drv.pitch) * k(5);
+  // 路面の凹凸: 足元の高さの変化で細かく揺れる
+  const dh = P.stand - drv.lastStand; drv.lastStand = P.stand; drv.rough += (Math.min(1, Math.abs(dh) * 4) - drv.rough) * k(8);
+  const t = performance.now() / 1000;
+  const shake = sf * (0.0025 + 0.006 * drv.rough) * mv;
+  camera.rotateZ(drv.roll + Math.sin(t * 17) * shake); camera.rotateX(drv.pitch + Math.sin(t * 23 + 1.3) * shake);
+  const tFov = 70 + 14 * Math.min(1, Math.abs(driveSpeed) / DRIVE_BOOST) * mv;
+  drv.fov += (tFov - drv.fov) * k(4); if (Math.abs(camera.fov - drv.fov) > 0.02) { camera.fov = drv.fov; camera.updateProjectionMatrix(); }
+  // ダッシュボード
+  ckV.textContent = Math.abs(driveSpeed).toFixed(1); (ckSt as HTMLElement).style.transform = `translateX(${(drv.steer * 50).toFixed(1)}%)`;
+  (ckTh as HTMLElement).style.transform = `scaleX(${Math.max(0, Math.min(1, Math.abs(driveSpeed) / DRIVE_BOOST)).toFixed(3)})`;
+  cockpit.classList.toggle('boost', dashing);
+}
+
 // ---------------- frame
 let prev = performance.now(); let wheelAccum = 0; const bgColor = new THREE.Color(); const cBlack = new THREE.Color(0x000000); const cPaper = new THREE.Color(PAPER);
 function frame(now: number) {
+  td1Bar.classList.toggle('on', layer === 'td1');
   requestAnimationFrame(frame); const dtRaw = Math.min(5, (now - prev) / 1000); const dt = Math.min(0.1, dtRaw); prev = now; if (!ready) return;
   // P1-4: 弾道飛行中の無操作時間圧縮（演出E）。入力があれば実時間に戻る。
   const flying = layer === 'ballistic' || layer === 'orbit';
@@ -397,6 +440,7 @@ function frame(now: number) {
   else if (layer === 'mascot') { eyeB = mascotEye(); }
   else { const h = P.stand + EYE - P.dip; eyeB = v3.mul(P.dir, h); }
   lookAt(eyeB!, P.fwd, upV, P.pitch);
+  vehicleCamera(dt);
   if (layer === 'mascot') { const q = mascot.posTopo(); if (q && Math.hypot(q[0], q[1], q[2]) > 1.2) { const rS = hm.radius(SITE.lat, SITE.lon); camera.lookAt(tr(v3.mul(geoToBody(SITE.lat, SITE.lon, 1), rS))); } }   // 降下・バウンド中はMASCOTが向かう着陸点を見る
   const cp = camera.position.clone();
   // 遠方まで見えるように near/far と背景天球を距離に比例させる（はやぶさ2のHP=約20kmを視界に入れる）
@@ -445,11 +489,10 @@ function frame(now: number) {
   slider.sync(clock.ms); slider.setEnabled(layer === 'walk');
   spaceBtn.sync(layer === 'walk' ? 'ground' : (layer === 'ballistic' || layer === 'orbit') ? 'space' : null);
   if (layer === 'walk' && now - lastTrack > 5000) { lastTrack = now; session.track.push({ t: new Date(clock.ms).toISOString(), lat: gp.lat, lon: gp.lon, layer }); try { localStorage.setItem('ryugu_t', String(clock.ms)); } catch { /* ignore */ } }
-  const m3 = mascot.active ? mascot.tempK() : null;
-  // 磁場ドローン: MASCOTサイト近傍では実MAGデータの磁場強度、それ以外は背景値（E: 音響化）
+    // 磁場ドローン: MASCOTサイト近傍では実MAGデータの磁場強度、それ以外は背景値（E: 音響化）
   const nearMascot = surfDist(gp.lat, gp.lon, SITE.lat, SITE.lon) < 200;
   const bMag = nearMascot ? (mascot.magNow() ?? 10) : 10;
-  if (sound.on) sound.field(bMag, m3);
+  if (sound.on) sound.field(bMag);
 }
 let lastTrack = 0;
 
@@ -637,7 +680,7 @@ function libLocalHour() { const S = sunNow(); return sun.localTime(S.et, bodyToG
 function libSubsolarLat() { const S = sunNow(); return Math.asin(Math.max(-1, Math.min(1, S.dir[2]))) / DEG; }
 function openLibrary() {
   if (!library.data) { hint.show('データ書庫を読み込み中…', false, 2000); return; }
-  used.add('misc'); library.open({ viewer, card, lat: () => bodyToGeo(P.dir).lat, localHour: libLocalHour, subsolarLat: libSubsolarLat, mode: () => mode, onMode: setMode });
+  used.add('misc'); library.open({ viewer, card, lat: () => bodyToGeo(P.dir).lat, localHour: libLocalHour, subsolarLat: libSubsolarLat });
 }
 card.onClose = () => { mascotPoi = false; library.close(); card.node.classList.remove('lib'); };
 
@@ -718,6 +761,17 @@ function exitTd1() { layer = 'walk'; clock.running = true; clock.set(Math.max(TD
  *  データは公表値（接触 22:29:10 UTC、弾丸発射・試料採取、その後上昇）。表示は演出。 */
 const td1CapEl = (() => { const d = document.createElement('div'); d.id = 'td1cap'; document.body.appendChild(d); return d; })();
 let td1CapStage = -1;
+// TD1リプレイの操作バー（タッチ端末でもホイール/Space/E なしで操作・終了できる）
+const td1Bar = (() => {
+  const d = document.createElement('div'); d.id = 'td1bar';
+  d.innerHTML = '<button type="button" data-a="back" aria-label="10秒戻る">−10s</button><button type="button" data-a="play" aria-label="再生/一時停止">▶／❚❚</button><button type="button" data-a="fwd" aria-label="10秒進む">+10s</button><button type="button" data-a="exit" aria-label="リプレイを終了">終了 ✕</button>';
+  d.addEventListener('click', e => { const a = (e.target as HTMLElement).closest('button')?.dataset.a; if (!a) return; activity();
+    if (a === 'play') clock.running = !clock.running;
+    else if (a === 'exit') exitTd1();
+    else { clock.running = false; clock.jump(a === 'fwd' ? 10e3 : -10e3); clock.set(Math.max(TD1_A, Math.min(TD1_B, clock.ms))); } });
+  document.body.appendChild(d); return d;
+})();
+
 function td1Caption() {
   if (layer !== 'td1') { if (td1CapStage >= 0) { td1CapEl.classList.remove('on'); td1CapStage = -1; } return; }
   const dts = (clock.ms - TD1_MS) / 1000;
@@ -765,7 +819,11 @@ function mascotEndCard() {
 
 // ---------------- input
 addEventListener('keydown', e => {
-  if (!ready) return; activity(); if (minimap?.open && (e.key === 'Escape' || e.code === 'KeyE')) { minimap.hideModal(); return; }
+  if (!ready) return; activity(); if (e.key === 'Escape' && !viewer.isOpen) {   // Esc: ビューア → カード → 全体図 → リプレイ の順に1つずつ閉じる
+    if (card.isOpen) { card.hide(); return; } if (minimap?.open) { minimap.hideModal(); return; }
+    if (layer === 'mascot') { exitMascot(); return; } if (layer === 'td1') { exitTd1(); return; }
+  }
+  if (minimap?.open && e.code === 'KeyE') { minimap.hideModal(); return; }
   if (viewer.isOpen) { viewer.handleKey(e); if (e.code === 'KeyE') viewer.close(); return; }
   keys.add(e.code);
   if (e.code === 'KeyE') { if (layer === 'mascot') { exitMascot(); } else if (layer === 'td1') { exitTd1(); } else interact(); }
@@ -773,7 +831,7 @@ addEventListener('keydown', e => {
   if (e.code === 'Space' && layer === 'td1') { e.preventDefault(); clock.running = !clock.running; return; }
   if (e.code === 'Space') e.preventDefault();
   if (e.code === 'KeyP') { G = G === G340 ? G763 : G340; hint.show(G === G340 ? '過去モード: 自転周期 3.40h（重力表 3.40h）' : '現在: 自転周期 7.63h', false, 3000); }
-  if (e.code === 'KeyR') recordNow(); if (e.code === 'KeyB') toggleSound(); if (e.code === 'KeyM') changeMode(); if (e.code === 'KeyG') openLibrary();
+  if (e.code === 'KeyR') recordNow(); if (e.code === 'KeyB') toggleSound(); if (e.code === 'KeyG') openLibrary();
   if (e.code === 'KeyV') eventUi.openList();   // イベントメニュー（Vキー）
   if (e.code === 'KeyN') toggleAnnot(); if (e.code === 'KeyL') openPlaces();   // 地名ガイド（N: 表示切替 / L: 地名・出来事リスト）
   if (e.shiftKey && e.code === 'KeyW') used.add('dash');
@@ -791,9 +849,27 @@ canvas.addEventListener('wheel', e => { e.preventDefault(); activity();
 }, { passive: false });
 // touch (passive:false so we can preventDefault — skill: threejs touch events)
 const stick = $('stick'), knob = $('knob'); let touchLook = -1, tlx = 0, tly = 0;
-canvas.addEventListener('touchstart', e => { e.preventDefault(); activity(); for (const tt of Array.from(e.changedTouches)) { if (tt.clientX > innerWidth / 2 && touchLook < 0) { touchLook = tt.identifier; tlx = tt.clientX; tly = tt.clientY; } } }, { passive: false });
-canvas.addEventListener('touchmove', e => { e.preventDefault(); for (const tt of Array.from(e.changedTouches)) { if (tt.identifier === touchLook) { look(tt.clientX - tlx, tt.clientY - tly); tlx = tt.clientX; tly = tt.clientY; } } }, { passive: false });
-canvas.addEventListener('touchend', e => { for (const tt of Array.from(e.changedTouches)) { if (tt.identifier === touchLook) touchLook = -1; } if (!e.touches.length) { /* tap = inspect */ } });
+// ---- タッチ操作: 左半分 = 浮動バーチャルスティック（触れた場所が中心になる）/ 右半分 = 見回し
+const JOY_R = 56, JOY_DEAD = 0.12; let joyTouch = -1, jcx = 0, jcy = 0;
+function joyAt(x: number, y: number) {
+  let dx = (x - jcx) / JOY_R, dy = (y - jcy) / JOY_R; const l = Math.hypot(dx, dy); if (l > 1) { dx /= l; dy /= l; }
+  const m = Math.hypot(dx, dy); const k = m < JOY_DEAD ? 0 : (m - JOY_DEAD) / (1 - JOY_DEAD) / m;   // 不感帯を除いて0〜1に再スケール
+  joy.x = dx * k; joy.y = dy * k; knob.style.transform = `translate(${dx * JOY_R}px,${dy * JOY_R}px)`;
+}
+function joyEnd() { joyTouch = -1; joy.active = false; joy.x = joy.y = 0; knob.style.transform = ''; stick.classList.remove('on'); }
+canvas.addEventListener('touchstart', e => { e.preventDefault(); activity();
+  for (const tt of Array.from(e.changedTouches)) {
+    if (tt.clientX > innerWidth / 2) { if (touchLook < 0) { touchLook = tt.identifier; tlx = tt.clientX; tly = tt.clientY; } }
+    else if (joyTouch < 0 && layer === 'walk') {
+      joyTouch = tt.identifier; jcx = tt.clientX; jcy = tt.clientY; joy.active = true; joy.x = joy.y = 0;
+      stick.style.left = (jcx - 55) + 'px'; stick.style.top = (jcy - 55) + 'px'; stick.style.bottom = 'auto'; stick.classList.add('on');
+    }
+  } }, { passive: false });
+canvas.addEventListener('touchmove', e => { e.preventDefault(); for (const tt of Array.from(e.changedTouches)) {
+  if (tt.identifier === touchLook) { look(tt.clientX - tlx, tt.clientY - tly); tlx = tt.clientX; tly = tt.clientY; }
+  else if (tt.identifier === joyTouch) joyAt(tt.clientX, tt.clientY); } }, { passive: false });
+const touchDone = (e: TouchEvent) => { for (const tt of Array.from(e.changedTouches)) { if (tt.identifier === touchLook) touchLook = -1; if (tt.identifier === joyTouch) joyEnd(); } };
+canvas.addEventListener('touchend', touchDone); canvas.addEventListener('touchcancel', touchDone);
 canvas.addEventListener('click', e => { if ((e as any).pointerType === 'touch' || matchMedia('(pointer:coarse)').matches) { if (nearHits.length || card.isOpen || viewer.isOpen) interact(); } });
 // 地面のタップ/クリックで地名を調べる（視点操作のドラッグと区別: 5〜10px未満の移動・短時間のみ）
 let mdX = 0, mdY = 0; canvas.addEventListener('mousedown', e => { mdX = e.clientX; mdY = e.clientY; });
@@ -803,31 +879,21 @@ canvas.addEventListener('touchstart', e => { for (const tt of Array.from(e.chang
 canvas.addEventListener('touchend', e => { for (const tt of Array.from(e.changedTouches)) { const s0 = tapStart.get(tt.identifier); tapStart.delete(tt.identifier);
   if (s0 && Math.hypot(tt.clientX - s0.x, tt.clientY - s0.y) < 10 && performance.now() - s0.t < 500) tapAt(tt.clientX, tt.clientY); } });
 canvas.addEventListener('touchcancel', e => { for (const tt of Array.from(e.changedTouches)) tapStart.delete(tt.identifier); });
-stick.addEventListener('touchstart', e => { e.preventDefault(); joy.active = true; moveJoy(e.touches[0]); }, { passive: false });
-stick.addEventListener('touchmove', e => { e.preventDefault(); moveJoy(e.touches[0]); }, { passive: false });
-stick.addEventListener('touchend', () => { joy.active = false; joy.x = joy.y = 0; knob.style.transform = ''; });
-function moveJoy(t0: Touch) { const r = stick.getBoundingClientRect(); const cx = r.left + r.width / 2, cy = r.top + r.height / 2; let x = (t0.clientX - cx) / (r.width / 2), y = (t0.clientY - cy) / (r.height / 2); const l = Math.hypot(x, y); if (l > 1) { x /= l; y /= l; } joy.x = x; joy.y = y; knob.style.transform = `translate(${x * 35}px,${y * 35}px)`; }
 // 宇宙への脱出（ジャンプ）と帰還は、このボタンだけで行う（キー操作・離陸モードは廃止）
 const spaceBtn = new SpaceButton($('spacebtn') as HTMLButtonElement, () => { activity(); if (layer === 'walk') doPhysJump(); else returnToSurface(); });
 $('viewer').addEventListener('click', e => { if (e.target === $('viewer')) viewer.close(); });
-$('b-sound').addEventListener('click', toggleSound); $('b-rec').addEventListener('click', recordNow); $('b-mode').addEventListener('click', changeMode); $('b-lib').addEventListener('click', openLibrary);
+$('b-sound').addEventListener('click', toggleSound); $('b-rec').addEventListener('click', recordNow); $('b-lib').addEventListener('click', openLibrary);
 $('b-ev').addEventListener('click', () => { activity(); eventUi.openList(); });
 $('b-map').addEventListener('click', () => { activity(); toggleAnnot(); }); $('b-places').addEventListener('click', () => { activity(); openPlaces(); });
 function toggleSound() { const on = sound.toggle(); $('b-sound').classList.toggle('active', on); if (on) hint.show(t().sound_on, false, 4000); }
 function recordNow() { exportSession(session); hint.show(t().rec_saved, false, 2500); }
-/** P1-6: モード切替（起動時の選択は廃止。最終値を記憶） */
-function setMode(m: number) {
-  mode = Math.max(0, Math.min(2, Math.round(m))) as Mode; try { localStorage.setItem('ryugu_mode', String(mode)); } catch { /* ignore */ }
-  hint.show(`モード: ${t().modes[m]}`, false, 2500);
-}
-function changeMode() { setMode(((mode + 1) % 3) as Mode); }
+// モード切替は一時廃止（setMode / changeMode は将来の再開用に残さず削除。mode は常に 1）
 
 // ---------------- start-up
 (async function main() {
   frameStart();
   try { await boot(); } catch (e) { Intro.line('データの読み込みに失敗しました: ' + String(e) + '（npm run precompute を実行しましたか？）'); return; }
-  try { mode = Math.max(0, Math.min(2, +(localStorage.getItem('ryugu_mode') ?? 1))) as Mode; } catch { mode = 1; }
-  document.getElementById('modes')?.remove();
+  mode = 1;   // モード切替は一時廃止（説明の長さ等は常に標準）
   // callsign + landing
   let n = 0; try { n = +(localStorage.getItem('ryugu_cs') ?? (Math.floor(hash2(Date.now() % 100000, 1, 5) * 9000) + 1000)); localStorage.setItem('ryugu_cs', String(n)); } catch { n = 4242; }
   session.callsign = `HYB2-WALK-${String(n).padStart(4, '0')}`; const T = t(); const g0 = bodyToGeo(P.dir); const up0 = eyeUp(P.dir);

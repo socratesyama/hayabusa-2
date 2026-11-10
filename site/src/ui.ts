@@ -21,7 +21,8 @@ export class Card {
   get isOpen() { return this.open_; }
   show(title: string, bodyHtml: string, creditKind?: AssetKind, extraCredit?: string) {
     const cr = [creditKind ? credit(creditKind) : '', extraCredit ?? ''].filter(Boolean).join(' / ');
-    this.el.innerHTML = `<h2>${esc(title)}</h2>${bodyHtml}${cr ? `<div class="cr">${esc(cr)}</div>` : ''}`; this.el.classList.add('on'); this.open_ = true; }
+    this.el.innerHTML = `<button class="card-x" type="button" aria-label="閉じる">×</button><h2>${esc(title)}</h2>${bodyHtml}${cr ? `<div class="cr">${esc(cr)}</div>` : ''}`; this.el.classList.add('on'); this.open_ = true; }
+  constructor() { this.el.addEventListener('click', e => { if ((e.target as HTMLElement).closest('.card-x')) { e.stopPropagation(); this.hide(); } }); }
   hide() { this.el.classList.remove('on', 'welcome'); this.open_ = false; this.onClose?.(); }
   get node() { return this.el; }
 }

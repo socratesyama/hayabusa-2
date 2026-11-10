@@ -78,9 +78,10 @@ export class MiniMap {
     this.modalEl.innerHTML = `<div class="mm-bar"><span>${lang === 'ja' ? 'リュウグウ全体図 — ドラッグ: 回転 / ホイール: ズーム / マーカー・表面クリックで移動' : 'Globe — drag rotate / wheel zoom / click to move'}</span><button id="mm-close" aria-label="閉じる">✕</button></div>`;
     document.body.appendChild(this.modalEl);
     this.modalEl.style.display = 'none';
-    document.getElementById('mm-close')!.addEventListener('click', () => this.hideModal());
+    document.getElementById('mm-close')!.addEventListener('click', e => { e.stopPropagation(); this.hideModal(); });
     const m = this.modalEl;
-    m.addEventListener('pointerdown', e => { this.dragging = true; this.dragDist = 0; this.last = [e.clientX, e.clientY]; m.setPointerCapture(e.pointerId); });
+    m.addEventListener('pointerdown', e => { if ((e.target as HTMLElement).closest('button')) return;   // ボタンではドラッグ/ポインタ捕捉を始めない（捕捉するとclickがボタンに届かず閉じられなかった）
+      this.dragging = true; this.dragDist = 0; this.last = [e.clientX, e.clientY]; m.setPointerCapture(e.pointerId); });
     m.addEventListener('pointermove', e => { if (!this.dragging) return; const dx = e.clientX - this.last[0], dy = e.clientY - this.last[1]; this.dragDist += Math.hypot(dx, dy); this.az -= dx * 0.006; this.el = Math.max(-1.4, Math.min(1.4, this.el + dy * 0.005)); this.last = [e.clientX, e.clientY]; });
     const up = () => { this.dragging = false; };
     m.addEventListener('pointerup', up); m.addEventListener('pointercancel', up);
@@ -203,7 +204,7 @@ export class MiniMap {
   }
 
   showModal() { this.open = true; this.modalEl.style.display = 'block'; this.smallEl.style.display = 'none'; this.card.hide(); }
-  hideModal() { this.open = false; this.modalEl.style.display = 'none'; this.smallEl.style.display = 'block'; }
+  hideModal() { this.dragging = false; this.card.hide(); this.open = false; this.modalEl.style.display = 'none'; this.smallEl.style.display = 'block'; }
 
   /** モーダル内クリック: マーカー→POI/イベント、表面→ここへ移動 */
   private pick(e: PointerEvent) {

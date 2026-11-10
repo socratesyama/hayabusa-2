@@ -54,11 +54,7 @@ export class Library {
       <p class="lnote">${lang === 'ja' ? '多面体(49,152板)重力モデル。3.40hは減速前の高速自転を再現する過去モード(P)。' : 'polyhedron (49,152-plate) gravity; 3.40h = pre-YORP past mode (P)'}</p>`;
     const licRows = d.lic.rules.map((r: any) => `<p class="lnote"><b>${esc(r.id)}</b> ${esc(r.provider)} — ${esc(r.license)}${r.policy_url ? ` <a href="${esc(r.policy_url)}" target="_blank" rel="noopener">policy</a>` : ''}</p>`).join('')
       + d.lic.mandatory_site_notices.map((n: string) => `<p class="lnote">• ${esc(n)}</p>`).join('');
-    const modeNames = lang === 'ja' ? ['のんびり', 'じっくり', 'せんもん'] : ['Relaxed', 'Thorough', 'Expert'];
-    const cur = this.env.mode?.() ?? 1;
-    const modeRows = modeNames.map((m, i) => `<button class="lrow" data-mode="${i}"><span>${esc(m)}</span><span class="n">${i === cur ? '●' : ''}</span></button>`).join('');
     const body = `
-      <h3>${lang === 'ja' ? 'モード（Mキーでも切替）' : 'Mode (also M key)'}</h3>${modeRows}
       <h3>ONC l2c ${lang === 'ja' ? '地形画像' : 'terrain images'}</h3>${l2cRows}
       <h3>MASCAM</h3>${masRows}
       <h3>${lang === 'ja' ? `表面温度モデル（MARA比較）${'*'}` : `Surface temp model (vs MARA)${'*'}`}</h3><div id="tempchart"></div>
@@ -72,7 +68,6 @@ export class Library {
       this.d.l2c.map((x: any) => ({ src: url(x.jpg), caption: `ONC l2c ${x.id}${x.lat != null ? ` ${x.lat.toFixed(1)}° ${(x.lon ?? 0).toFixed(1)}°` : ''}`, kind: 'onc' as const })), +(b as HTMLElement).dataset.l2c!)));
     this.env.card.node.querySelector('[data-mascam]')?.addEventListener('click', () => this.env.viewer.open(
       this.d.mascam.map((x: any) => ({ src: url(x.png), caption: `MASCAM ${x.id} ${x.phase}${x.led && x.led !== 'NONE' ? ' / LED' : ''} ${x.utc.slice(11, 19)}Z`, kind: 'mascam' as const, certainty: x.certainty })), 0));
-    this.env.card.node.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => { this.env.onMode?.(+(b as HTMLElement).dataset.mode!); b.parentElement!.querySelectorAll('[data-mode] .n').forEach((n) => n.textContent = ''); (b.querySelector('.n') as HTMLElement).textContent = '●'; }));
   }
   close() { this.open_ = false; this.env?.card.node.classList.remove('lib'); }
   private renderSamples() {
