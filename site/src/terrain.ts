@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { url, HeightMap } from './data';
+import { url, HeightMap, RMIN, RMAX } from './data';
+import { ThermalTable, THERM_ROWS, THERM_COLS } from './thermal';
 import { V3, v3, bodyToThree, threeToBody, bodyToGeo, geoToBody, DEG } from './geo';
 import { regolithOffset } from './regolith';
 
@@ -10,10 +11,38 @@ export const FEAT_MAX = 32;
 const TILE_DIR = 'assets/generated/tiles/01_ONC_v-band_Basemap1';
 // Terrain shader: NO ambient light; N.L with a mild Oren-Nayar-like retro term (strong backscatter), no specular (§4.6).
 const vert = `varying vec3 vP; varying vec3 vN; void main(){ vP=position; vN=normal; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
+/** 地形の影と夜側の色（terrain / rocks のシェーダで共有）。座標は本体固定系 b・太陽方向 lb（どちらも本体系）。
+ *  hmap: 高さ地図の半径(m)を半精度浮動小数で（行0=南緯90°。経度は周期）。tmap: 緯度×地方時の表面温度(K)（D: 1次元熱伝導モデル）。 */
+export const SHADE_GLSL = `
+uniform sampler2D hmap; uniform sampler2D tmap; uniform float shadowOn; uniform float thermOn;
+float hmR(vec3 b){ float lon=atan(b.y,b.x); if(lon<0.0) lon+=6.2831853; float lat=asin(clamp(b.z/length(b),-1.0,1.0)); return texture2D(hmap, vec2(lon/6.2831853, 0.5+lat/3.14159265)).r; }
+// 太陽方向へ高さ地図の上をレイマーチ（3〜400m, 公比1.22）。見えなければ0。幅は太陽の視直径(約0.01rad)に合わせた半影。
+// 出発点は高さ地図の面そのものに置く（描画メッシュとの数mの差で自己遮蔽しないように）。
+float terrShadow(vec3 b, vec3 lb){
+  vec3 o = normalize(b) * hmR(b); float vis = 1.0; float t = 3.0;
+  for(int i=0;i<24;i++){
+    vec3 q = o + lb * t; float rq = length(q);
+    vis = min(vis, clamp((rq - hmR(q) + 0.3) / (0.012 * t + 0.3), 0.0, 1.0));
+    if(vis < 0.02) break; t *= 1.22;
+  }
+  return vis;
+}
+// 夜側・陰の地表に足す、ごく弱い冷たい色。色相は地方時・緯度の表面温度モデル(D)で決める（冷えるほど青く、温かいうちは灰色寄り）。
+vec3 nightTone(vec3 b, vec3 lb){
+  float cold = 0.8;
+  if(thermOn > 0.5){
+    float hr = 12.0 + (atan(b.y,b.x) - atan(lb.y,lb.x)) * 3.8197186;   // 地方時(h) = 12 + 経度差/15°
+    float lat = asin(clamp(b.z/length(b),-1.0,1.0)) * 57.29578;
+    float T = texture2D(tmap, vec2(fract(hr/24.0), clamp(((lat+90.0)/10.0+0.5)/${THERM_ROWS}.0, 0.0, 1.0))).r;
+    cold = 1.0 - clamp((T - 170.0) / 130.0, 0.0, 1.0);
+  }
+  return mix(vec3(0.92,0.86,0.80), vec3(0.50,0.68,1.0), cold);
+}`;
 const frag = `
 precision highp float; varying vec3 vP; varying vec3 vN;
-uniform sampler2D map; uniform sampler2D nmap; uniform sampler2D dmap; uniform vec3 sunDir; uniform vec3 camPos; uniform float shadowOn; uniform float useNmap; uniform float useD; uniform float dLevels;
+uniform sampler2D map; uniform sampler2D nmap; uniform sampler2D dmap; uniform vec3 sunDir; uniform vec3 camPos; uniform float useNmap; uniform float useD; uniform float dLevels;
 #define FMAX 32
+${SHADE_GLSL}
 uniform int fN; uniform vec4 fA[FMAX]; uniform vec4 fB[FMAX]; uniform vec4 fC[FMAX];
 // --- MASCAM-derived cm-scale detail (§4.6 stage 4, D): 7-level contrast-preserving atlas ---
 // Each level keeps the base grain std; the shader picks the level by screen-space texel density
@@ -113,7 +142,11 @@ void main(){
     if(haveD > 0.5) alb *= mix(1.0, 0.78 + 0.44 * dTexG(duvD / 2.8 + vec2(0.61, 0.23), min(dLvl, dLevels - 1.0)), 0.85 * (1.0 - smoothstep(30.0, 120.0, dist)));  // MASCAM mottling ~7 m scale
     if(haveD > 0.5) alb *= mix(1.0, 0.86 + 0.28 * dTexG(duvD / 16.0 + vec2(0.11, 0.53), min(dLvl, dLevels - 1.0)), 0.75 * (1.0 - smoothstep(60.0, 220.0, dist)));  // MASCAM mottling ~8 m scale (bridges to the 22 m procedural mottling)
   }
-  vec3 col = alb * vec3(1.0,0.94,0.9) * on * 1.35;   // slight reddish dark grey (Cb-type)
+  // 影: 尾根・クレーター縁・岩塊の地形に遮られた所は暗く。夜側/陰にはごく弱い冷たい色を足す（モデル温度で色相が変わる）。
+  vec3 lb = vec3(l.x, -l.z, l.y);                  // 太陽方向（three -> body）
+  float vis = 1.0; if(shadowOn > 0.5 && on > 0.0) vis = terrShadow(b, lb);
+  vec3 col = alb * vec3(1.0,0.94,0.9) * on * vis * 1.35;   // slight reddish dark grey (Cb-type)
+  if(shadowOn > 0.5) col += alb * nightTone(b, lb) * 0.09 * (1.0 - smoothstep(0.0, 0.05, on * vis));
   // --- 地名・イベント注釈（features.json）: 本体固定系の角半径(cap)／赤道を挟む緯度帯(band)に色を重ねる。
   //     塗りは陰影(lumi)を残して色味だけ変え、縁の線は発光させて影の側でも読めるようにする。線の太さは画面上でほぼ一定。
   {
@@ -144,6 +177,25 @@ export class Terrain {
   private static readonly PATCH_SEG = 128; private static readonly PATCH_SPAN = 80;
   private ray = new THREE.Raycaster(); private tex!: THREE.CanvasTexture; ntex?: THREE.Texture;
   constructor(public renderer: THREE.WebGLRenderer) {}
+  /** 影・夜色の共有 uniform（terrain / 近傍パッチ / 岩の全てが同じオブジェクトを参照する） */
+  readonly shade = { hmap: { value: null as THREE.Texture | null }, tmap: { value: null as THREE.Texture | null }, shadowOn: { value: 0 }, thermOn: { value: 0 } };
+  private buildShade(hm: HeightMap) {
+    // 高さ地図の半径(m)を R16F に。シェーダの v=0.5+lat/π に合わせ、行を上下反転して詰める（hm の行0は北緯90°）。
+    const w = hm.w, h = hm.h, arr = new Uint16Array(w * h), k = (RMAX - RMIN) / 65535;
+    for (let y = 0; y < h; y++) { const src = (h - 1 - y) * w; for (let x = 0; x < w; x++) arr[y * w + x] = THREE.DataUtils.toHalfFloat(RMIN + hm.d[src + x] * k); }
+    const mk = (data: Uint16Array, tw: number, th: number, wrapS: THREE.Wrapping) => { const t = new THREE.DataTexture(data, tw, th, THREE.RedFormat, THREE.HalfFloatType);
+      t.minFilter = t.magFilter = THREE.LinearFilter; t.wrapS = wrapS; t.wrapT = THREE.ClampToEdgeWrapping; t.generateMipmaps = false; t.needsUpdate = true; return t; };
+    this.shade.hmap.value = mk(arr, w, h, THREE.RepeatWrapping);
+    const tm = new Uint16Array(THERM_COLS * THERM_ROWS).fill(THREE.DataUtils.toHalfFloat(200));   // 温度表が来るまでの仮の値（thermOn=0 の間は使わない）
+    this.shade.tmap.value = mk(tm, THERM_COLS, THERM_ROWS, THREE.RepeatWrapping);
+    this.shade.shadowOn.value = 1;
+  }
+  /** 緯度×地方時の表面温度表（thermal.ts）を GPU に渡す。同じテクスチャを書き換えるので、他の材質も自動で追従する。 */
+  setThermal(t: ThermalTable) {
+    const tex = this.shade.tmap.value as THREE.DataTexture; const d = tex.image.data as Uint16Array;
+    for (let i = 0; i < d.length; i++) d[i] = THREE.DataUtils.toHalfFloat(t.data[i]);
+    tex.needsUpdate = true; this.shade.thermOn.value = 1;
+  }
   async init(hm: HeightMap) {
     this.hm = hm;
     const loader = new OBJLoader();
@@ -153,10 +205,12 @@ export class Terrain {
       for (let i = 0; i < p.count; i++) { const x = p.getX(i) * 1000, y = p.getY(i) * 1000, z = p.getZ(i) * 1000; p.setXYZ(i, x, z, -y); }
       g.deleteAttribute('normal'); g.deleteAttribute('uv');   // uvはシェーダ内でワールド座標から作るので不要
       const mg = mergeVertices(g, 1e-3); mg.computeVertexNormals(); mg.computeBoundingSphere(); return mg; };   // 頂点を統合して法線を滑らかにする（面ごとの法線だと三角形が見える）
+    this.buildShade(hm);
     this.tex = new THREE.CanvasTexture(await this.composite(1)); this.tex.colorSpace = THREE.SRGBColorSpace; this.tex.anisotropy = 4;
-    this.mat = new THREE.ShaderMaterial({ vertexShader: vert, fragmentShader: frag, uniforms: { map: { value: this.tex }, nmap: { value: null }, dmap: { value: null }, sunDir: { value: new THREE.Vector3(1, 0, 0) }, camPos: { value: new THREE.Vector3() }, shadowOn: { value: 0 }, useNmap: { value: 0 }, useD: { value: 0 }, dLevels: { value: 7 },
+    this.mat = new THREE.ShaderMaterial({ vertexShader: vert, fragmentShader: frag, uniforms: { map: { value: this.tex }, nmap: { value: null }, dmap: { value: null }, sunDir: { value: new THREE.Vector3(1, 0, 0) }, camPos: { value: new THREE.Vector3() }, shadowOn: this.shade.shadowOn, hmap: this.shade.hmap, tmap: this.shade.tmap, thermOn: this.shade.thermOn, useNmap: { value: 0 }, useD: { value: 0 }, dLevels: { value: 7 },
       fN: { value: 0 }, fA: { value: Array.from({ length: FEAT_MAX }, () => new THREE.Vector4()) }, fB: { value: Array.from({ length: FEAT_MAX }, () => new THREE.Vector4()) }, fC: { value: Array.from({ length: FEAT_MAX }, () => new THREE.Vector4()) } } });
     this.initPatch();   // after mat: the patch clones it (with polygonOffset) and shares its textures
+    for (const k of ['hmap', 'tmap', 'shadowOn', 'thermOn'] as const) this.patchMat.uniforms[k] = (this.shade as any)[k];   // clone() は値を複製するので、共有の uniform に付け替える（岩とも共有）
     // lod3 immediately, then 49k
     const g0 = toThree(await parse('assets/generated/ryugu_lod3_5k.obj')); this.mesh = new THREE.Mesh(g0, this.mat); this.group.add(this.mesh);
     (async () => { try { const g1 = toThree(await parse('assets/shape/ryugu_shape_spc_49k_v20200323_web.obj')); this.mesh.geometry.dispose(); this.mesh.geometry = g1; } catch (e) { console.warn('49k mesh', e); } })();

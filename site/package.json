@@ -11,7 +11,8 @@
     "build": "npm run check-assets && tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "test:features": "node ./tests/features_core.test.mjs"
+    "test:features": "node ./tests/features_core.test.mjs",
+    "test:thermal": "node ./tests/thermal.test.mjs"
   },
   "dependencies": {
     "three": "^0.160.1"

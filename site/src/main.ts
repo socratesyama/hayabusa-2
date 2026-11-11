@@ -5,6 +5,7 @@ import { Rocks } from './rocks';
 import { Clock, Sun, utcToEt, fmtJST, jstDate, MISSION_T0, MISSION_T1, initialMissionMs } from './time';
 import { getJSON, loadGravity, loadSc, scAtG, GRADE_LABEL, GRADE_LABEL_EN, HeightMap, loadRegistry, url, Gravity, ScTable } from './data';
 import { sampleGravity } from './gravity';
+import { buildThermalTable, sampleThermal, ThermalTable } from './thermal';
 import { V3, v3, geoToBody, bodyToGeo, bodyToThree, fmtLat, fmtLon, R_MEAN, DEG, hash2, surfDist } from './geo';
 import { launch, advance, bodyOf, velBodyOf, isEscape, altitude, Orbit, OMEGA_763 } from './physics';
 import { skyFor, applySky, Layer, PAPER } from './sky';
@@ -94,7 +95,7 @@ async function boot() {
   world = { pois: [...poi.poi.map((p: any) => ({ ...p, lat: p.latitude_deg, lon: p.longitude_deg })), ...iauPois], events: ev.events, gallery: gl, l2c: l2cs, samples };
   (world as any).missions = mis.scenarios; (world as any).misc = mis_c.misconceptions;
   terrain = new Terrain(renderer); await terrain.init(hm); scene.add(terrain.group);
-  rocks = new Rocks(hm); scene.add(rocks.group);
+  rocks = new Rocks(hm, terrain.shade); scene.add(rocks.group);
   mascot = new MascotReplay({ pos: mpos, imgs: mascam.images, mara, mag } as MascotData);
   library.init().then(() => library.attach(l2cs, mascam.images, samples, sp)).catch(e => console.warn('library', e));
   buildExtras(); buildDust(); bump(30);
@@ -414,12 +415,15 @@ function stepDust(dt: number) {
 }
 
 // ---------------- 乗り物の乗り心地（カメラのバンク・ピッチ・揺れ・視野角。walk 層のみ）
+let thermTab: ThermalTable | null = null; let groundK: number | null = null;
+const nearestDec = (tj: any, sl: number): number => tj.subsolar_lat_deg.reduce((b: number, v: number) => Math.abs(v - sl) < Math.abs(b - sl) ? v : b, tj.subsolar_lat_deg[0]);
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const cockpit = (() => {
   const d = document.createElement('div'); d.id = 'cockpit'; d.setAttribute('aria-hidden', 'true');
-  d.innerHTML = '<div class="dash"><div class="gauge"><b id="ck-v">0.0</b><small>m/s</small></div><div class="bars"><div class="bar st"><i id="ck-st"></i></div><div class="bar th"><i id="ck-th"></i></div></div><div class="place" id="ck-pl"><small>いまいる場所</small><b id="ck-pn">—</b></div></div>';
+  d.innerHTML = '<div class="dash"><div class="gauge"><b id="ck-v">0.0</b><small>m/s</small></div><div class="bars"><div class="bar st"><i id="ck-st"></i></div><div class="bar th"><i id="ck-th"></i></div></div><div class="place" id="ck-pl"><small>いまいる場所</small><b id="ck-pn">—</b><small id="ck-tk"></small></div></div>';
   document.body.appendChild(d); return d;
 })();
+const ckTk = document.getElementById('ck-tk')!;
 const ckPl = document.getElementById('ck-pl')!, ckPn = document.getElementById('ck-pn')!;
 const ckV = document.getElementById('ck-v')!, ckSt = document.getElementById('ck-st')!, ckTh = document.getElementById('ck-th')!;
 function vehicleCamera(dt: number) {
@@ -443,6 +447,7 @@ function vehicleCamera(dt: number) {
   // ダッシュボード
   ckV.textContent = Math.abs(driveSpeed).toFixed(1); (ckSt as HTMLElement).style.transform = `translateX(${(drv.steer * 50).toFixed(1)}%)`;
   (ckTh as HTMLElement).style.transform = `scaleX(${Math.max(0, Math.min(1, Math.abs(driveSpeed) / DRIVE_BOOST)).toFixed(3)})`;
+  { const tx = groundK == null ? '' : `地表 約${Math.round(groundK - 273.15)}°C（モデル*）`; if (ckTk.textContent !== tx) ckTk.textContent = tx; }
   cockpit.classList.toggle('boost', dashing);
 }
 
@@ -506,6 +511,10 @@ function frame(now: number) {
   earthDot.visible = eVis; earthHalo.visible = eVis;
   if (eVis) { const ep = cp.clone().addScaledVector(tr(eB.dir), 4000 * bgK); earthDot.position.copy(ep); earthHalo.position.copy(ep); earthDot.scale.setScalar(bgK); earthHalo.scale.setScalar(bgK); }
   terrain.setSun(S.dir, cp);
+  // 夜側の色と地表温度: 温度モデル(D)の表を、太陽直下緯度に最も近い格子（-8/0/+8°）で用意する（格子が変わった時だけ作り直す）
+  { const tj = library.data?.temp; const sl = Math.asin(Math.max(-1, Math.min(1, S.dir[2]))) / DEG;
+    if (tj && (!thermTab || thermTab.decDeg !== nearestDec(tj, sl))) { try { thermTab = buildThermalTable(tj, sl); terrain.setThermal(thermTab); } catch (e) { console.warn('thermal', e); thermTab = null; } }
+    groundK = thermTab && layer === 'walk' ? sampleThermal(thermTab, bodyToGeo(P.dir).lat, sun.localTime(S.et, bodyToGeo(P.dir).lon, S.dir)) : null; }
   // player shadow (E): along the sun direction from the player's feet
   const showShadow = layer === 'walk' && sElev > 0.03; shadow.visible = showShadow;
   if (showShadow) { const gr = P.stand; const sd = v3.norm(v3.sub(S.dir, v3.mul(v3.norm(P.dir), v3.dot(S.dir, v3.norm(P.dir))))); const len = Math.min(25, 1.7 / Math.tan(Math.asin(Math.min(1, sElev)))); const c0 = v3.add(v3.mul(P.dir, gr + 0.05), v3.mul(sd, -len / 2));

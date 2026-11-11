@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { V3, v3, hash2, bodyToThree, geoToBody, bodyToGeo } from './geo';
 import type { HeightMap } from './data';
+import { SHADE_GLSL } from './terrain';
 export interface Rock { p: V3; up: V3; a: number; b: number; c: number; rot: number; top: number; tone: number; }
 const CELL = 3.0, RADIUS = 30, DMIN = 0.35, DMAX = 4.0;
 const NVAR = 4, PER_VAR = 260;           // 4 variants x 260 = 1040 slots (was 900 uniform)
@@ -29,9 +30,10 @@ function rockGeo(seed: number): THREE.BufferGeometry {
   return g;
 }
 
-const rockVert = `attribute float tone; varying vec3 vN; varying vec3 vP; varying float vT;
-void main(){ vT=tone; vP=position; vN=normalize(mat3(instanceMatrix)*normal); gl_Position=projectionMatrix*viewMatrix*modelMatrix*instanceMatrix*vec4(position,1.0);} `;
-const rockFrag = `precision highp float; uniform vec3 sunDir; uniform vec3 camPos; varying vec3 vN; varying vec3 vP; varying float vT;
+const rockVert = `attribute float tone; varying vec3 vN; varying vec3 vP; varying float vT; varying vec3 vW;
+void main(){ vT=tone; vP=position; vW=(modelMatrix*instanceMatrix*vec4(position,1.0)).xyz; vN=normalize(mat3(instanceMatrix)*normal); gl_Position=projectionMatrix*viewMatrix*modelMatrix*instanceMatrix*vec4(position,1.0);} `;
+const rockFrag = `precision highp float; uniform vec3 sunDir; uniform vec3 camPos; varying vec3 vN; varying vec3 vP; varying float vT; varying vec3 vW;
+${SHADE_GLSL}
 void main(){
   vec3 n=normalize(vN); vec3 l=normalize(sunDir); vec3 v=normalize(camPos-vP);
   float nl=max(dot(n,l),0.0), nv=max(dot(n,v),0.0);
@@ -40,7 +42,10 @@ void main(){
   float sa=max(acos(nl),acos(nv)), sb=min(acos(nl),acos(nv));
   float on=nl*(A+B*cphi*sin(sa)*tan(sb));            // Oren-Nayar, matched to the terrain shader
   vec3 alb=vec3(0.052,0.047,0.044)*(0.55+0.9*vT);     // Cb-type dark grey, per-rock tone
-  vec3 col=alb*vec3(1.0,0.94,0.9)*on*1.35;
+  vec3 b=vec3(vW.x,-vW.z,vW.y); vec3 lb=vec3(l.x,-l.z,l.y);   // 岩の位置と太陽方向（three -> body）。地形の影の中なら岩も暗く。
+  float vis=1.0; if(shadowOn>0.5 && on>0.0) vis=terrShadow(b,lb);
+  vec3 col=alb*vec3(1.0,0.94,0.9)*on*vis*1.35;
+  if(shadowOn>0.5) col+=alb*nightTone(b,lb)*0.09*(1.0-smoothstep(0.0,0.05,on*vis));
   gl_FragColor=vec4(pow(col,vec3(1.0/2.2)),1.0);
 } `;
 
@@ -57,8 +62,8 @@ export class Rocks {
   private mat: THREE.ShaderMaterial; private shadowMat: THREE.ShaderMaterial;
   private cx = 1e9; private cy = 1e9; private px = 1e9; private py = 1e9;
   private playerUp: V3 = [0, 0, 1]; private lastElev = 2;
-  constructor(private hm: HeightMap) {
-    this.mat = new THREE.ShaderMaterial({ vertexShader: rockVert, fragmentShader: rockFrag, uniforms: { sunDir: { value: new THREE.Vector3(1, 0, 0) }, camPos: { value: new THREE.Vector3() } } });
+  constructor(private hm: HeightMap, shade: { hmap: { value: any }; tmap: { value: any }; shadowOn: { value: number }; thermOn: { value: number } }) {
+    this.mat = new THREE.ShaderMaterial({ vertexShader: rockVert, fragmentShader: rockFrag, uniforms: { sunDir: { value: new THREE.Vector3(1, 0, 0) }, camPos: { value: new THREE.Vector3() }, hmap: shade.hmap, tmap: shade.tmap, shadowOn: shade.shadowOn, thermOn: shade.thermOn } });
     const geo0 = rockGeo(1);
     for (let v = 0; v < NVAR; v++) {
       const geo = v === 0 ? geo0 : rockGeo(2 + v * 3);
