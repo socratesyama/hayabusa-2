@@ -192,7 +192,7 @@ export class Terrain {
   }
   /** 緯度×地方時の表面温度表（thermal.ts）を GPU に渡す。同じテクスチャを書き換えるので、他の材質も自動で追従する。 */
   setThermal(t: ThermalTable) {
-    const tex = this.shade.tmap.value as THREE.DataTexture; const d = tex.image.data as Uint16Array;
+    const tex = this.shade.tmap.value as THREE.DataTexture; const d = (tex.image as unknown as { data: Uint16Array }).data;
     for (let i = 0; i < d.length; i++) d[i] = THREE.DataUtils.toHalfFloat(t.data[i]);
     tex.needsUpdate = true; this.shade.thermOn.value = 1;
   }
