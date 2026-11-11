@@ -917,7 +917,7 @@ canvas.addEventListener('touchstart', e => { e.preventDefault(); activity();
   for (const tt of Array.from(e.changedTouches)) {
     if (tt.clientX > innerWidth / 2) { if (touchLook < 0) { touchLook = tt.identifier; tlx = tt.clientX; tly = tt.clientY; } }
     else if (joyTouch < 0 && layer === 'walk') {
-      joyTouch = tt.identifier; jcx = Math.max(60, Math.min(innerWidth - 60, tt.clientX)); jcy = Math.max(60, Math.min(innerHeight - 60, tt.clientY));   // 枠が画面からはみ出さない位置に joy.active = true; joy.x = joy.y = 0;
+      joyTouch = tt.identifier; jcx = Math.max(60, Math.min(innerWidth - 60, tt.clientX)); jcy = Math.max(60, Math.min(innerHeight - 60, tt.clientY)); joy.active = true; joy.x = joy.y = 0;   // 枠は画面からはみ出さない位置に
       stick.style.left = (jcx - 55) + 'px'; stick.style.top = (jcy - 55) + 'px'; stick.style.bottom = 'auto'; stick.classList.add('on');
     }
   } }, { passive: false });
