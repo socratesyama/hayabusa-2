@@ -183,7 +183,7 @@ export class Terrain {
     // 高さ地図の半径(m)を R16F に。シェーダの v=0.5+lat/π に合わせ、行を上下反転して詰める（hm の行0は北緯90°）。
     const w = hm.w, h = hm.h, arr = new Uint16Array(w * h), k = (RMAX - RMIN) / 65535;
     for (let y = 0; y < h; y++) { const src = (h - 1 - y) * w; for (let x = 0; x < w; x++) arr[y * w + x] = THREE.DataUtils.toHalfFloat(RMIN + hm.d[src + x] * k); }
-    const mk = (data: Uint16Array, tw: number, th: number, wrapS: THREE.Wrapping) => { const t = new THREE.DataTexture(data, tw, th, THREE.RedFormat, THREE.HalfFloatType);
+    const mk = (data: Uint16Array, tw: number, th: number, wrapS: THREE.Wrapping) => { const t = new THREE.DataTexture(data as unknown as BufferSource, tw, th, THREE.RedFormat, THREE.HalfFloatType);
       t.minFilter = t.magFilter = THREE.LinearFilter; t.wrapS = wrapS; t.wrapT = THREE.ClampToEdgeWrapping; t.generateMipmaps = false; t.needsUpdate = true; return t; };
     this.shade.hmap.value = mk(arr, w, h, THREE.RepeatWrapping);
     const tm = new Uint16Array(THERM_COLS * THERM_ROWS).fill(THREE.DataUtils.toHalfFloat(200));   // 温度表が来るまでの仮の値（thermOn=0 の間は使わない）
