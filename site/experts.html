@@ -6,7 +6,7 @@
 body{margin:0;background:#000;color:var(--paper);font:15px/1.7 "Noto Sans JP",system-ui,sans-serif;padding:48px 24px 96px}
 main{max-width:46em;margin:0 auto}h1{font:600 16px "IBM Plex Mono",monospace;color:var(--amber)}h2{font:600 14px "IBM Plex Mono",monospace;margin-top:2.4em;color:var(--amber)}
 table{border-collapse:collapse;width:100%;font-size:13px}td,th{border-bottom:1px solid #333;padding:.4em .6em;text-align:left;vertical-align:top}a{color:var(--amber)}code{font-family:"IBM Plex Mono",monospace;font-size:12px}
-li{margin:.35em 0}.u{color:#9a9a94;font-size:12px}ul.src{font-size:13px}
+li{margin:.35em 0}.u{color:#9a9a94;font-size:12px}ul.src{font-size:13px}h3{font:600 13px "IBM Plex Mono",monospace;margin-top:1.8em;color:#d8d8d2}
 </style></head><body><main>
 <h1>専門家の皆さんへ — 確からしさの開示</h1>
 <p>本サイトは JAXA/ISAS 非公式のファンサイトです。重要な値は画面上に根拠区分・基準面・モデル性を併記し、詳細な定義と限界をこのページに記します。表示ラベルのない数値も「不確実性なし」や「センサーの直接測定」を意味しません。<a href="./index.html">サイトへ戻る</a></p>
@@ -98,4 +98,73 @@ li{margin:.35em 0}.u{color:#9a9a94;font-size:12px}ul.src{font-size:13px}
 <li><a href="https://www.sciencedirect.com/science/article/pii/S0019103520305509" target="_blank" rel="noopener">Yoshimitsu et al. 2021, Icarus 368, 114592 (TM-A着地点の座標 φ=10.23, λ=300.89)</a>　<span class="u">用途: TM-A 目印</span></li>
 <li><a href="https://www.sciencedirect.com/science/article/pii/S0019103520305509" target="_blank" rel="noopener">Yoshimitsu et al. 2021, Icarus 368, 114592 (TM投下地点の座標 φ=4.04, λ=206.01)</a>　<span class="u">用途: TM-B 目印</span></li>
 </ul>
+<h2>7. 画像・データ・モデルの出典と利用条件（全体）</h2>
+<p>地形・出来事以外の画像、データ、モデルの出典を、カテゴリごとにまとめました。<code>12_site_data/provenance/source_registry.csv</code>（取得日つき）と <code>license_registry.json</code> が元で、ここに載せた条件は取得時点のものです。リポジトリに収録しているデータの一覧で、サイトが実行時に読み込むのはこのうちの一部です。利用条件が変わることがあるので、再利用するときは各リンク先の最新の規約を確認してください。</p>
+<h3>形状モデル</h3><table><tr><th>名称</th><th>提供</th><th>条件</th><th>クレジット表記</th></tr>
+<tr><td><a href="https://darts.isas.jaxa.jp/doi/hayabusa2/ryugu.dsk.html" target="_blank" rel="noopener">SPC形状モデル 200k面 v20200323 (DSK+OBJ)</a><br><span class="u">SRC001・取得 2026-11-04</span></td><td>JAXA/ISAS/DARTS</td><td>ISAS Data Policy / CC BY 4.0</td><td>Data: JAXA/ISAS/DARTS(神戸大 Watanabe et al. 2019)</td></tr>
+<tr><td><a href="https://darts.isas.jaxa.jp/" target="_blank" rel="noopener">SfM形状モデル 50k面 v20200815 (OBJ)</a><br><span class="u">SRC002・取得 2026-11-04</span></td><td>JAXA/ISAS/DARTS + 会津大・神戸大</td><td>ISAS Data Policy / CC BY 4.0</td><td>Data: JAXA/ISAS/DARTS(会津大・神戸大)</td></tr>
+<tr><td><a href="https://planetarium.jp/ryugu/" target="_blank" rel="noopener">プラネタリウム用Web 3Dモデル(SfM 200k他)</a><br><span class="u">SRC003・取得 2026-11-04</span></td><td>日本プラネタリウム協議会</td><td>CC BY</td><td>3Dデータ: 日本プラネタリウム協議会(JAXA/会津大/神戸大のデータに基づく)</td></tr>
+<tr><td><a href="https://data.darts.isas.jaxa.jp/pub/hayabusa2/shape/shape_en.html" target="_blank" rel="noopener">SPC形状モデル 49k面 v20200323 (Web OBJ・TD1運用半径用)</a><br><span class="u">SRC023・取得 2026-11-04</span></td><td>JAXA/ISAS/DARTS</td><td>ISAS Data Policy / CC BY 4.0</td><td>Data: JAXA/ISAS/DARTS(Watanabe et al. 2019)</td></tr>
+</table>
+<h3>点群</h3><table><tr><th>名称</th><th>提供</th><th>条件</th><th>クレジット表記</th></tr>
+<tr><td><a href="https://darts.isas.jaxa.jp/" target="_blank" rel="noopener">SfM点群(157万点)・LiDAR点群(39.6万点)</a><br><span class="u">SRC012・取得 2026-11-04</span></td><td>JAXA/ISAS/DARTS</td><td>ISAS Data Policy / CC BY 4.0</td><td>Data: JAXA/ISAS/DARTS(DOI: 10.17597/isas.darts/hyb2-00500)</td></tr>
+</table>
+<h3>画像（ONC・公式ギャラリー）</h3><table><tr><th>名称</th><th>提供</th><th>条件</th><th>クレジット表記</th></tr>
+<tr><td><a href="https://darts.isas.jaxa.jp/pub/hayabusa2/onc_bundle/" target="_blank" rel="noopener">ONC較正画像バンドル v03c(l2a/l2b/l2c + l2dbpc緯度経度)</a><br><span class="u">SRC004・取得 2026-11-04</span></td><td>JAXA/ISAS/DARTS</td><td>ISAS Data Policy / CC BY 4.0</td><td>Data: JAXA/ISAS/DARTS(はやぶさ2 ONCチーム)</td></tr>
+<tr><td><a href="https://www.hayabusa2.jaxa.jp/en/galleries/onc/" target="_blank" rel="noopener">公式ギャラリー画像783枚</a><br><span class="u">SRC005・取得 2026-11-04</span></td><td>JAXA</td><td>JAXAサイトポリシー(教育・個人は可/商用は許諾)</td><td>(c) JAXA</td></tr>
+</table>
+<h3>地図・アルベド・熱慣性</h3><table><tr><th>名称</th><th>提供</th><th>条件</th><th>クレジット表記</th></tr>
+<tr><td><a href="https://darts.isas.jaxa.jp/" target="_blank" rel="noopener">全球ベースマップ・アルベド・熱慣性地図(v06)</a><br><span class="u">SRC007・取得 2026-11-04</span></td><td>JAXA/ISAS/DARTS</td><td>ISAS Data Policy / CC BY 4.0</td><td>Data: JAXA/ISAS/DARTS(ONC・TIRチーム)</td></tr>
+</table>
+<h3>MASCOT（MASCAM画像・MARA・MAG）</h3><table><tr><th>名称</th><th>提供</th><th>条件</th><th>クレジット表記</th></tr>
+<tr><td><a href="https://darts.isas.jaxa.jp/" target="_blank" rel="noopener">MASCOT搭載機器データ(MASCAM/MARA/MAG較正済み)</a><br><span class="u">SRC009・取得 2026-11-04</span></td><td>DLR/CNES/JAXA</td><td>ISAS Data Policy / CC BY 4.0</td><td>Data: DLR CNES JAXA</td></tr>
+</table>
+<h3>帰還試料</h3><table><tr><th>名称</th><th>提供</th><th>条件</th><th>クレジット表記</th></tr>
+<tr><td><a href="https://darts.isas.jaxa.jp/datasets/curation-ryugu-samples" target="_blank" rel="noopener">リュウグウ試料キュレーションデータ(顕微鏡・FTIR・MicrOmega)</a><br><span class="u">SRC008・取得 2026-11-04</span></td><td>JAXA/ISAS/DARTS</td><td>ISAS Data Policy / CC BY 4.0</td><td>Data: JAXA/ISAS/DARTS(地球外試料キュレーションセンター)</td></tr>
+</table>
+<h3>軌道・姿勢（SPICE）</h3><table><tr><th>名称</th><th>提供</th><th>条件</th><th>クレジット表記</th></tr>
+<tr><td><a href="https://darts.isas.jaxa.jp/datasets/hyb2_spice_v001" target="_blank" rel="noopener">SPICEカーネル一式(hyb2_spice_v001)</a><br><span class="u">SRC006・取得 2026-11-04</span></td><td>JAXA/ISAS/DARTS</td><td>ISAS Data Policy / CC BY 4.0</td><td>Data: JAXA/ISAS/DARTS(DOI: 10.17597/isas.darts/hyb2-00600)</td></tr>
+</table>
+<h3>座標（論文）</h3><table><tr><th>名称</th><th>提供</th><th>条件</th><th>クレジット表記</th></tr>
+<tr><td><a href="https://doi.org/10.2183/pjab.98.015" target="_blank" rel="noopener">TD1/TD2/SCI座標</a><br><span class="u">SRC014・取得 2026-11-06</span></td><td>Nakamura et al. 2022 / Arakawa et al. 2020</td><td>論文(CC BY)・出典明記</td><td>doi:10.2183/pjab.98.015 / doi:10.1126/science.aaz1701</td></tr>
+<tr><td><a href="https://www.aanda.org/articles/aa/full_html/2019/12/aa36757-19/aa36757-19.html" target="_blank" rel="noopener">MASCOT着陸・バウンド経路の座標</a><br><span class="u">SRC015・取得 2026-11-06</span></td><td>Scholten et al. 2019 A&amp;A 632 A67(CC BY 4.0)</td><td>CC BY 4.0・出典明記</td><td>doi:10.1051/0004-6361/201936757</td></tr>
+<tr><td><a href="https://www.sciencedirect.com/science/article/pii/S0019103520305509" target="_blank" rel="noopener">ターゲットマーカ投下地点座標</a><br><span class="u">SRC016・取得 2026-11-06</span></td><td>Yoshimitsu et al. 2021 Icarus 368 114592</td><td>論文・出典明記</td><td>doi:10.1016/j.icarus.2020.114592</td></tr>
+</table>
+<h3>出来事の時刻</h3><table><tr><th>名称</th><th>提供</th><th>条件</th><th>クレジット表記</th></tr>
+<tr><td><a href="https://www.hayabusa2.jaxa.jp/en/enjoy/material/press/Hayabusa2_Press20190305_ver9_en.pdf" target="_blank" rel="noopener">タッチダウン・SCI起爆の時刻・精度</a><br><span class="u">SRC017・取得 2026-11-06</span></td><td>JAXA記者説明会資料・ISASトピックス</td><td>出典明記</td><td>出典: JAXA/ISAS</td></tr>
+</table>
+<h3>地名</h3><table><tr><th>名称</th><th>提供</th><th>条件</th><th>クレジット表記</th></tr>
+<tr><td><a href="https://planetarynames.wr.usgs.gov/Page/Ryugu/target" target="_blank" rel="noopener">リュウグウ地名(IAU承認13地形)</a><br><span class="u">SRC011・取得 2026-11-04</span></td><td>USGS Astrogeology / IAU</td><td>パブリックドメイン(米国政府作品)</td><td>Source: USGS Astrogeology</td></tr>
+</table>
+<h3>年表・解説</h3><table><tr><th>名称</th><th>提供</th><th>条件</th><th>クレジット表記</th></tr>
+<tr><td><a href="https://www.hayabusa2.jaxa.jp/en/news/schedule/" target="_blank" rel="noopener">ミッション年表・探査機概要・リュウグウ解説</a><br><span class="u">SRC010・取得 2026-11-04</span></td><td>JAXA/ISAS</td><td>出典明記(非公式利用は明記)</td><td>出典: JAXA/ISAS</td></tr>
+</table>
+<h3>教育コンテンツの元事実</h3><table><tr><th>名称</th><th>提供</th><th>条件</th><th>クレジット表記</th></tr>
+<tr><td><a href="https://curation.isas.jaxa.jp/research/hayabusa2/" target="_blank" rel="noopener">クイズ・ミッション・誤解訂正の元事実</a><br><span class="u">SRC018・取得 2026-11-06</span></td><td>Science/Nature Astronomy論文・JAXA・ISAS・DLR公開資料</td><td>出典明記</td><td>各JSON内に個別記載</td></tr>
+</table>
+<h3>探査機モデル</h3><table><tr><th>名称</th><th>提供</th><th>条件</th><th>クレジット表記</th></tr>
+<tr><td><a href="https://www.jaxa.jp/projects/sas/hayabusa2/" target="_blank" rel="noopener">はやぶさ2本体3Dモデル(GLB/OBJ/STL)</a><br><span class="u">SRC013・取得 2026-11-04</span></td><td>socratesyama(JAXA公開資料に基づく非公式簡易モデル)</td><td>MIT(11_spacecraft_model/LICENSEに明記)</td><td>非公式モデル(JAXAの設計データではない。JAXA公開資料の寸法に基づく)</td></tr>
+</table>
+<h3>このサイトが生成したデータ</h3><table><tr><th>名称</th><th>提供</th><th>条件</th><th>クレジット表記</th></tr>
+<tr><td><a href="https://darts.isas.jaxa.jp/" target="_blank" rel="noopener">クアッドツリータイル(全球地図から生成)</a><br><span class="u">SRC019・取得 2026-11-06</span></td><td>socratesyama(SRC001/SRC007から生成)</td><td>元データのライセンスを継承(CC BY 4.0)</td><td>元データの出典を表示</td></tr>
+<tr><td><a href="https://darts.isas.jaxa.jp/" target="_blank" rel="noopener">リュウグウ標高マップ・法線マップ(SRC001から生成)</a><br><span class="u">SRC020・取得 2026-11-06</span></td><td>socratesyama(SRC001から生成)</td><td>元データのライセンスを継承(CC BY 4.0)</td><td>元データの出典を表示</td></tr>
+<tr><td><a href="https://darts.isas.jaxa.jp/" target="_blank" rel="noopener">LOD・当たり判定用簡易メッシュ(SRC001から生成)</a><br><span class="u">SRC021・取得 2026-11-06</span></td><td>socratesyama(SRC001から生成)</td><td>元データのライセンスを継承(CC BY 4.0)</td><td>元データの出典を表示</td></tr>
+<tr><td><a href="https://darts.isas.jaxa.jp/datasets/darts:hyb2-00600/" target="_blank" rel="noopener">TD1降下位置再構成テーブル(SRC006/SRC014/SRC017/SRC023を入力)</a><br><span class="u">SRC022・取得 2026-11-08</span></td><td>socratesyama (build_td1_descent_table.py)</td><td>元データのライセンスを継承・出典明記</td><td>生成物は公開データの再構成でありSPICE直接値のみではない</td></tr>
+</table>
+<h3>画像について</h3>
+<ul>
+<li><b>地表の色（タイル）</b>：全球ベースマップ（JAXA/ISAS/DARTS、ONC・TIRチーム）から、<b>このサイトが生成</b>したタイルです（元のデータの条件を引き継ぎます）。標高・法線の地図も、SPC形状モデルから生成しています。</li>
+<li><b>データ書庫のONC運用画像</b>：JAXA/ISAS/DARTS のONC較正画像（ONCチーム）。緯度経度の対応づけは l2dbpc と運用日単位の対応によります。</li>
+<li><b>公式ギャラリー画像（783枚）</b>：JAXA公式ギャラリーの画像。JAXAサイトポリシーの範囲（個人・教育・研究目的は原則可、商用は許諾が必要）で表示します。画像クレジットは「(c) JAXA」と、撮影した大学・機関（東京大、高知大、立教大、名古屋大、千葉工大、明治大、会津大、産総研）です。</li>
+<li><b>MASCAM画像</b>（67枚）・MARA・MAG：DLR/CNES/JAXA。データ書庫では平面表示で、3D再投影はしていません。</li>
+<li><b>帰還試料のデータ</b>（顕微鏡・赤外分光など）：JAXA地球外試料キュレーションセンターのデータ（DARTS）。</li>
+<li><b>読み込み画面・ファビコンのシルエット</b>：SPC形状モデル（49k面, Watanabe et al. 2019）を赤道方向から見た輪郭を、このサイトが抽出したもの。</li>
+<li><b>はやぶさ2本体の3Dモデル</b>：非公式の簡易モデルです。JAXAの設計データではなく、公開資料の寸法に基づいています。</li>
+</ul>
+<h3>ソフトウェア・フォント</h3>
+<ul>
+<li>three.js（MITライセンス）。</li>
+<li>フォント: Share Tech Mono、Fira Code、Noto Sans JP（いずれもSIL Open Font License 1.1。Google Fontsから配信）。</li>
+</ul>
+<p>本サイトは JAXA/ISAS の公式サイトではありません。「公式」を名乗らず、クレジットの表記と利用条件を守ることを前提にしています。</p>
 </main></body></html>
